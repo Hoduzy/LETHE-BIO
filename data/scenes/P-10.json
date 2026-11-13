@@ -1,0 +1,63 @@
+{
+  "id": "P-10",
+  "title": "시뮬레이션 공간 / 튜토리얼 던전",
+  "heading": "#P-10 시뮬레이션 공간",
+  "startColor": "white",
+  "startBlack": true,
+  "parryHint": {"title": "[튜토리얼: 패링]", "lines": ["인형이 빨개진 뒤 팔을 휘두르는 순간 C / 패링"]},
+  "stage": {
+    "bg": "bg_sim",
+    "width": 1120,
+    "floorY": 180,
+    "bgColor": "#000000",
+    "ambience": [],
+    "abilities": ["move", "jump", "dash", "attack", "parry"],
+    "player": {"x": 40, "facing": 1},
+    "floors": [[0, 560], [650, 1120]],
+    "respawn": [40, 520],
+    "backdrop": [
+      {"rect": [0, 0, 1120, 180], "color": "#f6f7f8"},
+      {"rect": [0, 180, 560, 90], "color": "#eef0f2"},
+      {"rect": [650, 180, 470, 90], "color": "#eef0f2"},
+      {"rect": [560, 180, 90, 90], "color": "#ffffff"},
+      {"rect": [140, 150, 24, 30], "color": "#e2e4e6"},
+      {"rect": [880, 140, 30, 40], "color": "#e2e4e6"}
+    ],
+    "effects": [
+      {"name": "grid", "color": "#dfe3e7"}
+    ],
+    "solids": [
+      {"sprite": "sim_box", "x": 300},
+      {"sprite": "sim_box", "x": 430}
+    ],
+    "props": [
+      {"id": "pedestal", "sprite": "pedestal", "x": 1060},
+      {"id": "crystal", "sprite": "crystal_gray", "x": 1060, "y": 162}
+    ],
+    "actors": []
+  },
+  "steps": [
+    {"type": "wait", "ms": 600},
+    {"type": "fade", "to": "none", "ms": 2400},
+    {"type": "narration", "text": "아무것도 없는 하얀 공간. 바닥에 격자무늬. 멀리 회색 상자들."},
+    {"type": "narration", "text": "도윤의 손에 금속 막대가 쥐어져 있다."},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "손에 있는 게 리퍼예요. 결정을 떼어 내는 도구고, 전투에도 써요."},
+    {"type": "goal", "reach": 700, "tutorial": {"title": "[튜토리얼: 이동, 점프, 대시]", "lines": ["←→ 이동", "↑ 점프", "X / 대시 (공중에서도)"]}},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "기억 공간에는 가끔 '공백'이 있어요. 지워진 기억 자리에 생기는 그림자예요. 해롭진 않은데 길을 막아요."},
+    {"type": "spawn", "enemies": [{"kind": "void", "x": 790}, {"kind": "void", "x": 840}]},
+    {"type": "narration", "text": "바닥에서 검은 얼룩이 스며 나온다. 작고 느리다. 형태가 없다."},
+    {"type": "clear", "tutorial": {"title": "[튜토리얼: 공격 3연타]", "lines": ["Z / 공격 — 세 번 이어서 휘두르기"]}},
+    {"type": "spawn", "enemies": [{"kind": "mannequin", "x": 930}]},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "잘하시네요. 이건 '잔상'이에요. 기억 속 사람들이죠. 진짜 공간에선 대부분 공격하지 않아요. 가끔 하는 경우도 있는데, 그건 나중에 배우실 거예요."},
+    {"type": "narration", "text": "마네킹 같은 회색 인형이 서 있다. 얼굴이 없다. 손을 휘두른다."},
+    {"type": "clear", "tutorial": {"title": "[튜토리얼: 패링]", "lines": ["인형이 휘두르는 타이밍에 맞춰 C / 패링"]}},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "마지막이에요. 결정 수확."},
+    {"type": "narration", "text": "공간 끝에 작은 받침대. 그 위에 회색 결정. 빛이 없다."},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "결정 앞에서 버튼을 길게 누르세요. 손을 떼면 다시 처음부터니까 끝까지 누르세요."},
+    {"type": "harvest", "target": "crystal", "duration": 2000, "decay": 0.35, "after": 1800, "tutorial": {"title": "[튜토리얼: 수확 — 2초 길게 누르기]", "lines": ["결정 앞에서 Space / 상호작용 길게", "또는 화면 길게 누르기"]}},
+    {"type": "narration", "text": "결정이 손에 들어온다. 아무 일도 일어나지 않는다. 회색 결정은 그냥 회색이다."},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "잘하셨어요. 진짜 결정은 이것보다 훨씬 예뻐요. 손에 쥐면 따뜻하고요."},
+    {"type": "say", "speaker": "교육 직원(목소리)", "text": "그리고 결정을 수확하면 공간이 무너지면서 자동으로 나오게 돼요. 놀라지 마세요."},
+    {"type": "collapse", "rowDelay": 170, "hold": 1800}
+  ]
+}

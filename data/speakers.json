@@ -1,0 +1,18 @@
+{
+  "_설명": "대본의 화자 이름 → 목소리(voices.json 키), 이름 색, 대사 스타일. 없는 이름은 default 목소리.",
+  "도윤":               { "voice": "doyun",     "color": "#8fb8ff" },
+  "도윤(속마음)":        { "voice": "doyun",     "color": "#8fb8ff", "style": "thought" },
+  "어머니":             { "voice": "mother",    "color": "#f0b9a0" },
+  "민규":               { "voice": "minkyu",    "color": "#8fe0a0" },
+  "윤 실장":            { "voice": "yoon",      "color": "#e8ecf0" },
+  "재희":               { "voice": "jaehee",    "color": "#d8b890" },
+  "목소리(추심원)":      { "voice": "collector", "color": "#b0a0a0" },
+  "추심원":             { "voice": "collector", "color": "#b0a0a0" },
+  "교육 직원":           { "voice": "system",    "color": "#9fe0dc" },
+  "교육 직원(목소리만)":  { "voice": "system",    "color": "#9fe0dc" },
+  "교육 직원(목소리)":    { "voice": "system",    "color": "#9fe0dc" },
+  "반장":               { "voice": "default",   "color": "#f0c870" },
+  "안내원":             { "voice": "default",   "color": "#b0c8e0" },
+  "여자":               { "voice": "default",   "color": "#e0b0d8" },
+  "남자":               { "voice": "default",   "color": "#b0b8d0" }
+}

@@ -1,0 +1,67 @@
+{
+  "id": "P-14",
+  "title": "반지하 / 새벽 (프롤로그 마지막)",
+  "heading": "#P-14 반지하 / 새벽",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_banjiha",
+    "width": 480,
+    "floorY": 180,
+    "bgColor": "#000000",
+    "ambience": ["rain", "drip"],
+    "abilities": ["move"],
+    "player": {"x": 128, "facing": 1, "lying": true},
+    "tint": {"color": "#0a1030", "alpha": 0.4},
+    "backdrop": [
+      {"rect": [0, 0, 480, 180], "color": "#2e2e36"},
+      {"vlines": [0, 30, 150, 24, 21], "color": "#34343d"},
+      {"rect": [0, 0, 480, 30], "color": "#1f1f25"},
+      {"line": [0, 30, 480, 30], "color": "#3c3c44"},
+      {"rect": [196, 30, 34, 5], "color": "#3d3b2c", "alpha": 0.8},
+      {"rect": [260, 30, 60, 14], "color": "#33322a", "alpha": 0.5},
+      {"rect": [6, 80, 18, 40], "color": "#26262c", "alpha": 0.7},
+      {"rect": [170, 36, 90, 26], "color": "#0f131a"},
+      {"frame": [168, 34, 94, 30], "color": "#5a5a62"},
+      {"line": [215, 34, 215, 64], "color": "#5a5a62"},
+      {"rect": [0, 180, 480, 90], "color": "#1b1a1f"},
+      {"line": [0, 180, 480, 180], "color": "#4a4950"},
+      {"rect": [0, 174, 480, 6], "color": "#26252b"}
+    ],
+    "effects": [
+      {"name": "rainWindow", "x": 170, "y": 36, "w": 90, "h": 26},
+      {"name": "drip", "x": 212, "top": 33}
+    ],
+    "props": [
+      {"id": "futon", "sprite": "futon", "x": 128},
+      {"id": "bucket", "sprite": "bucket", "x": 212},
+      {"id": "curtain", "sprite": "curtain", "x": 58, "alpha": 0.92, "depth": 22},
+      {"id": "fridge", "sprite": "fridge", "x": 298},
+      {"id": "calendar", "sprite": "calendar", "x": 340, "y": 110},
+      {"id": "desk", "sprite": "desk", "x": 392},
+      {"id": "envelopes", "sprite": "envelopes", "x": 392, "y": 162},
+      {"id": "door", "sprite": "door", "x": 458},
+      {"id": "stove", "sprite": "stove", "x": 258},
+      {"id": "pot", "sprite": "pot", "x": 258, "y": 168},
+      {"id": "low_table", "sprite": "low_table", "x": 160}
+    ],
+    "actors": [
+      {"id": "mother", "sprite": "mother", "x": 40, "lying": true, "lift": 3}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 1800},
+    {"type": "fade", "to": "none", "ms": 2600},
+    {"type": "narration", "text": "모두 잠든 시간. 빗소리. 양동이에 물방울이 떨어진다."},
+    {"type": "narration", "text": "도윤이 눈을 뜨고 천장을 본다."},
+    {"type": "thought", "speaker": "도윤(속마음)", "text": "들어가서, 줍고, 나오면 된다."},
+    {"type": "wait", "ms": 2400},
+    {"type": "thought", "speaker": "도윤(속마음)", "text": "들어가서, 줍고, 나오면 된다."},
+    {"type": "wait", "ms": 2400},
+    {"type": "thought", "speaker": "도윤(속마음)", "text": "…그 사람은 지금 무슨 꿈을 꾸고 있을까."},
+    {"type": "wait", "ms": 1200},
+    {"type": "fade", "to": "black", "ms": 2200},
+    {"type": "ambience", "set": []},
+    {"type": "wait", "ms": 1800},
+    {"type": "title", "title": "결정", "subtitle": "結晶 · 決定", "hold": 5200, "footer": ["프롤로그 종료", "다음: 1장 「저녁 식탁」"], "endChapter": true}
+  ]
+}

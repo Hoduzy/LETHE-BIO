@@ -1,0 +1,85 @@
+{
+  "id": "P-1",
+  "title": "반지하 방 / 새벽 4시",
+  "heading": "#P-1 반지하 방 / 새벽 4시",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_banjiha",
+    "width": 480,
+    "floorY": 180,
+    "bgColor": "#000000",
+    "ambience": ["rain", "drip"],
+    "abilities": ["move"],
+    "player": { "x": 128, "facing": 1, "lying": true },
+    "tint": { "color": "#0a1030", "alpha": 0.22 },
+    "backdrop": [
+      { "rect": [0, 0, 480, 180], "color": "#2e2e36" },
+      { "vlines": [0, 30, 150, 24, 21], "color": "#34343d" },
+      { "rect": [0, 0, 480, 30], "color": "#1f1f25" },
+      { "line": [0, 30, 480, 30], "color": "#3c3c44" },
+      { "rect": [196, 30, 34, 5], "color": "#3d3b2c", "alpha": 0.8 },
+      { "rect": [260, 30, 60, 14], "color": "#33322a", "alpha": 0.5 },
+      { "rect": [6, 80, 18, 40], "color": "#26262c", "alpha": 0.7 },
+      { "rect": [170, 36, 90, 26], "color": "#0f131a" },
+      { "frame": [168, 34, 94, 30], "color": "#5a5a62" },
+      { "line": [215, 34, 215, 64], "color": "#5a5a62" },
+      { "rect": [0, 180, 480, 90], "color": "#1b1a1f" },
+      { "line": [0, 180, 480, 180], "color": "#4a4950" },
+      { "rect": [0, 174, 480, 6], "color": "#26252b" }
+    ],
+    "effects": [
+      { "name": "feet", "x": 170, "y": 36, "w": 90, "h": 26 },
+      { "name": "rainWindow", "x": 170, "y": 36, "w": 90, "h": 26 },
+      { "name": "drip", "x": 212, "top": 33 }
+    ],
+    "props": [
+      { "id": "futon", "sprite": "futon", "x": 128 },
+      { "id": "bucket", "sprite": "bucket", "x": 212, "label": "양동이",
+        "interact": { "steps": [
+          { "type": "narration", "text": "도윤이 일어나 양동이의 물을 화장실에 비우고 다시 제자리에 놓는다. 익숙한 동작이다." }
+        ] } },
+      { "id": "curtain", "sprite": "curtain", "x": 58, "alpha": 0.92, "depth": 22 },
+      { "id": "fridge", "sprite": "fridge", "x": 298, "label": "냉장고",
+        "examine": { "lines": [
+          "김치, 계란 두 개, 어제 편의점에서 가져온 폐기 삼각김밥.",
+          "계란은 엄마 거."
+        ] } },
+      { "id": "calendar", "sprite": "calendar", "x": 340, "y": 110, "label": "벽에 붙은 달력",
+        "examine": { "lines": [
+          "월·수·금에 빨간 동그라미. 투석하는 날.",
+          "25일에는 검은 동그라미. 이자 내는 날.",
+          "오늘은 23일이다."
+        ] } },
+      { "id": "desk", "sprite": "desk", "x": 392 },
+      { "id": "envelopes", "sprite": "envelopes", "x": 392, "y": 162, "label": "책상 위 봉투 더미",
+        "examine": { "lines": [
+          "독촉장. 독촉장. 최고장. 독촉장.",
+          "맨 위 봉투는 아직 뜯지 않았다. 뜯지 않아도 뭐라고 적혀 있는지 안다."
+        ] } },
+      { "id": "door", "sprite": "door", "x": 458, "label": "현관문", "interact": { "steps": [] } }
+    ],
+    "actors": [
+      { "id": "mother", "sprite": "mother", "x": 40, "lying": true, "lift": 3, "speaker": "어머니", "label": "어머니", "range": 30,
+        "examine": { "lines": [
+          "엄마가 자고 있다. 어제 투석하고 와서 밤새 다리가 저리다고 했다.",
+          "깨우지 말자."
+        ] } }
+    ]
+  },
+  "steps": [
+    { "type": "wait", "ms": 2800 },
+    { "type": "fade", "to": "none", "ms": 2600 },
+    { "type": "narration", "text": "천천히 밝아지면, 반지하 방. 천장에서 물이 새고, 그 아래에 플라스틱 양동이. 양동이는 반쯤 차 있다." },
+    { "type": "narration", "text": "창문은 길바닥 높이에 있다. 지나가는 사람들의 발만 보인다." },
+    { "type": "narration", "text": "도윤이 얇은 이불 속에서 눈을 뜬다. 알람이 울리기 1분 전이다." },
+    { "type": "wait", "ms": 500 },
+    { "type": "player", "action": "stand" },
+    { "type": "explore", "only": ["bucket"], "require": ["bucket"],
+      "tutorial": { "title": "[조작 튜토리얼: 이동]", "lines": ["←→ / 왼쪽 패드: 이동", "Space / 상호작용: 살펴보기"] } },
+    { "type": "narration", "text": "작은 방 안쪽, 칸막이 커튼 너머에서 어머니가 자고 있다. 숨소리가 얕고 거칠다." },
+    { "type": "explore", "exit": "door" },
+    { "type": "narration", "text": "도윤이 폐기 삼각김밥을 하나 집어 주머니에 넣고, 조용히 문을 연다." },
+    { "type": "sfx", "name": "door" },
+    { "type": "fade", "to": "black", "ms": 1200 }
+  ]
+}

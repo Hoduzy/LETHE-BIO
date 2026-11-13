@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<title>결정</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game"></div>
+
+<!-- 아이패드 터치 조작: 왼쪽 가상 패드, 오른쪽 버튼 -->
+<div id="touch" class="hidden" aria-hidden="true">
+  <div class="pad"><div class="pad-ring"></div><div class="knob"></div></div>
+  <div class="btns">
+    <div class="tbtn b-parry" data-act="parry">패링</div>
+    <div class="tbtn b-interact" data-act="interact">상호<br>작용</div>
+    <div class="tbtn b-attack" data-act="attack">공격</div>
+    <div class="tbtn b-dash" data-act="dash">대시</div>
+  </div>
+  <div class="tbtn b-menu" data-act="menu">⚙</div>
+</div>
+
+<div id="boot-msg">불러오는 중…</div>
+
+<script src="lib/phaser.min.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "id": "P-6",
+  "title": "레테 바이오 본사 / 로비",
+  "heading": "#P-6 레테 바이오 본사 / 로비",
+  "stage": {
+    "bg": "bg_lobby",
+    "width": 640,
+    "floorY": 180,
+    "bgColor": "#000000",
+    "ambience": ["hum"],
+    "abilities": ["move"],
+    "player": {"x": 30, "facing": 1},
+    "backdrop": [
+      {"rect": [0, 0, 640, 180], "color": "#f3f5f7"},
+      {"vlines": [0, 0, 180, 80, 9], "color": "#e6e9ec"},
+      {"rect": [36, 14, 308, 118], "color": "#d7dce1"},
+      {"rect": [0, 180, 640, 90], "color": "#e9ecef"},
+      {"line": [0, 180, 640, 180], "color": "#cfd4d9"},
+      {"rect": [0, 182, 640, 2], "color": "#ffffff"},
+      {"text": "모든 기억은 소중합니다.", "x": 190, "y": 140, "color": "#9aa2ac", "origin": [0.5, 0]},
+      {"text": "그래서 우리는 그것을 나눕니다.", "x": 190, "y": 156, "color": "#9aa2ac", "origin": [0.5, 0]}
+    ],
+    "effects": [
+      {"name": "lobbyScreen", "x": 40, "y": 18, "w": 300, "h": 110}
+    ],
+    "props": [
+      {"id": "screen", "sprite": "px", "x": 190, "y": 128, "alpha": 0, "label": "로비 화면", "range": 60, "examine": {"lines": ["다 남의 기억이겠지.", "이 사람들은 지금 어디 있을까."]}},
+      {"id": "desk", "sprite": "reception", "x": 470, "label": "안내 데스크", "range": 34, "examine": {"steps": [{"type": "say", "speaker": "안내원", "text": "면접 보러 오셨어요? 서도윤 님 맞으시죠? 7층으로 올라가세요. 실장님이 기다리세요."}]}},
+      {"id": "elevator", "sprite": "elevator", "x": 600, "label": "엘리베이터", "interact": {"steps": []}}
+    ],
+    "actors": [
+      {"id": "receptionist", "sprite": "receptionist", "x": 480, "speaker": "안내원", "flip": true, "depth": 5}
+    ]
+  },
+  "steps": [
+    {"type": "narration", "text": "하얀 건물. 너무 깨끗해서 발소리가 울린다."},
+    {"type": "narration", "text": "로비 벽 전체가 화면이다. 웃는 가족들, 노을, 바다, 아기의 손. 영상이 천천히 바뀐다."},
+    {"type": "narration", "text": "그 아래 글씨."},
+    {"type": "card", "style": "lobby", "lines": [{"t": "모든 기억은 소중합니다.", "size": 16}, {"t": "그래서 우리는 그것을 나눕니다.", "size": 16}]},
+    {"type": "explore", "exit": "elevator", "require": ["desk"]},
+    {"type": "sfx", "name": "elevator"},
+    {"type": "player", "action": "hide"},
+    {"type": "narration", "text": "엘리베이터. 거울에 비친 도윤. 다 늘어난 셔츠. 그나마 제일 나은 옷이다."},
+    {"type": "fade", "to": "black", "ms": 1000}
+  ]
+}

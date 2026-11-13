@@ -1,0 +1,52 @@
+{
+  "id": "P-9",
+  "title": "교육실 / 시뮬레이션 다이브",
+  "heading": "#P-9 교육실 / 시뮬레이션 다이브",
+  "stage": {
+    "bg": "bg_capsule",
+    "width": 480,
+    "floorY": 180,
+    "bgColor": "#000000",
+    "ambience": ["hum"],
+    "abilities": ["move"],
+    "player": {"x": 40, "facing": 1},
+    "backdrop": [
+      {"rect": [0, 0, 480, 180], "color": "#e9edf0"},
+      {"rect": [0, 0, 480, 16], "color": "#d9dee3"},
+      {"vlines": [0, 16, 164, 96, 6], "color": "#dde2e6"},
+      {"rect": [0, 180, 480, 90], "color": "#cfd5da"},
+      {"line": [0, 180, 480, 180], "color": "#aab2ba"},
+      {"text": "DIVE-01", "x": 90, "y": 132, "color": "#9aa3ad", "origin": [0.5, 0]},
+      {"text": "DIVE-02", "x": 190, "y": 132, "color": "#9aa3ad", "origin": [0.5, 0]},
+      {"text": "DIVE-03", "x": 290, "y": 132, "color": "#9aa3ad", "origin": [0.5, 0]},
+      {"text": "DIVE-04", "x": 390, "y": 132, "color": "#9aa3ad", "origin": [0.5, 0]}
+    ],
+    "props": [
+      {"id": "cap1", "sprite": "capsule", "x": 90},
+      {"id": "cap2", "sprite": "capsule", "x": 190},
+      {"id": "cap3", "sprite": "capsule", "x": 290},
+      {"id": "cap4", "sprite": "capsule", "x": 390},
+      {"id": "monitor", "sprite": "monitor", "x": 236, "y": 150}
+    ],
+    "actors": [
+      {"id": "instructor", "sprite": "instructor", "x": 230, "speaker": "교육 직원", "flip": true},
+      {"id": "jaehee", "sprite": "jaehee", "x": 290, "lying": true, "lift": 18, "visible": false}
+    ]
+  },
+  "steps": [
+    {"type": "narration", "text": "다이브 캡슐이 줄지어 있는 방. 하얀 관 같다. 캡슐마다 이름표."},
+    {"type": "player", "action": "move", "x": 170, "face": 1},
+    {"type": "narration", "text": "교육 담당 직원이 태블릿을 들고 있다."},
+    {"type": "say", "speaker": "교육 직원", "text": "첫날은 시뮬레이션이에요. 진짜 대상자 아니고, 회사가 만든 가상 기억 공간이에요. 위험한 거 없어요."},
+    {"type": "say", "speaker": "교육 직원", "text": "캡슐에 누우시면 신경 링크가 연결돼요. 잠드는 것처럼 느껴질 거예요. 무서우면 눈 감고 숫자 세세요."},
+    {"type": "player", "action": "move", "x": 190, "face": 1},
+    {"type": "player", "action": "hide"},
+    {"type": "sfx", "name": "thud"},
+    {"type": "narration", "text": "도윤이 캡슐에 눕는다. 뚜껑이 닫힌다. 숨소리가 크게 들린다."},
+    {"type": "ambience", "set": []},
+    {"type": "sfx", "name": "breath", "wait": 2600},
+    {"type": "say", "speaker": "교육 직원(목소리만)", "text": "하나, 둘, 셋…"},
+    {"type": "fade", "to": "white", "ms": 2600},
+    {"type": "wait", "ms": 800}
+  ]
+}
