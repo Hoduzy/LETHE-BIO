@@ -7,12 +7,19 @@
 //  - title: 마지막 타이틀
 
 import { Audio } from '../core/audio.js';
+import { G } from '../core/state.js';
+import { objTexture } from '../core/sprites.js';
 import { W, H, DEPTH, txt, panel } from '../core/gfx.js';
 
 export class Panels {
   constructor(scene) {
     this.scene = scene;
     this.groups = {};
+  }
+
+  // 대화창을 아래로 내려야 하는 패널이 떠 있는가
+  anyVisible() {
+    return ['card', 'settle', 'profile', 'item'].some((k) => this.groups[k] && this.groups[k].length);
   }
 
   clearGroup(name) {
@@ -31,12 +38,14 @@ export class Panels {
   // ---------------- 튜토리얼 배너 ----------------
   banner(title, lines) {
     this.clearGroup('banner');
+    // 바닥 아래 띠 (y 216~270) 에 표시 — 위쪽 대화창과 겹치지 않게
     const body = (lines || []).join('   ');
-    const t1 = txt(this.scene, W / 2, 9, title, { color: '#f0dc8c', origin: [0.5, 0], depth: DEPTH.banner + 1 });
-    const t2 = body ? txt(this.scene, W / 2, 25, body, { color: '#e8e8e8', origin: [0.5, 0], depth: DEPTH.banner + 1 }) : null;
-    const wdt = Math.max(t1.width, t2 ? t2.width : 0) + 20;
-    const h = t2 ? 40 : 20;
-    const bg = panel(this.scene, Math.round(W / 2 - wdt / 2), 4, Math.round(wdt), h, { depth: DEPTH.banner, border: 0xb8a35a, alpha: 0.85 });
+    const h = body ? 40 : 22;
+    const top = 268 - h;
+    const t1 = txt(this.scene, W / 2, top + 4, title, { color: '#f0dc8c', origin: [0.5, 0], depth: DEPTH.banner + 1 });
+    const t2 = body ? txt(this.scene, W / 2, top + 21, body, { color: '#e8e8e8', origin: [0.5, 0], depth: DEPTH.banner + 1 }) : null;
+    const wdt = Math.min(W - 4, Math.max(t1.width, t2 ? t2.width : 0) + 20);
+    const bg = panel(this.scene, Math.round(W / 2 - wdt / 2), top, Math.round(wdt), h, { depth: DEPTH.banner, border: 0xb8a35a, alpha: 0.85 });
     this.addTo('banner', bg);
     this.addTo('banner', t1);
     if (t2) this.addTo('banner', t2);
@@ -206,14 +215,16 @@ export class Panels {
   }
 
   // ---------------- 물건 클로즈업 ----------------
-  item({ sprite, scale = 4 }) {
+  item({ obj, sprite, scale = 3 }) {
     this.clearGroup('item');
     const dim = this.scene.add.rectangle(0, 0, W, H, 0x000000, 0.35).setOrigin(0).setDepth(DEPTH.panel);
     this.addTo('item', dim);
-    const im = this.scene.add.image(W / 2, 92, sprite).setScale(scale).setDepth(DEPTH.panel + 2);
+    const t = obj ? objTexture(obj) : { key: sprite, frame: undefined };
+    const im = this.scene.add.sprite(W / 2, 100, t.key, t.frame).setScale(scale).setDepth(DEPTH.panel + 2);
+    if (t.anim && t.real) im.play(t.anim);
     this.addTo('item', im);
-    this.scene.tweens.add({ targets: im, y: 88, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-    this.scene.tweens.add({ targets: im, alpha: { from: 0.85, to: 1 }, duration: 700, yoyo: true, repeat: -1 });
+    this.scene.tweens.add({ targets: im, y: 96, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    if (!t.real) this.scene.tweens.add({ targets: im, alpha: { from: 0.85, to: 1 }, duration: 700, yoyo: true, repeat: -1 });
   }
 
   hideItem() {
@@ -225,6 +236,12 @@ export class Panels {
     this.clearGroup('title');
     const bg = this.scene.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setDepth(DEPTH.top);
     this.addTo('title', bg);
+    // title_logo.png (글자 없는 그림) 위에 글자를 코드로 올린다
+    if (G.realSprites.has('title_logo')) {
+      const logo = this.scene.add.image(0, 0, 'title_logo').setOrigin(0).setDepth(DEPTH.top).setAlpha(0);
+      this.addTo('title', logo);
+      this.scene.tweens.add({ targets: logo, alpha: 1, duration: 3000 });
+    }
     const main = txt(this.scene, W / 2, 104, def.title, { big: true, size: 28, color: '#ffffff', origin: 0.5, depth: DEPTH.top + 1 });
     const sub = txt(this.scene, W / 2, 140, def.subtitle, { big: true, size: 14, color: '#b9c0cc', origin: 0.5, depth: DEPTH.top + 1 });
     this.addTo('title', main);

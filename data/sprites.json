@@ -1,83 +1,233 @@
 {
-  "_설명": "모든 그래픽 키 목록. assets/sprites/<키>.png 파일이 있으면 자동으로 그 그림을 쓰고, 없으면 아래 spec으로 임시 도형을 만든다. 인물·소품은 발밑 가운데(아래 중앙)가 기준점이다. details는 [x, y, w, h, 색] 사각형 장식.",
+  "_설명": [
+    "그래픽 정의. 기준 문서: 08 프롤로그 이미지 프롬프트.md",
+    "sheets 의 키 = assets/sprites/ 안의 PNG 파일 이름(확장자 제외). 파일이 있으면 불러와서 #FF00FF 를 투명으로 바꾸고, cell 크기로 잘라 쓴다.",
+    "칸/프레임 번호는 모두 1부터 센다 (프롬프트의 'Frame 1' 과 같다). 여러 줄 시트는 왼쪽→오른쪽, 위→아래 순서로 번호를 매긴다.",
+    "anims 표기: \"이름\": [시작, 끝, 초당프레임, \"loop\"]. 시작>끝 이면 거꾸로 재생.",
+    "파일이 없으면 placeholder(임시 도형)로 그리고, 동작은 ph(임시 움직임)로 대신한다."
+  ],
+
+  "sheets": {
+    "doyun_idle_breath": { "cell": [64, 64], "frames": 4,  "anims": { "idle": [1, 1], "breath": [1, 4, 3, "loop"] } },
+    "doyun_walk":        { "cell": [64, 64], "frames": 7,  "anims": { "idle": [1, 1], "walk": [2, 7, 9, "loop"] } },
+    "doyun_sleep_wake":  { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "lie_sleep": [2, 2], "lie_awake": [3, 3], "wake": [4, 6, 3], "sit_up": [5, 5] } },
+    "doyun_carry_box":   { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "grab": [2, 3, 10], "carry": [4, 6, 8, "loop"] } },
+    "doyun_phone":       { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "take": [2, 2], "look": [3, 3], "call": [4, 4], "call_fist": [5, 5], "lower": [6, 6] } },
+    "doyun_sit_eat":     { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "sit": [2, 2], "eat": [3, 5, 3, "loop"], "stare": [6, 6] } },
+    "doyun_sign":        { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "sit_chair": [2, 2], "sign_ready": [3, 3], "sign_hesitate": [4, 4], "sign_done": [5, 5] } },
+    "doyun_capsule":     { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "lie_nervous": [2, 2], "lie_closed": [3, 3], "gasp": [4, 4], "sit_breathe": [5, 5] } },
+
+    "diver_run":     { "cell": [64, 64], "frames": 8,  "anims": { "idle": [1, 1], "run": [2, 8, 14, "loop"] } },
+    "diver_jump":    { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "crouch": [2, 2], "rise": [3, 3], "peak": [4, 4], "fall": [5, 5], "land": [6, 6] } },
+    "diver_dash":    { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "dash": [2, 4, 16], "brake": [5, 5] } },
+    "diver_attack":  { "cell": [64, 64], "frames": 10, "anims": { "idle": [1, 1], "attack1": [2, 4, 20], "attack2": [5, 7, 20], "attack3": [8, 10, 15] } },
+    "diver_parry":   { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "parry": [2, 5, 14] } },
+    "diver_hurt":    { "cell": [64, 64], "frames": 4,  "anims": { "idle": [1, 1], "hurt": [2, 4, 10] } },
+    "diver_harvest": { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "reach": [2, 2], "pull": [3, 5, 4, "loop"], "hold": [6, 6] } },
+
+    "mother_actions":  { "cell": [64, 64], "frames": 10, "anims": { "idle": [1, 1], "sleep": [2, 2], "sit_rub": [3, 3], "cook": [4, 6, 4, "loop"], "sit_watch": [7, 7], "touch_face": [8, 8], "phone": [9, 9], "teary": [10, 10] } },
+    "mingyu_actions":  { "cell": [64, 64], "frames": 8,  "anims": { "idle": [1, 1], "talk": [2, 3, 4, "loop"], "arrange": [4, 6, 5, "loop"], "whisper": [7, 7], "shrug": [8, 8] } },
+    "jaehee_actions":  { "cell": [64, 64], "frames": 10, "anims": { "idle": [1, 1], "drink": [2, 3, 3, "loop"], "toss": [4, 4], "crush": [5, 5], "photo": [6, 6], "lie": [7, 7], "sit_up": [8, 8], "wave": [9, 9], "empty_hand": [10, 10] } },
+    "yoon_actions":    { "cell": [64, 64], "frames": 8,  "anims": { "idle": [1, 1], "handshake": [2, 2], "sit": [3, 3], "pour": [4, 4], "open_case": [5, 5], "slide_doc": [6, 6], "tablet": [7, 7], "glasses": [8, 8] } },
+    "npc_actions": {
+      "cell": [64, 64], "frames": 20, "columns": 4,
+      "_줄": "1줄 반장, 2줄 교육 직원, 3줄 안내원, 4줄 정장 여자, 5줄 정장 남자 (각 4칸)",
+      "anims": {
+        "foreman_idle": [1, 1], "foreman_point": [2, 2], "foreman_arms": [3, 3], "foreman_tsk": [4, 4],
+        "staff_idle": [5, 5], "staff_look": [6, 6], "staff_tap": [7, 7], "staff_smile": [8, 8],
+        "reception_idle": [9, 9], "reception_bow": [10, 10], "reception_gesture": [11, 11], "reception_smile": [12, 12],
+        "woman_idle": [13, 13], "woman_walk": [13, 16, 8, "loop"],
+        "man_idle": [17, 17], "man_walk": [17, 20, 8, "loop"]
+      }
+    },
+
+    "enemy_void_small": { "cell": [32, 32], "frames": 12, "anims": { "idle": [1, 1], "ripple": [2, 4, 6, "loop"], "emerge": [5, 7, 6], "slide": [8, 9, 6, "loop"], "hit": [10, 10], "vanish": [11, 12, 8] } },
+    "enemy_mannequin":  { "cell": [64, 64], "frames": 9,  "faces": "left", "anims": { "idle": [1, 1], "sway": [1, 2, 2, "loop"], "windup": [3, 4, 4], "strike": [5, 5], "parried": [6, 6], "fall": [7, 8, 8], "down": [9, 9] } },
+
+    "obj_prologue": {
+      "cell": [32, 32], "frames": 22, "grid": true,
+      "_칸": "1 양동이, 2~4 물방울, 5~7 양동이 물결, 8 상자, 9 삼각김밥, 10 휴대폰(꺼짐), 11 휴대폰(켜짐), 12 스탠드, 13 접이식 상, 14 냄비와 버너, 15 봉투 더미, 16 달력, 17 캔커피, 18 찌그러진 캔, 19 견본 결정 케이스, 20 받침대 위 회색 결정, 21 계약서와 펜, 22 물컵",
+      "anims": { "drip": [2, 4, 10], "ripple": [5, 7, 8] }
+    },
+    "obj_crystal_amber": { "cell": [32, 32], "frames": 6, "anims": { "glow": [1, 6, 6, "loop"] } },
+    "obj_crystal_gray":  { "cell": [32, 32], "frames": 8, "anims": { "float": [1, 3, 3, "loop"], "pulled": [4, 6, 6], "empty": [7, 8, 4] } },
+    "obj_capsule":       { "cell": [96, 48], "frames": 4, "anims": { "open": [1, 1], "close": [1, 3, 5], "closed": [3, 3], "blink": [3, 4, 2, "loop"], "reopen": [3, 1, 5] } },
+
+    "bg_simulation_collapse": { "cell": [480, 270], "frames": 4, "columns": 1, "anims": { "collapse": [1, 4, 2] } },
+
+    "portrait_doyun":  { "cell": [96, 96], "frames": 6, "faces": { "1": "무표정, 지친 얼굴", "2": "눈을 내리깐 슬픔", "3": "놀람", "4": "이를 악문 분노", "5": "오른쪽으로 눈을 피함 (거짓말)", "6": "왼쪽 입꼬리만 올라간 웃음" } },
+    "portrait_mother": { "cell": [96, 96], "frames": 5, "faces": { "1": "따뜻한 미소", "2": "걱정", "3": "엄하고 진지함", "4": "놀람", "5": "눈물 고인 미소" } },
+    "portrait_mingyu": { "cell": [96, 96], "frames": 5, "faces": { "1": "활짝 웃음", "2": "걱정", "3": "눈이 커진 흥분", "4": "속삭이는 능청", "5": "삐짐" } },
+    "portrait_jaehee": { "cell": [96, 96], "frames": 5, "faces": { "1": "나른한 반쯤 웃음", "2": "한쪽 눈썹 올린 놀리는 웃음", "3": "같은 미소, 텅 빈 눈", "4": "멍하니 생각에 잠김", "5": "어리둥절" } },
+    "portrait_yoon":   { "cell": [96, 96], "frames": 5, "faces": { "1": "차분하고 정중한 미소", "2": "고개를 기울인 다정한 미소", "3": "안경을 고쳐 씀, 렌즈 반짝", "4": "눈을 가늘게 뜬 서늘한 미소", "5": "무표정" } },
+    "portrait_npc":    { "cell": [96, 96], "frames": 3, "faces": { "1": "반장 (소리치며 찡그림)", "2": "교육 직원 (정중한 미소)", "3": "안내원 (밝은 응대 미소)" } },
+
+    "ui_hold_gauge": { "cell": [32, 32], "frames": 9 }
+  },
+
+  "images": {
+    "_설명": "한 장짜리 그림. 크기는 프롬프트 기준.",
+    "bg_banjiha_dawn":        { "size": [480, 270], "use": "P-1, P-14 반지하 새벽" },
+    "bg_banjiha_night":       { "size": [480, 270], "use": "P-5, P-13 반지하 밤" },
+    "bg_warehouse":           { "size": [480, 270], "use": "P-2 물류센터, 상하차 미니게임" },
+    "bg_street_billboard":    { "size": [480, 270], "use": "P-3 거리" },
+    "bg_convenience_store":   { "size": [480, 270], "use": "P-4 편의점, 진열 미니게임" },
+    "bg_lethe_lobby":         { "size": [480, 270], "use": "P-6 로비" },
+    "bg_interview_room":      { "size": [480, 270], "use": "P-7 면접실, P-12 윤 실장 사무실" },
+    "bg_locker_room":         { "size": [480, 270], "use": "P-8 탈의실" },
+    "bg_dive_room":           { "size": [480, 270], "use": "P-9, P-11 교육실" },
+    "bg_simulation":          { "size": [480, 270], "use": "P-10 시뮬레이션" },
+    "ui_phone":               { "size": [140, 240], "use": "휴대폰 화면 틀" },
+    "title_logo":             { "size": [480, 270], "use": "마지막 타이틀 (글자는 코드로)" }
+  },
+
+  "ui_regions": {
+    "_설명": "칸 위치가 프롬프트에 정해지지 않은 UI 묶음 시트. [x, y, 너비, 높이] — 실제 PNG 배치에 맞게 이 숫자만 고치면 된다.",
+    "ui_dialog": {
+      "box":          [0, 0, 460, 70],
+      "name_tag":     [0, 70, 80, 16],
+      "arrow_1":      [80, 70, 8, 8],
+      "arrow_2":      [88, 70, 8, 8],
+      "portrait_frame": [0, 86, 100, 100]
+    },
+    "ui_touch_buttons": {
+      "attack":         [0, 0, 40, 40],   "attack_on":   [40, 0, 40, 40],
+      "dash":           [80, 0, 40, 40],  "dash_on":     [120, 0, 40, 40],
+      "parry":          [160, 0, 40, 40], "parry_on":    [200, 0, 40, 40],
+      "interact":       [240, 0, 40, 40], "interact_on": [280, 0, 40, 40],
+      "pad":            [320, 0, 72, 72],
+      "knob":           [392, 0, 28, 28]
+    }
+  },
+
+  "objects": {
+    "_설명": "살펴보기·조작에 쓰는 물건. [시트, 칸 번호]. 시트가 없으면 placeholder 로 그린다 (칸 크기 안, 아래 가운데 기준).",
+    "bucket":           { "from": ["obj_prologue", 1],  "placeholder": { "w": 20, "h": 18, "color": "#4a6fa0", "details": [[2, 2, 16, 6, "#7fb0d8"]] } },
+    "drip":             { "from": ["obj_prologue", 2],  "anim": "obj_prologue.drip", "placeholder": { "w": 2, "h": 5, "color": "#9fc0e0" } },
+    "ripple":           { "from": ["obj_prologue", 5],  "anim": "obj_prologue.ripple", "placeholder": { "w": 12, "h": 2, "color": "#9fc0e0" } },
+    "parcel":           { "from": ["obj_prologue", 8],  "placeholder": { "w": 24, "h": 20, "color": "#b98d55", "details": [[11, 0, 2, 20, "#d9b97f"]] } },
+    "kimbap":           { "from": ["obj_prologue", 9],  "placeholder": { "shape": "triangle", "w": 22, "h": 18, "color": "#f2f2ea", "details": [[8, 10, 6, 8, "#2e3b2e"]] } },
+    "phone":            { "from": ["obj_prologue", 10], "placeholder": { "w": 10, "h": 18, "color": "#22262c" } },
+    "phone_glow":       { "from": ["obj_prologue", 11], "placeholder": { "w": 10, "h": 18, "color": "#22262c", "details": [[1, 2, 8, 13, "#9fd0ff"]] } },
+    "lamp":             { "from": ["obj_prologue", 12], "placeholder": { "w": 12, "h": 22, "color": "#5a5040", "details": [[0, 0, 12, 7, "#ffe39a"]] } },
+    "low_table":        { "from": ["obj_prologue", 13], "placeholder": { "w": 30, "h": 12, "color": "#8a6a48", "details": [[2, 4, 3, 8, "#5e472f"], [25, 4, 3, 8, "#5e472f"]] } },
+    "pot":              { "from": ["obj_prologue", 14], "placeholder": { "w": 22, "h": 16, "color": "#8a8a8a", "details": [[3, 0, 16, 8, "#a0a6ad"]] } },
+    "envelopes":        { "from": ["obj_prologue", 15], "placeholder": { "w": 20, "h": 8, "color": "#e6dcc0", "details": [[0, 3, 20, 1, "#b7aa88"]] } },
+    "calendar":         { "from": ["obj_prologue", 16], "placeholder": { "w": 20, "h": 26, "color": "#f0ede4", "details": [[0, 0, 20, 5, "#c04040"], [3, 9, 3, 3, "#d03030"], [10, 9, 3, 3, "#d03030"], [3, 15, 3, 3, "#d03030"], [13, 19, 3, 3, "#222222"]] } },
+    "can_coffee":       { "from": ["obj_prologue", 17], "placeholder": { "w": 8, "h": 12, "color": "#9c5a2c", "details": [[0, 3, 8, 3, "#e8d2a0"]] } },
+    "can_crushed":      { "from": ["obj_prologue", 18], "placeholder": { "w": 8, "h": 7, "color": "#9c5a2c" } },
+    "sample_case":      { "from": ["obj_prologue", 19], "placeholder": { "w": 16, "h": 8, "color": "#2e2e36", "details": [[5, 1, 6, 5, "#ffb347"]] } },
+    "crystal_pedestal": { "from": ["obj_prologue", 20], "placeholder": { "w": 14, "h": 24, "color": "#c2c2c2" } },
+    "contract_doc":     { "from": ["obj_prologue", 21], "placeholder": { "w": 22, "h": 8, "color": "#fafafa", "outline": "#bbbbbb" } },
+    "water_cup":        { "from": ["obj_prologue", 22], "placeholder": { "w": 7, "h": 10, "color": "#cfe8f4" } },
+    "crystal_amber":    { "from": ["obj_crystal_amber", 1], "anim": "obj_crystal_amber.glow", "placeholder": { "shape": "diamond", "w": 10, "h": 13, "color": "#ffb347", "glow": "#ffd27a" } },
+    "crystal_gray":     { "from": ["obj_crystal_gray", 1],  "anim": "obj_crystal_gray.float", "placeholder": { "shape": "crystal_on_pedestal", "w": 16, "h": 22, "color": "#8e8e8e" } },
+    "capsule":          { "from": ["obj_capsule", 1], "placeholder": { "shape": "capsule", "w": 80, "h": 32, "color": "#f2f4f6", "outline": "#b8bec5" } }
+  },
+
   "characters": {
-    "doyun":        { "shape": "rect", "w": 12, "h": 24, "color": "#3d6fe0", "note": "서도윤 (플레이어)" },
-    "mother":       { "shape": "rect", "w": 12, "h": 21, "color": "#c98a72", "note": "어머니" },
-    "minkyu":       { "shape": "rect", "w": 12, "h": 24, "color": "#4fae6b", "note": "박민규" },
-    "foreman":      { "shape": "rect", "w": 14, "h": 25, "color": "#d9a03a", "note": "반장 (물류센터)" },
-    "worker":       { "shape": "rect", "w": 12, "h": 24, "color": "#5f6670", "note": "물류센터 노동자 (배경)" },
-    "passer_woman": { "shape": "rect", "w": 11, "h": 23, "color": "#b56fb0", "note": "정장 차림 여자 (P-3)" },
-    "passer_man":   { "shape": "rect", "w": 12, "h": 25, "color": "#6f7fa0", "note": "정장 차림 남자 (P-3)" },
-    "pedestrian":   { "shape": "rect", "w": 11, "h": 24, "color": "#55585e", "note": "거리 행인 (배경)" },
-    "customer":     { "shape": "rect", "w": 12, "h": 24, "color": "#b07a50", "note": "편의점 손님" },
-    "drunk":        { "shape": "rect", "w": 12, "h": 24, "color": "#a05050", "note": "취객" },
-    "receptionist": { "shape": "rect", "w": 11, "h": 22, "color": "#8fb0c8", "note": "레테 바이오 안내원" },
-    "yoon":         { "shape": "rect", "w": 12, "h": 25, "color": "#2b2f36", "outline": "#9aa3ad", "note": "윤서진 실장" },
-    "jaehee":       { "shape": "rect", "w": 13, "h": 24, "color": "#8a6f4e", "note": "강재희" },
-    "instructor":   { "shape": "rect", "w": 11, "h": 23, "color": "#6fb8b4", "note": "교육 직원" },
-    "void":         { "shape": "blob", "w": 22, "h": 16, "color": "#000000", "note": "공백 (검은 일렁이는 원)" },
-    "mannequin":    { "shape": "rect", "w": 14, "h": 26, "color": "#8c8c8c", "outline": "#5c5c5c", "note": "시뮬레이션 마네킹 인형 (얼굴 없음)" }
+    "_설명": "인물. 키는 장면 JSON 의 actor sprite 이름. anims: 게임 동작 이름 → [시트.동작, 임시움직임]. 임시움직임: still bob lie sit crouch lean swing hurt bow shake raise",
+    "doyun": {
+      "note": "서도윤 (평상복)", "placeholder": { "w": 20, "h": 48, "color": "#3d6fe0" }, "body": [20, 46],
+      "anims": {
+        "idle": ["doyun_idle_breath.breath", "still"], "stand": ["doyun_walk.idle", "still"], "walk": ["doyun_walk.walk", "bob"],
+        "lie_sleep": ["doyun_sleep_wake.lie_sleep", "lie"], "lie_awake": ["doyun_sleep_wake.lie_awake", "lie"], "wake": ["doyun_sleep_wake.wake", "rise"], "sit_up": ["doyun_sleep_wake.sit_up", "sit"],
+        "grab": ["doyun_carry_box.grab", "crouch"], "carry": ["doyun_carry_box.carry", "bob"],
+        "phone_take": ["doyun_phone.take", "still"], "phone_look": ["doyun_phone.look", "bowhead"], "phone_call": ["doyun_phone.call", "still"], "phone_fist": ["doyun_phone.call_fist", "shake"], "phone_lower": ["doyun_phone.lower", "bowhead"],
+        "sit": ["doyun_sit_eat.sit", "sit"], "eat": ["doyun_sit_eat.eat", "sit"], "sit_stare": ["doyun_sit_eat.stare", "sit"],
+        "sit_chair": ["doyun_sign.sit_chair", "sit"], "sign_ready": ["doyun_sign.sign_ready", "sit"], "sign_hesitate": ["doyun_sign.sign_hesitate", "sit"], "sign_done": ["doyun_sign.sign_done", "sit"],
+        "capsule_lie": ["doyun_capsule.lie_nervous", "lie"], "capsule_sleep": ["doyun_capsule.lie_closed", "lie"], "capsule_gasp": ["doyun_capsule.gasp", "lie"], "capsule_sit": ["doyun_capsule.sit_breathe", "sit"]
+      }
+    },
+    "diver": {
+      "note": "서도윤 (다이버 슈트, 리퍼)", "placeholder": { "w": 20, "h": 48, "color": "#2b4fa8", "details": [[0, 20, 20, 1, "#dfe6f0"]] }, "body": [20, 46], "reaper": true,
+      "anims": {
+        "idle": ["diver_run.idle", "still"], "run": ["diver_run.run", "bob"],
+        "jump_crouch": ["diver_jump.crouch", "crouch"], "jump_rise": ["diver_jump.rise", "still"], "jump_peak": ["diver_jump.peak", "still"], "jump_fall": ["diver_jump.fall", "still"], "land": ["diver_jump.land", "crouch"],
+        "dash": ["diver_dash.dash", "lean"], "brake": ["diver_dash.brake", "still"],
+        "attack1": ["diver_attack.attack1", "swing"], "attack2": ["diver_attack.attack2", "swing"], "attack3": ["diver_attack.attack3", "swing"],
+        "parry": ["diver_parry.parry", "raise"], "hurt": ["diver_hurt.hurt", "hurt"],
+        "harvest_reach": ["diver_harvest.reach", "lean"], "harvest_pull": ["diver_harvest.pull", "shake"], "harvest_hold": ["diver_harvest.hold", "bowhead"]
+      }
+    },
+    "mother": {
+      "note": "어머니", "placeholder": { "w": 18, "h": 45, "color": "#c98a72" }, "body": [18, 44],
+      "anims": { "idle": ["mother_actions.idle", "still"], "sleep": ["mother_actions.sleep", "lie"], "sit_rub": ["mother_actions.sit_rub", "sit"], "cook": ["mother_actions.cook", "shake"], "sit_watch": ["mother_actions.sit_watch", "sit"], "touch_face": ["mother_actions.touch_face", "raise"], "phone": ["mother_actions.phone", "bowhead"], "teary": ["mother_actions.teary", "bowhead"] }
+    },
+    "mingyu": {
+      "note": "박민규", "placeholder": { "w": 22, "h": 48, "color": "#4fae6b" }, "body": [22, 46],
+      "anims": { "idle": ["mingyu_actions.idle", "still"], "talk": ["mingyu_actions.talk", "bob"], "arrange": ["mingyu_actions.arrange", "crouch"], "whisper": ["mingyu_actions.whisper", "lean"], "shrug": ["mingyu_actions.shrug", "raise"] }
+    },
+    "jaehee": {
+      "note": "강재희", "placeholder": { "w": 18, "h": 49, "color": "#8a6f4e" }, "body": [18, 47],
+      "anims": { "idle": ["jaehee_actions.idle", "still"], "drink": ["jaehee_actions.drink", "bowhead"], "toss": ["jaehee_actions.toss", "swing"], "crush": ["jaehee_actions.crush", "shake"], "photo": ["jaehee_actions.photo", "still"], "lie": ["jaehee_actions.lie", "lie"], "sit_up": ["jaehee_actions.sit_up", "sit"], "wave": ["jaehee_actions.wave", "raise"], "empty_hand": ["jaehee_actions.empty_hand", "bowhead"] }
+    },
+    "yoon": {
+      "note": "윤서진 실장", "placeholder": { "w": 18, "h": 48, "color": "#2b2f36", "outline": "#9aa3ad", "details": [[3, 2, 12, 10, "#e8e8e8"]] }, "body": [18, 46],
+      "anims": { "idle": ["yoon_actions.idle", "still"], "handshake": ["yoon_actions.handshake", "lean"], "sit": ["yoon_actions.sit", "sit"], "pour": ["yoon_actions.pour", "sit"], "open_case": ["yoon_actions.open_case", "sit"], "slide_doc": ["yoon_actions.slide_doc", "sit"], "tablet": ["yoon_actions.tablet", "sit"], "glasses": ["yoon_actions.glasses", "raise"] }
+    },
+    "npc_foreman": {
+      "note": "물류센터 반장", "placeholder": { "w": 24, "h": 48, "color": "#d9a03a" }, "body": [24, 46],
+      "anims": { "idle": ["npc_actions.foreman_idle", "still"], "point": ["npc_actions.foreman_point", "lean"], "arms": ["npc_actions.foreman_arms", "still"], "tsk": ["npc_actions.foreman_tsk", "shake"] }
+    },
+    "npc_staff": {
+      "note": "교육 직원", "placeholder": { "w": 18, "h": 46, "color": "#e6eef0", "outline": "#6fb8b4" }, "body": [18, 44],
+      "anims": { "idle": ["npc_actions.staff_idle", "still"], "look": ["npc_actions.staff_look", "bowhead"], "tap": ["npc_actions.staff_tap", "bowhead"], "smile": ["npc_actions.staff_smile", "still"] }
+    },
+    "npc_receptionist": {
+      "note": "안내원", "placeholder": { "w": 18, "h": 46, "color": "#a9b4c0" }, "body": [18, 44],
+      "anims": { "idle": ["npc_actions.reception_idle", "still"], "bow": ["npc_actions.reception_bow", "bow"], "gesture": ["npc_actions.reception_gesture", "lean"], "smile": ["npc_actions.reception_smile", "still"] }
+    },
+    "npc_woman": {
+      "note": "정장 차림 여자", "placeholder": { "w": 18, "h": 48, "color": "#c9b08a" }, "body": [18, 46],
+      "anims": { "idle": ["npc_actions.woman_idle", "still"], "walk": ["npc_actions.woman_walk", "bob"] }
+    },
+    "npc_man": {
+      "note": "정장 차림 남자", "placeholder": { "w": 20, "h": 50, "color": "#3f4f70" }, "body": [20, 48],
+      "anims": { "idle": ["npc_actions.man_idle", "still"], "walk": ["npc_actions.man_walk", "bob"] }
+    },
+    "extra_worker":     { "note": "물류센터 노동자 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 20, "h": 48, "color": "#5f6670" }, "anims": {} },
+    "extra_pedestrian": { "note": "거리 행인 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 18, "h": 47, "color": "#55585e" }, "anims": {} },
+    "extra_customer":   { "note": "편의점 손님 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 20, "h": 48, "color": "#b07a50" }, "anims": {} },
+    "extra_drunk":      { "note": "취객 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 20, "h": 47, "color": "#a05050" }, "anims": {} },
+
+    "void": {
+      "note": "공백", "cell": [32, 32], "placeholder": { "shape": "blob", "w": 24, "h": 16, "color": "#000000" }, "body": [20, 14],
+      "anims": { "idle": ["enemy_void_small.ripple", "still"], "emerge": ["enemy_void_small.emerge", "still"], "slide": ["enemy_void_small.slide", "still"], "hit": ["enemy_void_small.hit", "still"], "vanish": ["enemy_void_small.vanish", "still"] }
+    },
+    "mannequin": {
+      "note": "시뮬레이션 마네킹 (그림은 왼쪽을 봄)", "faces": "left", "placeholder": { "w": 20, "h": 48, "color": "#8c8c8c", "outline": "#5c5c5c" }, "body": [20, 46],
+      "anims": { "idle": ["enemy_mannequin.sway", "still"], "windup": ["enemy_mannequin.windup", "lean"], "strike": ["enemy_mannequin.strike", "swing"], "parried": ["enemy_mannequin.parried", "hurt"], "fall": ["enemy_mannequin.fall", "still"], "down": ["enemy_mannequin.down", "still"] }
+    }
   },
-  "items": {
-    "reaper":        { "shape": "rect", "w": 2, "h": 16, "color": "#c3c8d0", "outline": "#c3c8d0", "note": "리퍼 (금속 막대)" },
-    "crystal_gray":  { "shape": "diamond", "w": 10, "h": 14, "color": "#8e8e8e", "note": "시뮬레이션 회색 결정 (빛 없음)" },
-    "crystal_amber": { "shape": "diamond", "w": 10, "h": 14, "color": "#ffb347", "glow": "#ffd27a", "note": "견본 결정 (호박색, 빛남)" },
-    "can_coffee":    { "shape": "rect", "w": 5, "h": 8, "color": "#9c5a2c", "details": [[0, 2, 5, 2, "#e8d2a0"]], "note": "캔커피" },
-    "kimbap":        { "shape": "triangle", "w": 18, "h": 15, "color": "#f2f2ea", "details": [[6, 9, 6, 6, "#2e3b2e"]], "note": "삼각김밥 (진열 미니게임)" },
-    "parcel":        { "shape": "rect", "w": 16, "h": 13, "color": "#b98d55", "details": [[7, 0, 2, 13, "#d9b97f"]], "note": "택배 상자 (상하차 미니게임)" },
-    "harin_photo":   { "shape": "photo", "w": 70, "h": 46, "color": "#dfe6ea", "note": "LT-0417 프로필 사진 (병상에 누운 하린)" }
-  },
-  "props": {
-    "futon":        { "shape": "rect", "w": 44, "h": 6,  "color": "#c8c6d8", "note": "얇은 이불" },
-    "bucket":       { "shape": "rect", "w": 12, "h": 11, "color": "#c0504d", "details": [[1, 1, 10, 4, "#4a7fb0"]], "note": "플라스틱 양동이" },
-    "curtain":      { "shape": "rect", "w": 34, "h": 58, "color": "#7d6f8c", "details": [[8, 0, 1, 58, "#6a5d78"], [17, 0, 1, 58, "#6a5d78"], [26, 0, 1, 58, "#6a5d78"]], "note": "칸막이 커튼" },
-    "fridge":       { "shape": "rect", "w": 22, "h": 40, "color": "#d6d6d0", "details": [[0, 14, 22, 1, "#9a9a94"], [18, 4, 2, 6, "#9a9a94"], [18, 18, 2, 8, "#9a9a94"]], "note": "냉장고" },
-    "calendar":     { "shape": "rect", "w": 14, "h": 18, "color": "#f0ede4", "details": [[0, 0, 14, 4, "#c04040"], [2, 7, 2, 2, "#d03030"], [7, 7, 2, 2, "#d03030"], [2, 11, 2, 2, "#d03030"], [9, 13, 2, 2, "#222222"]], "note": "벽 달력" },
-    "desk":         { "shape": "rect", "w": 34, "h": 18, "color": "#6e553d", "details": [[2, 4, 2, 14, "#4e3b2a"], [30, 4, 2, 14, "#4e3b2a"]], "note": "책상" },
-    "envelopes":    { "shape": "rect", "w": 14, "h": 6,  "color": "#e6dcc0", "details": [[0, 2, 14, 1, "#b7aa88"], [1, 4, 12, 1, "#c4b48e"]], "note": "봉투 더미 (독촉장)" },
-    "door":         { "shape": "rect", "w": 22, "h": 46, "color": "#5d4836", "details": [[17, 22, 3, 3, "#c0a060"]], "note": "현관문" },
-    "stove":        { "shape": "rect", "w": 20, "h": 12, "color": "#8a8a8a", "details": [[3, 0, 6, 2, "#333333"], [11, 0, 6, 2, "#333333"]], "note": "가스레인지" },
-    "pot":          { "shape": "rect", "w": 10, "h": 6,  "color": "#a0a6ad", "note": "냄비 (된장찌개)" },
-    "low_table":    { "shape": "rect", "w": 34, "h": 10, "color": "#8a6a48", "details": [[2, 3, 2, 7, "#5e472f"], [30, 3, 2, 7, "#5e472f"]], "note": "접이식 상" },
-    "lamp":         { "shape": "rect", "w": 8,  "h": 14, "color": "#5a5040", "details": [[0, 0, 8, 5, "#ffe39a"]], "note": "작은 스탠드" },
-    "conveyor":     { "shape": "rect", "w": 160, "h": 14, "color": "#3c4148", "details": [[0, 0, 160, 3, "#22262b"]], "note": "컨베이어 벨트" },
-    "truck":        { "shape": "rect", "w": 110, "h": 72, "color": "#3e4c5c", "details": [[4, 6, 102, 62, "#1c232b"]], "note": "트럭 짐칸" },
-    "box_stack":    { "shape": "rect", "w": 30, "h": 28, "color": "#a57f4c", "details": [[0, 13, 30, 1, "#7f6038"], [14, 0, 1, 28, "#7f6038"]], "note": "상자 더미" },
-    "billboard":    { "shape": "rect", "w": 76, "h": 46, "color": "#f4f6f8", "outline": "#c9ced3", "note": "레테 바이오 광고판" },
-    "small_ad":     { "shape": "rect", "w": 40, "h": 20, "color": "#efe7f2", "outline": "#b9aec0", "note": "회상관 작은 광고" },
-    "bus_stop":     { "shape": "rect", "w": 34, "h": 50, "color": "#59626b", "details": [[2, 0, 30, 3, "#3d444b"], [3, 30, 28, 3, "#7a838c"]], "note": "버스 정류장" },
-    "shelf":        { "shape": "rect", "w": 56, "h": 40, "color": "#c4c9cf", "details": [[0, 12, 56, 1, "#8a9097"], [0, 26, 56, 1, "#8a9097"]], "note": "진열대" },
-    "counter":      { "shape": "rect", "w": 52, "h": 15, "color": "#d3d7db", "details": [[0, 0, 52, 3, "#9aa1a8"]], "note": "편의점 카운터" },
-    "store_fridge": { "shape": "rect", "w": 30, "h": 48, "color": "#bfdbe8", "outline": "#7f9aa8", "details": [[2, 3, 26, 1, "#ffffff"]], "note": "음료 냉장고" },
-    "store_door":   { "shape": "rect", "w": 26, "h": 48, "color": "#a9c6d4", "outline": "#6f8a98", "note": "편의점 유리문" },
-    "reception":    { "shape": "rect", "w": 56, "h": 22, "color": "#f7f8fa", "outline": "#cdd2d8", "note": "안내 데스크" },
-    "elevator":     { "shape": "rect", "w": 32, "h": 50, "color": "#cdd1d6", "outline": "#a7adb4", "details": [[15, 0, 1, 50, "#a7adb4"]], "note": "엘리베이터" },
-    "office_desk":  { "shape": "rect", "w": 62, "h": 22, "color": "#f2f2f2", "outline": "#c8c8c8", "note": "면접실/사무실 책상" },
-    "chair":        { "shape": "rect", "w": 12, "h": 16, "color": "#d0d4d8", "note": "의자" },
-    "sample_case":  { "shape": "rect", "w": 10, "h": 5,  "color": "#2e2e36", "details": [[3, 1, 4, 3, "#ffb347"]], "note": "견본 결정 케이스" },
-    "contract_doc": { "shape": "rect", "w": 12, "h": 4,  "color": "#fafafa", "outline": "#bbbbbb", "note": "계약서 뭉치" },
-    "water_cup":    { "shape": "rect", "w": 4,  "h": 6,  "color": "#cfe8f4", "note": "물컵" },
-    "locker":       { "shape": "rect", "w": 20, "h": 52, "color": "#7a858f", "details": [[0, 25, 20, 1, "#5e676f"], [15, 10, 2, 5, "#4c545b"], [15, 33, 2, 5, "#4c545b"]], "note": "철제 사물함" },
-    "locker_open":  { "shape": "rect", "w": 20, "h": 52, "color": "#2b3036", "details": [[6, 8, 8, 10, "#efe6d0"], [7, 9, 6, 6, "#f0a8c0"]], "note": "열린 재희 사물함 (안쪽 사진)" },
-    "bench":        { "shape": "rect", "w": 40, "h": 8,  "color": "#8a7a62", "note": "벤치" },
-    "capsule":      { "shape": "rect", "w": 50, "h": 22, "color": "#f2f4f6", "outline": "#b8bec5", "details": [[8, 4, 30, 6, "#9fb6c8"], [40, 8, 6, 3, "#7fd6a0"]], "note": "다이브 캡슐" },
-    "monitor":      { "shape": "rect", "w": 18, "h": 14, "color": "#1d242c", "outline": "#7a8590", "details": [[2, 2, 14, 9, "#2f4a5e"]], "note": "캡슐 옆 모니터" },
-    "sim_box":      { "shape": "rect", "w": 24, "h": 22, "color": "#b4b4b4", "outline": "#8f8f8f", "note": "시뮬레이션 회색 상자" },
-    "pedestal":     { "shape": "rect", "w": 14, "h": 18, "color": "#c2c2c2", "outline": "#9a9a9a", "note": "결정 받침대" },
-    "window_city":  { "shape": "rect", "w": 120, "h": 70, "color": "#9fb8cc", "outline": "#e0e4e8", "details": [[10, 40, 14, 30, "#7d93a6"], [30, 30, 18, 40, "#6f8597"], [54, 46, 12, 24, "#7d93a6"], [72, 24, 16, 46, "#647a8c"], [94, 38, 16, 32, "#7d93a6"]], "note": "고층 창밖 도시" }
-  },
-  "backgrounds": {
-    "bg_banjiha":   "반지하 방 (P-1, P-5, P-13, P-14) — 480x270 이상, 장면 폭만큼",
-    "bg_warehouse": "택배 물류센터 (P-2)",
-    "bg_street":    "낡은 상가 거리 (P-3)",
-    "bg_store":     "편의점 (P-4)",
-    "bg_lobby":     "레테 바이오 로비 (P-6)",
-    "bg_interview": "면접실 (P-7)",
-    "bg_locker":    "다이버 탈의실 (P-8)",
-    "bg_capsule":   "교육실 캡슐 방 (P-9, P-11)",
-    "bg_sim":       "시뮬레이션 공간 (P-10)",
-    "bg_office":    "윤 실장 사무실 (P-12)",
-    "bg_unload":    "상하차 미니게임 화면",
-    "bg_shelf":     "진열 정리 미니게임 화면"
+
+  "placeholders": {
+    "_설명": "배경 그림 안에 이미 그려지는 가구들. 배경 PNG가 없을 때만 임시 도형으로 그린다 (파일 이름 아님).",
+    "ph_futon":        { "w": 64, "h": 8,  "color": "#c8c6d8" },
+    "ph_curtain":      { "w": 50, "h": 100, "color": "#7d6f8c", "details": [[12, 0, 1, 100, "#6a5d78"], [25, 0, 1, 100, "#6a5d78"], [38, 0, 1, 100, "#6a5d78"]] },
+    "ph_fridge":       { "w": 36, "h": 66, "color": "#d6d6d0", "details": [[0, 22, 36, 1, "#9a9a94"], [30, 6, 3, 10, "#9a9a94"], [30, 28, 3, 14, "#9a9a94"]] },
+    "ph_desk":         { "w": 56, "h": 28, "color": "#6e553d", "details": [[3, 6, 3, 22, "#4e3b2a"], [50, 6, 3, 22, "#4e3b2a"]] },
+    "ph_door":         { "w": 34, "h": 76, "color": "#5d4836", "details": [[26, 36, 4, 4, "#c0a060"]] },
+    "ph_stove":        { "w": 28, "h": 10, "color": "#6a6a6a" },
+    "ph_conveyor":     { "w": 240, "h": 18, "color": "#3c4148", "details": [[0, 0, 240, 4, "#22262b"]] },
+    "ph_truck":        { "w": 140, "h": 110, "color": "#3e4c5c", "details": [[6, 8, 128, 96, "#1c232b"]] },
+    "ph_box_stack":    { "w": 48, "h": 44, "color": "#a57f4c", "details": [[0, 21, 48, 1, "#7f6038"], [23, 0, 1, 44, "#7f6038"]] },
+    "ph_billboard":    { "w": 120, "h": 72, "color": "#f4f6f8", "outline": "#c9ced3" },
+    "ph_bus_stop":     { "w": 50, "h": 80, "color": "#59626b", "details": [[3, 0, 44, 4, "#3d444b"], [4, 48, 42, 4, "#7a838c"]] },
+    "ph_shelf":        { "w": 90, "h": 60, "color": "#c4c9cf", "details": [[0, 18, 90, 1, "#8a9097"], [0, 38, 90, 1, "#8a9097"]] },
+    "ph_counter":      { "w": 84, "h": 24, "color": "#d3d7db", "details": [[0, 0, 84, 4, "#9aa1a8"]] },
+    "ph_store_fridge": { "w": 50, "h": 80, "color": "#bfdbe8", "outline": "#7f9aa8" },
+    "ph_store_door":   { "w": 44, "h": 80, "color": "#a9c6d4", "outline": "#6f8a98" },
+    "ph_reception":    { "w": 90, "h": 34, "color": "#f7f8fa", "outline": "#cdd2d8" },
+    "ph_elevator":     { "w": 52, "h": 84, "color": "#cdd1d6", "outline": "#a7adb4", "details": [[25, 0, 2, 84, "#a7adb4"]] },
+    "ph_office_desk":  { "w": 100, "h": 34, "color": "#f2f2f2", "outline": "#c8c8c8" },
+    "ph_chair":        { "w": 20, "h": 26, "color": "#d0d4d8" },
+    "ph_window_city":  { "w": 200, "h": 110, "color": "#9fb8cc", "outline": "#e0e4e8", "details": [[16, 60, 24, 50, "#7d93a6"], [50, 44, 30, 66, "#6f8597"], [90, 70, 20, 40, "#7d93a6"], [120, 36, 26, 74, "#647a8c"], [156, 56, 26, 54, "#7d93a6"]] },
+    "ph_locker":       { "w": 34, "h": 86, "color": "#7a858f", "details": [[0, 42, 34, 1, "#5e676f"], [26, 16, 3, 8, "#4c545b"], [26, 56, 3, 8, "#4c545b"]] },
+    "ph_locker_open":  { "w": 34, "h": 86, "color": "#2b3036", "details": [[10, 14, 14, 16, "#efe6d0"], [12, 16, 10, 10, "#f0a8c0"]] },
+    "ph_bench":        { "w": 64, "h": 12, "color": "#8a7a62" },
+    "ph_monitor":      { "w": 28, "h": 22, "color": "#1d242c", "outline": "#7a8590", "details": [[3, 3, 22, 14, "#2f4a5e"]] },
+    "ph_sim_box":      { "w": 40, "h": 40, "color": "#b4b4b4", "outline": "#8f8f8f" },
+    "harin_photo":     { "shape": "photo", "w": 70, "h": 46, "color": "#dfe6ea", "_설명": "LT-0417 사진 — 프롬프트에 없음, 임시 그림" }
   }
 }

@@ -3,33 +3,33 @@
   "title": "레테 바이오 본사 / 로비",
   "heading": "#P-6 레테 바이오 본사 / 로비",
   "stage": {
-    "bg": "bg_lobby",
-    "width": 640,
-    "floorY": 180,
+    "bg": "bg_lethe_lobby",
+    "width": 480,
+    "floorY": 216,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
-    "player": {"x": 30, "facing": 1},
+    "player": {"x": 300, "facing": -1},
     "backdrop": [
-      {"rect": [0, 0, 640, 180], "color": "#f3f5f7"},
-      {"vlines": [0, 0, 180, 80, 9], "color": "#e6e9ec"},
-      {"rect": [36, 14, 308, 118], "color": "#d7dce1"},
-      {"rect": [0, 180, 640, 90], "color": "#e9ecef"},
-      {"line": [0, 180, 640, 180], "color": "#cfd4d9"},
-      {"rect": [0, 182, 640, 2], "color": "#ffffff"},
-      {"text": "모든 기억은 소중합니다.", "x": 190, "y": 140, "color": "#9aa2ac", "origin": [0.5, 0]},
-      {"text": "그래서 우리는 그것을 나눕니다.", "x": 190, "y": 156, "color": "#9aa2ac", "origin": [0.5, 0]}
+      {"rect": [0, 0, 480, 216], "color": "#f3f5f7"},
+      {"vlines": [0, 0, 216, 80, 7], "color": "#e6e9ec"},
+      {"rect": [56, 14, 368, 128], "color": "#d7dce1"},
+      {"rect": [0, 216, 480, 54], "color": "#e9ecef"},
+      {"line": [0, 216, 480, 216], "color": "#cfd4d9"},
+      {"rect": [0, 218, 480, 2], "color": "#ffffff"},
+      {"text": "모든 기억은 소중합니다.", "x": 240, "y": 150, "color": "#9aa2ac", "origin": [0.5, 0]},
+      {"text": "그래서 우리는 그것을 나눕니다.", "x": 240, "y": 166, "color": "#9aa2ac", "origin": [0.5, 0]}
     ],
     "effects": [
-      {"name": "lobbyScreen", "x": 40, "y": 18, "w": 300, "h": 110}
+      {"name": "lobbyScreen", "x": 60, "y": 18, "w": 360, "h": 120, "phOnly": true}
     ],
     "props": [
-      {"id": "screen", "sprite": "px", "x": 190, "y": 128, "alpha": 0, "label": "로비 화면", "range": 60, "examine": {"lines": ["다 남의 기억이겠지.", "이 사람들은 지금 어디 있을까."]}},
-      {"id": "desk", "sprite": "reception", "x": 470, "label": "안내 데스크", "range": 34, "examine": {"steps": [{"type": "say", "speaker": "안내원", "text": "면접 보러 오셨어요? 서도윤 님 맞으시죠? 7층으로 올라가세요. 실장님이 기다리세요."}]}},
-      {"id": "elevator", "sprite": "elevator", "x": 600, "label": "엘리베이터", "interact": {"steps": []}}
+      {"id": "screen", "x": 240, "y": 142, "w": 300, "h": 120, "label": "로비 화면", "range": 70, "examine": {"lines": ["다 남의 기억이겠지.", "이 사람들은 지금 어디 있을까."]}},
+      {"id": "desk", "ph": "ph_reception", "x": 82, "label": "안내 데스크", "range": 50, "examine": {"steps": [{"type": "actor", "id": "receptionist", "action": "anim", "name": "gesture"}, {"type": "say", "speaker": "안내원", "text": "면접 보러 오셨어요? 서도윤 님 맞으시죠? 7층으로 올라가세요. 실장님이 기다리세요."}, {"type": "actor", "id": "receptionist", "action": "anim", "name": "idle"}]}},
+      {"id": "elevator", "ph": "ph_elevator", "x": 446, "label": "엘리베이터", "interact": {"steps": []}}
     ],
     "actors": [
-      {"id": "receptionist", "sprite": "receptionist", "x": 480, "speaker": "안내원", "flip": true, "depth": 5}
+      {"id": "receptionist", "char": "npc_receptionist", "x": 70, "speaker": "안내원", "facing": 1, "depth": 5}
     ]
   },
   "steps": [

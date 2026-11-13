@@ -100,3 +100,37 @@ export function setupTouch() {
     btn.addEventListener('lostpointercapture', up);
   });
 }
+
+// ui_touch_buttons.png 가 있으면 터치 버튼/패드를 그 그림으로 바꾼다
+export function applyTouchSkin(scene) {
+  const key = 'ui_touch_buttons';
+  if (!scene.textures.exists(key) || !scene.textures.get(key).has('attack')) return;
+  const tex = scene.textures.get(key);
+  const src = tex.getSourceImage();
+  const crop = (name) => {
+    if (!tex.has(name)) return null;
+    const f = tex.get(name);
+    const c = document.createElement('canvas');
+    c.width = f.cutWidth;
+    c.height = f.cutHeight;
+    c.getContext('2d').drawImage(src, f.cutX, f.cutY, f.cutWidth, f.cutHeight, 0, 0, f.cutWidth, f.cutHeight);
+    return c.toDataURL();
+  };
+  const root = document.getElementById('touch');
+  if (!root) return;
+  const style = document.createElement('style');
+  let css = '#touch.skinned .tbtn:not(.b-menu){font-size:0;border:none;background-color:transparent;background-size:100% 100%;image-rendering:pixelated;}';
+  ['attack', 'dash', 'parry', 'interact'].forEach((a) => {
+    const n = crop(a);
+    const on = crop(a + '_on');
+    if (n) css += `#touch.skinned .b-${a}{background-image:url(${n});}`;
+    if (on) css += `#touch.skinned .b-${a}.on{background-image:url(${on});}`;
+  });
+  const pad = crop('pad');
+  const knob = crop('knob');
+  if (pad) css += `#touch.skinned .pad-ring{border:none;background:url(${pad}) 0 0/100% 100%;image-rendering:pixelated;}`;
+  if (knob) css += `#touch.skinned .knob{border:none;background:url(${knob}) 0 0/100% 100%;image-rendering:pixelated;}`;
+  style.textContent = css;
+  document.head.appendChild(style);
+  root.classList.add('skinned');
+}

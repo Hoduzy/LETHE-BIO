@@ -6,6 +6,7 @@ import { G } from '../core/state.js';
 import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
 import { W, H, txt, panel } from '../core/gfx.js';
+import { objTexture } from '../core/sprites.js';
 
 const ROUNDS = [
   ['23일 06시', '23일 13시', '23일 21시', '24일 05시', '24일 14시'],
@@ -36,12 +37,15 @@ export class ShelfScene extends Phaser.Scene {
   create() {
     this.rounds = this.cfg.rounds || ROUNDS;
     this.roundIndex = 0;
-    if (G.realSprites.has('bg_shelf')) {
-      this.add.image(0, 0, 'bg_shelf').setOrigin(0);
+    // 배경: 편의점 그림을 어둡게 깔고, 그 위에 진열대를 크게 그린다
+    if (G.realSprites.has('bg_convenience_store')) {
+      this.add.image(0, 0, 'bg_convenience_store').setOrigin(0);
+      this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0);
     } else {
+      this.add.rectangle(0, 0, W, H, 0x1d2228, 1).setOrigin(0);
+    }
+    {
       const g = this.add.graphics();
-      g.fillStyle(0x1d2228, 1);
-      g.fillRect(0, 0, W, H);
       g.fillStyle(0xc4c9cf, 1);
       g.fillRect(70, 66, 340, 124);
       g.fillStyle(0xe8ecef, 1);
@@ -71,7 +75,8 @@ export class ShelfScene extends Phaser.Scene {
     const order = shuffledNotSorted(dates.length);
     // slots[i] = 해당 칸에 놓인 아이템의 rank
     this.slots = order.map((rank, i) => {
-      const img = this.add.image(SLOT_X0 + i * SLOT_DX, ITEM_Y, 'kimbap').setOrigin(0.5, 1).setDepth(3).setScale(2);
+      const t = objTexture('kimbap');
+      const img = this.add.image(SLOT_X0 + i * SLOT_DX, ITEM_Y, t.key, t.frame).setOrigin(0.5, 1).setDepth(3).setScale(2);
       const label = txt(this, img.x, ITEM_Y + 4, dates[rank].replace(' ', '\n'), { origin: [0.5, 0], color: '#2c3440', fixed: false, size: 12, align: 'center', lineSpacing: 1 }).setDepth(3);
       img.setInteractive();
       const it = { rank, img, label };

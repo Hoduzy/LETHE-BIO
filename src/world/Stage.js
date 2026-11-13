@@ -6,6 +6,8 @@
 //  - effects: 지나가는 발, 형광등 깜빡임, 로비 화면, 격자 등 작은 연출
 
 import { G } from '../core/state.js';
+import { objTexture } from '../core/sprites.js';
+import { CharSprite } from './CharSprite.js';
 import { W, H, DEPTH, txt } from '../core/gfx.js';
 
 function col(hex) {
@@ -17,11 +19,13 @@ export class Stage {
     this.scene = scene;
     this.def = def;
     this.width = def.width || W;
-    this.floorY = def.floorY || 180;
+    this.floorY = def.floorY || 216;
     this.props = {};
     this.actors = {};
     this.interactables = [];
     this.timers = [];
+    // 배경 PNG 가 있으면 배경 속 가구(bgPart)는 그리지 않는다
+    this.bgReal = !!(def.bg && G.realSprites.has(def.bg));
 
     scene.cameras.main.setBackgroundColor(def.bgColor || '#000000');
     scene.cameras.main.setBounds(0, 0, this.width, H);
@@ -43,7 +47,8 @@ export class Stage {
   buildBackdrop() {
     const s = this.scene;
     const def = this.def;
-    if (def.bg && G.realSprites.has(def.bg)) {
+    if (this.bgReal) {
+      // 배경은 480x270 한 장. 장면 폭은 480 으로 맞춘다 (반복하지 않음)
       s.add.image(0, 0, def.bg).setOrigin(0).setDepth(DEPTH.backdrop);
       return;
     }
@@ -89,25 +94,58 @@ export class Stage {
       s.physics.add.existing(r, true);
       this.solidGroup.add(r);
     });
+    // 장애물: 배경 그림 속 상자와 같은 자리. 배경 PNG 가 있으면 보이지 않는 충돌 상자만 둔다
     (this.def.solids || []).forEach((so) => {
-      const img = s.add.image(so.x, so.y || this.floorY, so.sprite).setOrigin(0.5, 1).setDepth(DEPTH.prop);
-      s.physics.add.existing(img, true);
-      this.solidGroup.add(img);
+      const spec = G.spriteData.placeholders[so.ph] || { w: so.w || 40, h: so.h || 40 };
+      const w = so.w || spec.w;
+      const h = so.h || spec.h;
+      let obj;
+      if (this.bgReal) obj = s.add.rectangle(so.x, so.y || this.floorY, w, h, 0x000000, 0).setOrigin(0.5, 1);
+      else obj = s.add.image(so.x, so.y || this.floorY, so.ph).setOrigin(0.5, 1).setDepth(DEPTH.prop);
+      s.physics.add.existing(obj, true);
+      this.solidGroup.add(obj);
     });
+  }
+
+  // 소품 하나 만들기
+  //  obj: data/sprites.json objects 의 이름 (양동이, 달력…) → obj_* 시트의 칸
+  //  ph : 배경 속 가구 임시 도형 (bgPart) → 배경 PNG 가 있으면 그리지 않음
+  makeProp(p) {
+    const s = this.scene;
+    const y = p.y != null ? p.y : this.floorY;
+    let img;
+    if (p.obj) {
+      const t = objTexture(p.obj);
+      img = s.add.sprite(p.x, y, t.key, t.real && p.frame ? p.frame - 1 : t.frame).setOrigin(0.5, 1);
+      if (t.real && t.anim && s.anims.exists(t.anim) && p.animate !== false) img.play(t.anim);
+      if (p.scale) img.setScale(p.scale);
+    } else if (p.ph) {
+      if (this.bgReal) {
+        // 배경에 이미 그려져 있다: 살펴보기/출구용이면 보이지 않는 영역만
+        const spec = G.spriteData.placeholders[p.ph] || { w: 30, h: 40 };
+        img = s.add.image(p.x, y, 'px').setOrigin(0.5, 1).setDisplaySize(p.w || spec.w, p.h || spec.h).setAlpha(0);
+        img.bgHidden = true;
+      } else {
+        img = s.add.image(p.x, y, p.ph).setOrigin(0.5, 1);
+      }
+    } else {
+      img = s.add.image(p.x, y, p.sprite || 'px').setOrigin(0.5, 1);
+      if (!p.sprite) img.setDisplaySize(p.w || 30, p.h || 40).setAlpha(0);
+    }
+    img.setDepth(p.depth != null ? p.depth : DEPTH.prop);
+    if (p.flip) img.setFlipX(true);
+    if (p.alpha != null && !img.bgHidden) img.setAlpha(p.alpha);
+    if (p.visible === false) img.setVisible(false);
+    if (p.glow && !img.bgHidden) {
+      s.tweens.add({ targets: img, alpha: { from: 0.75, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    }
+    return img;
   }
 
   // ---------- 소품 ----------
   buildProps() {
-    const s = this.scene;
     (this.def.props || []).forEach((p) => {
-      const img = s.add.image(p.x, p.y != null ? p.y : this.floorY, p.sprite).setOrigin(0.5, 1);
-      img.setDepth(p.depth != null ? p.depth : DEPTH.prop);
-      if (p.flip) img.setFlipX(true);
-      if (p.alpha != null) img.setAlpha(p.alpha);
-      if (p.visible === false) img.setVisible(false);
-      if (p.glow) {
-        s.tweens.add({ targets: img, alpha: { from: 0.75, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
-      }
+      const img = this.makeProp(p);
       const entry = { id: p.id, kind: 'prop', obj: img, def: p, label: p.label };
       this.props[p.id] = entry;
       if (p.examine || p.interact) this.interactables.push(entry);
@@ -118,16 +156,12 @@ export class Stage {
   buildActors() {
     const s = this.scene;
     (this.def.actors || []).forEach((a) => {
-      const img = s.add.image(a.x, a.y != null ? a.y : this.floorY, a.sprite).setOrigin(0.5, 1).setDepth(DEPTH.actor);
-      if (a.flip) img.setFlipX(true);
-      if (a.visible === false) img.setVisible(false);
-      if (a.lying) {
-        img.setOrigin(0.5, 0.5).setAngle(a.flip ? 90 : -90);
-        img.y = (a.y != null ? a.y : this.floorY) - img.width / 2 - (a.lift || 0);
-      }
-      if (a.alpha != null) img.setAlpha(a.alpha);
-      if (a.depth != null) img.setDepth(a.depth);
-      const entry = { id: a.id, kind: 'actor', obj: img, def: a, label: a.label || a.speaker, speaker: a.speaker };
+      const cs = new CharSprite(s, a.x, a.y != null ? a.y : this.floorY, a.char, { depth: a.depth != null ? a.depth : DEPTH.actor });
+      cs.face(a.facing || 1);
+      if (a.visible === false) cs.setVisible(false);
+      if (a.alpha != null) cs.setAlpha(a.alpha);
+      if (a.anim) cs.play(a.anim);
+      const entry = { id: a.id, kind: 'actor', cs, obj: cs.sprite, def: a, label: a.label || a.speaker, speaker: a.speaker };
       this.actors[a.id] = entry;
       if (a.examine || a.interact) this.interactables.push(entry);
     });
@@ -146,6 +180,8 @@ export class Stage {
     (this.def.effects || []).forEach((fx) => {
       const name = typeof fx === 'string' ? fx : fx.name;
       const o = typeof fx === 'string' ? {} : fx;
+      // phOnly: 배경 PNG 가 없을 때만 (창문 밖 발·빗줄기 등 위치가 그림마다 다른 연출)
+      if (o.phOnly && this.bgReal) return;
       switch (name) {
         case 'feet': this.fxFeet(o); break;
         case 'rainWindow': this.fxRainWindow(o); break;
@@ -294,14 +330,19 @@ export class Stage {
   // 천장에서 새는 물 → 양동이 (소리에 맞춰 물결)
   fxDrip({ x = 200, top = 40, bucketY }) {
     const s = this.scene;
-    const by = bucketY || this.floorY - 9;
+    const by = bucketY || this.floorY - 14;
+    const real = G.realSprites.has('obj_prologue');
     const g = s.add.graphics().setDepth(DEPTH.prop + 1);
-    // 천장 얼룩
-    s.add.ellipse(x, top, 26, 6, 0x3a3a2a, 0.6).setDepth(DEPTH.backdrop + 1);
-    const drop = s.add.rectangle(x, top, 1, 3, 0x9fc0e0, 0.9).setDepth(DEPTH.prop + 1).setVisible(false);
+    // 천장 얼룩 (배경 그림에 곰팡이가 있으면 생략)
+    if (!this.bgReal) s.add.ellipse(x, top, 40, 8, 0x3a3a2a, 0.6).setDepth(DEPTH.backdrop + 1);
+    const dt = objTexture('drip');
+    const drop = s.add.sprite(x, top, dt.key, dt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false);
+    const rt = objTexture('ripple');
+    const ripple = real ? s.add.sprite(x, by + 16, rt.key, rt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false) : null;
     const fall = () => {
       if (!this.scene || !drop.active) return;
-      drop.setPosition(x, top + 2).setVisible(true);
+      drop.setPosition(x, top + 4).setVisible(true);
+      if (real && s.anims.exists('obj_prologue.drip')) drop.play('obj_prologue.drip');
       s.tweens.add({
         targets: drop,
         y: by,
@@ -309,16 +350,20 @@ export class Stage {
         ease: 'Quad.in',
         onComplete: () => {
           drop.setVisible(false);
-          let r = 0;
+          if (ripple) {
+            ripple.setVisible(true).play('obj_prologue.ripple');
+            ripple.once('animationcomplete', () => ripple.setVisible(false));
+            return;
+          }
           s.tweens.addCounter({
             from: 0,
             to: 1,
             duration: 400,
             onUpdate: (tw) => {
-              r = tw.getValue();
+              const r = tw.getValue();
               g.clear();
               g.lineStyle(1, 0x9fc0e0, 1 - r);
-              g.strokeEllipse(x, by + 1, 2 + r * 8, 1 + r * 2);
+              g.strokeEllipse(x, by + 1, 3 + r * 12, 1 + r * 3);
             },
             onComplete: () => g.clear()
           });

@@ -24,7 +24,7 @@ async function loadFonts() {
   const timeout = new Promise((r) => setTimeout(r, 4000));
   try {
     await Promise.race([
-      Promise.all([document.fonts.load('12px Galmuri11'), document.fonts.load('14px Galmuri14')]),
+      Promise.all([document.fonts.load('12px Galmuri11'), document.fonts.load('14px Galmuri14'), document.fonts.load('10px Galmuri9')]),
       timeout
     ]);
   } catch (e) { /* 글꼴 실패 시 기본 글꼴 */ }

@@ -2,15 +2,20 @@
 // 컨베이어에서 내려오는 상자를 타이밍에 맞춰 트럭으로 옮긴다.
 // 실패해도 페널티는 없다. 그냥 반복된다. 상자는 끝없이 온다.
 // 정해진 개수(기본 30개)를 옮기면 자동으로 끝난다.
+// 배경: bg_warehouse.png, 도윤: doyun_carry_box.png (들기 2~3, 옮기기 4~6), 상자: obj_prologue 8번 칸
 
 import { G } from '../core/state.js';
 import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
 import { W, H, txt, panel } from '../core/gfx.js';
+import { objTexture } from '../core/sprites.js';
+import { CharSprite } from '../world/CharSprite.js';
 
-const BELT_Y = 150;
-const ZONE = { x0: 214, x1: 252 };
-const FLOOR = 196;
+const FLOOR = 216;
+const BELT_Y = 176;          // 벨트 윗면 (48px 도윤의 가슴 높이쯤)
+const BELT_END = 250;
+const ZONE = { x0: 206, x1: 244 };
+const TRUCK_X0 = 352;        // 트럭 짐칸 안쪽 시작
 
 export class UnloadScene extends Phaser.Scene {
   constructor() {
@@ -30,27 +35,31 @@ export class UnloadScene extends Phaser.Scene {
     this.spawnT = 600;
     this.beltOffset = 0;
 
-    if (G.realSprites.has('bg_unload')) {
-      this.add.image(0, 0, 'bg_unload').setOrigin(0);
+    if (G.realSprites.has('bg_warehouse')) {
+      this.add.image(0, 0, 'bg_warehouse').setOrigin(0);
+      this.add.rectangle(0, 0, W, H, 0x000000, 0.25).setOrigin(0);
     } else {
       const g = this.add.graphics();
       g.fillStyle(0x1b1e24, 1);
       g.fillRect(0, 0, W, H);
       g.fillStyle(0x23272e, 1);
       g.fillRect(0, 0, W, 40);
-      // 형광등
       [60, 180, 300, 420].forEach((x) => {
         g.fillStyle(0xdfe8e0, 1);
-        g.fillRect(x - 20, 14, 40, 3);
+        g.fillRect(x - 24, 14, 48, 3);
       });
       g.fillStyle(0x15171b, 1);
       g.fillRect(0, FLOOR, W, H - FLOOR);
       g.lineStyle(1, 0x3a3f47, 1);
       g.lineBetween(0, FLOOR + 0.5, W, FLOOR + 0.5);
-      // 컨베이어 다리
-      g.fillStyle(0x2c3138, 1);
-      [30, 110, 190].forEach((x) => g.fillRect(x, BELT_Y + 10, 4, FLOOR - BELT_Y - 10));
+      this.add.image(404, FLOOR, 'ph_truck').setOrigin(0.5, 1).setDepth(1);
+      this.add.image(120, FLOOR, 'ph_char_extra_worker').setOrigin(0.5, 1).setDepth(1).setAlpha(0.6);
     }
+    // 컨베이어 다리
+    const legs = this.add.graphics();
+    legs.fillStyle(0x2c3138, 1);
+    [30, 110, 190].forEach((x) => legs.fillRect(x, BELT_Y + 12, 5, FLOOR - BELT_Y - 12));
+
     this.flicker = this.add.rectangle(0, 0, W, H, 0x000000, 0).setOrigin(0).setDepth(50);
     this.time.addEvent({
       delay: 1700,
@@ -63,26 +72,19 @@ export class UnloadScene extends Phaser.Scene {
       }
     });
 
-    // 벨트
     this.belt = this.add.graphics().setDepth(2);
-    // 수거 구역
     this.zoneG = this.add.graphics().setDepth(3);
-    // 트럭
-    this.add.image(400, FLOOR, 'truck').setOrigin(0.5, 1).setDepth(1);
     this.truckBoxes = this.add.graphics().setDepth(2);
-    // 도윤
-    this.doyun = this.add.image(268, FLOOR, 'doyun').setOrigin(0.5, 1).setDepth(5);
-    // 배경 노동자
-    this.add.image(150, FLOOR, 'worker').setOrigin(0.5, 1).setDepth(1).setAlpha(0.6);
+    this.doyun = new CharSprite(this, 270, FLOOR, 'doyun', { depth: 5 });
+    this.doyun.face(-1);
 
-    this.counter = txt(this, W - 10, 46, '', { origin: [1, 0], color: '#ffffff', fixed: false });
-    this.counter.setDepth(60);
+    this.counter = txt(this, W - 10, 26, '', { origin: [1, 0], color: '#ffffff' }).setDepth(61);
     const bannerLines = this.cfg.lines || ['상자가 노란 칸에 오면 Z / 공격 / 화면 터치'];
     const title = this.cfg.title || '[미니게임: 상하차]';
-    const t1 = txt(this, W / 2, 8, title, { origin: [0.5, 0], color: '#f0dc8c' }).setDepth(61);
-    const t2 = txt(this, W / 2, 24, bannerLines.join('   '), { origin: [0.5, 0], color: '#e8e8e8' }).setDepth(61);
+    const t1 = txt(this, W / 2, 232, title, { origin: [0.5, 0], color: '#f0dc8c' }).setDepth(61);
+    const t2 = txt(this, W / 2, 248, bannerLines.join('   '), { origin: [0.5, 0], color: '#e8e8e8' }).setDepth(61);
     const bw = Math.max(t1.width, t2.width) + 20;
-    panel(this, Math.round(W / 2 - bw / 2), 4, Math.round(bw), 36, { border: 0xb8a35a, alpha: 0.85 }).setDepth(60);
+    panel(this, Math.round(W / 2 - bw / 2), 228, Math.round(bw), 38, { border: 0xb8a35a, alpha: 0.85 }).setDepth(60);
     this.updateCounter();
     this.input.on('pointerdown', () => this.tryGrab());
   }
@@ -92,40 +94,51 @@ export class UnloadScene extends Phaser.Scene {
   }
 
   spawnBox() {
-    const b = this.add.image(-10, BELT_Y, 'parcel').setOrigin(0.5, 1).setDepth(4);
+    const t = objTexture('parcel');
+    const b = this.add.image(-16, BELT_Y, t.key, t.frame).setOrigin(0.5, 1).setDepth(4);
     b.state = 'belt';
     this.boxes.push(b);
   }
 
+  inZone(b) {
+    return b.state === 'belt' && b.x >= ZONE.x0 && b.x <= ZONE.x1;
+  }
+
   tryGrab() {
     if (this.finished && this.count >= this.target) return;
-    const inZone = this.boxes.find((b) => b.state === 'belt' && b.x >= ZONE.x0 && b.x <= ZONE.x1);
-    if (!inZone) {
+    const box = this.boxes.find((b) => this.inZone(b));
+    const d = this.doyun;
+    if (!box) {
       // 헛손질 — 페널티 없음
-      this.tweens.add({ targets: this.doyun, scaleY: 0.92, duration: 60, yoyo: true });
+      d.play('grab').then(() => d.play('idle'));
       return;
     }
-    inZone.state = 'carry';
+    box.state = 'carry';
     Audio.sfx('pick');
-    this.tweens.add({ targets: this.doyun, scaleY: 0.85, duration: 80, yoyo: true });
+    d.face(-1);
+    d.play('grab').then(() => {
+      d.face(1);
+      d.play('carry');
+      this.time.delayedCall(260, () => { d.play('idle'); d.face(-1); });
+    });
     const slot = this.count;
-    const tx = 352 + (slot % 8) * 12;
-    const ty = FLOOR - 8 - Math.floor((slot % 40) / 8) * 11;
-    const sx = inZone.x;
-    const sy = inZone.y;
+    const tx = TRUCK_X0 + (slot % 6) * 18;
+    const ty = FLOOR - 6 - Math.floor((slot % 30) / 6) * 16;
+    const sx = box.x;
+    const sy = box.y;
     this.tweens.addCounter({
       from: 0,
       to: 1,
-      duration: 380,
+      duration: 420,
       onUpdate: (tw) => {
         const p = tw.getValue();
-        inZone.x = sx + (tx - sx) * p;
-        inZone.y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 30;
+        box.x = sx + (tx - sx) * p;
+        box.y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 44;
       },
       onComplete: () => {
         Audio.sfx('thud');
-        inZone.destroy();
-        this.boxes = this.boxes.filter((x) => x !== inZone);
+        box.destroy();
+        this.boxes = this.boxes.filter((x) => x !== box);
         this.count++;
         this.updateCounter();
         this.drawTruck();
@@ -140,14 +153,14 @@ export class UnloadScene extends Phaser.Scene {
   drawTruck() {
     const g = this.truckBoxes;
     g.clear();
-    const n = Math.min(this.count, 40);
+    const n = Math.min(this.count, 30);
     for (let i = 0; i < n; i++) {
-      const x = 352 + (i % 8) * 12;
-      const y = FLOOR - 8 - Math.floor(i / 8) * 11 - 13;
+      const x = TRUCK_X0 + (i % 6) * 18;
+      const y = FLOOR - 6 - Math.floor(i / 6) * 16 - 15;
       g.fillStyle(0xb98d55, 1);
-      g.fillRect(x - 6, y, 12, 11);
+      g.fillRect(x - 8, y, 16, 15);
       g.lineStyle(1, 0x7f6038, 1);
-      g.strokeRect(x - 5.5, y + 0.5, 11, 10);
+      g.strokeRect(x - 7.5, y + 0.5, 15, 14);
     }
   }
 
@@ -158,19 +171,18 @@ export class UnloadScene extends Phaser.Scene {
   }
 
   update(time, dt) {
-    const speed = 62 + Math.min(this.count, 30) * 0.6;
-    // 벨트 그리기
-    this.beltOffset = (this.beltOffset + (speed * dt) / 1000) % 10;
+    const speed = 70 + Math.min(this.count, 30) * 0.7;
+    this.beltOffset = (this.beltOffset + (speed * dt) / 1000) % 12;
     const g = this.belt;
     g.clear();
     g.fillStyle(0x3c4148, 1);
-    g.fillRect(0, BELT_Y, 262, 10);
+    g.fillRect(0, BELT_Y, BELT_END, 12);
     g.lineStyle(1, 0x22262b, 1);
-    for (let x = -10 + this.beltOffset; x < 262; x += 10) g.lineBetween(x, BELT_Y + 1, x, BELT_Y + 9);
+    for (let x = -12 + this.beltOffset; x < BELT_END; x += 12) g.lineBetween(x, BELT_Y + 1, x, BELT_Y + 11);
     this.zoneG.clear();
-    const lit = this.boxes.some((b) => b.state === 'belt' && b.x >= ZONE.x0 && b.x <= ZONE.x1);
+    const lit = this.boxes.some((b) => this.inZone(b));
     this.zoneG.lineStyle(1, lit ? 0xffe066 : 0x9a8a40, 1);
-    this.zoneG.strokeRect(ZONE.x0 - 8.5, BELT_Y - 22.5, ZONE.x1 - ZONE.x0 + 16, 33);
+    this.zoneG.strokeRect(ZONE.x0 - 14.5, BELT_Y - 30.5, ZONE.x1 - ZONE.x0 + 28, 42);
 
     // 상자는 끝없이 온다
     this.spawnT -= dt;
@@ -179,22 +191,21 @@ export class UnloadScene extends Phaser.Scene {
       this.spawnT = 950 + Math.random() * 650;
     }
     this.boxes.forEach((b) => {
-      if (b.state === 'belt') {
-        b.x += (speed * dt) / 1000;
-        if (b.x > 268) {
-          // 놓친 상자: 바닥으로 떨어진다 (페널티 없음)
-          b.state = 'fall';
-          Audio.sfx('miss');
-          this.tweens.add({
-            targets: b,
-            x: b.x + 14,
-            y: FLOOR,
-            angle: 40,
-            duration: 360,
-            ease: 'Quad.in',
-            onComplete: () => this.tweens.add({ targets: b, alpha: 0, duration: 600, onComplete: () => b.destroy() })
-          });
-        }
+      if (b.state !== 'belt') return;
+      b.x += (speed * dt) / 1000;
+      if (b.x > BELT_END + 6) {
+        // 놓친 상자: 바닥으로 떨어진다 (페널티 없음)
+        b.state = 'fall';
+        Audio.sfx('miss');
+        this.tweens.add({
+          targets: b,
+          x: b.x + 18,
+          y: FLOOR,
+          angle: 40,
+          duration: 360,
+          ease: 'Quad.in',
+          onComplete: () => this.tweens.add({ targets: b, alpha: 0, duration: 600, onComplete: () => b.destroy() })
+        });
       }
     });
     this.boxes = this.boxes.filter((b) => b.active);
@@ -205,7 +216,6 @@ export class UnloadScene extends Phaser.Scene {
     }
     if (G.auto && this.boxes.some((b) => b.state === 'belt' && b.x >= ZONE.x0 + 8 && b.x <= ZONE.x1)) this.tryGrab();
     if (G.auto && G.fast) {
-      // 테스트용: 상자 생성 가속
       this.spawnT = Math.min(this.spawnT, 50);
       this.boxes.forEach((b) => { if (b.state === 'belt' && b.x < ZONE.x0) b.x = ZONE.x0 + 9; });
     }

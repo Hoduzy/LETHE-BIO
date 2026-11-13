@@ -4,10 +4,11 @@
 
 - Phaser 3.80.1 + 순수 JavaScript (ES 모듈). 빌드 도구 없음.
 - 480×270 기준 도트 화면, 기기 픽셀 기준 정수배 확대 (`pixelArt: true`).
+- 인물은 64×64 칸 안에 키 약 48px, 바닥선은 y=216 (배경의 아래 1/5). 장면 폭은 모두 480 (배경 한 장).
 - 모든 소리는 Web Audio API 오실레이터/노이즈로 직접 생성 (효과음 파일 없음).
-- 그래픽은 임시 도형. `assets/sprites/` 에 PNG를 넣으면 자동 교체.
+- 그래픽은 아직 임시 도형. `assets/sprites/` 에 `08 프롤로그 이미지 프롬프트.md` 의 파일 이름대로 PNG를 넣으면 자동 교체·애니메이션 재생 (마젠타 배경은 투명 처리). 전체 목록: `assets/sprites/README.md`.
 
-기획·대본: 레포 루트의 `00 세계관 설정집.md` ~ `07 에필로그 처음뵙겠습니다.md`.
+기획·대본: 레포 루트의 `00 세계관 설정집.md` ~ `07 에필로그 처음뵙겠습니다.md`, 그림 기준: `08 프롤로그 이미지 프롬프트.md`.
 
 ---
 
@@ -83,16 +84,17 @@ src/
                         save(localStorage), sprites(PNG 자동 교체), gfx, state
   ui/                   DialogueBox(타이핑+삑 소리), HoldPress(길게 누르기 공용),
                         Phone(문자·전화·입금·검색), Panels(배너·광고·정산·대상자 정보·타이틀)
-  world/                Stage(공간 생성), Player(도윤), Enemies(공백, 마네킹)
+  world/                Stage(공간 생성), CharSprite(인물 공용: 시트 애니메이션/임시 움직임),
+                        Player(도윤), Enemies(공백, 마네킹)
   scenes/               Boot, Menu, Story(장면 실행기), Settings,
                         Contract(계약서), Unload(상하차), Shelf(진열 정리)
 data/
   game.json             장 목록과 장면 순서
   speakers.json         화자 이름 → 목소리/이름 색/스타일
   voices.json           목소리 프로필(파형·음높이·속도)
-  sprites.json          모든 스프라이트 키와 임시 도형 정의
+  sprites.json          그림 파일 이름·칸 크기·프레임 구간·물건 칸 번호·임시 도형 (1부터 셈)
   scenes/P-1.json …     장면 하나 = 파일 하나
-assets/sprites/         PNG 교체용 (README 참고)
+assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
 ```
 
 ---
@@ -110,18 +112,19 @@ assets/sprites/         PNG 교체용 (README 참고)
   "heading": "#P-1 반지하 방 / 새벽 4시",   // 시작할 때 잠깐 표시
   "startBlack": true,                      // 검은 화면에서 시작(직접 fade)
   "stage": {
-    "bg": "bg_banjiha", "width": 480, "floorY": 180,
+    "bg": "bg_banjiha_dawn", "width": 480, "floorY": 216,
     "ambience": ["rain", "drip"],          // rain drip conveyor fridge street hum
     "abilities": ["move"],                 // 다이브: move jump dash attack parry
-    "player": { "x": 128, "lying": true },
-    "backdrop": [ { "rect": [x,y,w,h], "color": "#..." }, { "line": [...] } ],
-    "props":  [ { "id": "fridge", "sprite": "fridge", "x": 298, "label": "냉장고",
+    "player": { "x": 80, "anim": "lie_sleep" },            // 시작 자세
+    "backdrop": [ { "rect": [x,y,w,h], "color": "#..." } ],  // 배경 PNG 없을 때만
+    "props":  [ { "id": "bucket", "obj": "bucket", "x": 270 },              // obj_prologue 칸
+                { "id": "fridge", "ph": "ph_fridge", "x": 322, "label": "냉장고",  // 배경 속 가구
                   "examine": { "lines": ["…"] } } ],
-    "actors": [ { "id": "mother", "sprite": "mother", "x": 40, "speaker": "어머니" } ]
+    "actors": [ { "id": "mother", "char": "mother", "x": 200, "anim": "sleep", "speaker": "어머니" } ]
   },
   "steps": [
     { "type": "narration", "text": "…" },
-    { "type": "say", "speaker": "반장", "text": "…" },
+    { "type": "say", "speaker": "어머니", "text": "…", "face": 2, "anim": "cook" },  // 초상화 표정, 동작
     { "type": "thought", "speaker": "도윤(속마음)", "text": "…" },
     { "type": "explore", "exit": "door", "require": ["bucket"] }
   ]
@@ -132,7 +135,7 @@ assets/sprites/         PNG 교체용 (README 참고)
 
 | type | 대본 표기 | 설명 |
 |---|---|---|
-| `say` | **이름**: 대사 | 일반 대사 (인물별 삑 소리) |
+| `say` | **이름**: 대사 | 일반 대사 (인물별 삑 소리). `face` 초상화 표정 번호, `anim` 말하는 인물 동작 |
 | `thought` | 도윤(속마음) | 기울임체, 작고 낮은 소리 |
 | `narration` | *지문* | 소리 없음 |
 | `examine` / props의 `examine` | [살펴보기: …] | 오브젝트 근처에서 상호작용 |
@@ -149,7 +152,8 @@ assets/sprites/         PNG 교체용 (README 참고)
 | `card` | 광고판·로비 글씨 | `style`: ad, adSmall, lobby, post |
 | `item` | 물건 클로즈업 | 견본 결정 등 |
 | `title` | [타이틀] | `endChapter: true` 면 장 완료 저장 |
-| `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, texture, toss, stand, lie |
+| `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, anim(이름으로 동작 재생), toss, stand, lie |
+| `teleport` | | 플레이어 순간이동 (시뮬레이션 공간이 다시 이어지는 연출) |
 | `fade`, `wait`, `sfx`, `ambience`, `silence`, `shake` | 연출 | |
 | `parallel`, `sequence` | | 동시에 / 차례로 실행 |
 

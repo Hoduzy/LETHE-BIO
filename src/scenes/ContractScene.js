@@ -117,7 +117,7 @@ export class ContractScene extends Phaser.Scene {
     // 스크롤 막대
     this.bar = this.add.graphics();
 
-    this.dialogue = new DialogueBox(this);
+    this.dialogue = new DialogueBox(this, { position: () => 'bottom' });
     this.sel = 0;
 
     // 드래그 스크롤 / 탭 선택

@@ -3,44 +3,47 @@
   "title": "윤 실장 사무실 / 배정",
   "heading": "#P-12 윤 실장 사무실 / 배정",
   "stage": {
-    "bg": "bg_office",
+    "bg": "bg_interview_room",
     "width": 480,
-    "floorY": 180,
+    "floorY": 216,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
-    "player": {"x": 220, "facing": 1},
+    "player": {"x": 198, "facing": 1},
     "backdrop": [
-      {"rect": [0, 0, 480, 180], "color": "#eef0f2"},
-      {"rect": [0, 180, 480, 90], "color": "#dfe3e6"},
-      {"line": [0, 180, 480, 180], "color": "#c4cad0"},
-      {"rect": [60, 30, 60, 90], "color": "#e3e6e9"},
-      {"frame": [60, 30, 60, 90], "color": "#d0d5da"}
+      {"rect": [0, 0, 480, 216], "color": "#f1f3f5"},
+      {"rect": [0, 216, 480, 54], "color": "#e3e6e9"},
+      {"line": [0, 216, 480, 216], "color": "#c9ced3"}
     ],
     "effects": [
-      {"name": "cityLights", "x": 300, "y": 30, "w": 120, "h": 70, "count": 12}
+      {"name": "cityLights", "x": 140, "y": 30, "w": 200, "h": 110, "count": 16, "phOnly": true}
     ],
     "props": [
-      {"id": "window", "sprite": "window_city", "x": 360, "y": 100, "depth": 1},
-      {"id": "desk", "sprite": "office_desk", "x": 290},
-      {"id": "chair", "sprite": "chair", "x": 236}
+      {"id": "window", "ph": "ph_window_city", "x": 240, "y": 140, "depth": 1},
+      {"id": "desk", "ph": "ph_office_desk", "x": 260},
+      {"id": "chair1", "ph": "ph_chair", "x": 198},
+      {"id": "chair2", "ph": "ph_chair", "x": 322}
     ],
     "actors": [
-      {"id": "yoon", "sprite": "yoon", "x": 318, "speaker": "윤 실장", "flip": true}
+      {"id": "yoon", "char": "yoon", "x": 328, "speaker": "윤 실장", "facing": -1}
     ]
   },
   "steps": [
-    {"type": "say", "speaker": "윤 실장", "text": "수고하셨어요. 시뮬레이션 점수가 아주 좋아요. 반응 속도가 상위 10%예요."},
-    {"type": "say", "speaker": "윤 실장", "text": "그래서 바로 실전 배정 들어가도 될 것 같아요. 원래는 일주일 더 교육하는데, 도윤 씨는 금요일까지 급하시잖아요."},
-    {"type": "say", "speaker": "윤 실장", "text": "(태블릿을 넘겨준다) 첫 대상자예요."},
+    {"type": "player", "action": "anim", "name": "sit_chair"},
+    {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
+    {"type": "say", "speaker": "윤 실장", "text": "수고하셨어요. 시뮬레이션 점수가 아주 좋아요. 반응 속도가 상위 10%예요.", "face": 1},
+    {"type": "say", "speaker": "윤 실장", "text": "그래서 바로 실전 배정 들어가도 될 것 같아요. 원래는 일주일 더 교육하는데, 도윤 씨는 금요일까지 급하시잖아요.", "face": 2},
+    {"type": "say", "speaker": "윤 실장", "text": "(태블릿을 넘겨준다) 첫 대상자예요.", "face": 1, "anim": "tablet"},
     {"type": "profile", "title": "대상자 정보", "photo": "harin_photo", "lines": ["관리번호: LT-0417", "성명: 한하린 (여, 22세)", "의식불명 기간: 7개월", "사유: 교통사고에 따른 외상성 뇌손상", "위탁 보호자: 모(母)", "예상 기억 구역 수: 5 이상", "결정 품질 예측: 양호~우수", "특이사항: 정서 반응성 높음. 유대 형성 가능성 높음."], "narration": "사진이 붙어 있다. 병상에 누운 여자. 눈을 감고 있다. 머리카락이 베개 위에 흩어져 있다.", "examinePhoto": {"label": "사진", "lines": ["자는 것 같다.", "그냥 자는 것 같다."]}},
-    {"type": "say", "speaker": "도윤", "text": "유대 형성 가능성… 이건 무슨 뜻이에요?"},
-    {"type": "say", "speaker": "윤 실장", "text": "아, 그냥 대화가 잘 통하는 분이라는 뜻이에요. 다이브가 수월할 거예요. 운이 좋으세요."},
+    {"type": "say", "speaker": "도윤", "text": "유대 형성 가능성… 이건 무슨 뜻이에요?", "face": 1},
+    {"type": "say", "speaker": "윤 실장", "text": "아, 그냥 대화가 잘 통하는 분이라는 뜻이에요. 다이브가 수월할 거예요. 운이 좋으세요.", "face": 3, "anim": "glasses"},
     {"type": "profile", "hide": true},
-    {"type": "say", "speaker": "윤 실장", "text": "내일 아침 9시. 첫 다이브예요."},
-    {"type": "actor", "id": "yoon", "action": "move", "x": 262, "speed": 30, "face": -1},
+    {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
+    {"type": "say", "speaker": "윤 실장", "text": "내일 아침 9시. 첫 다이브예요.", "face": 1},
+    {"type": "actor", "id": "yoon", "action": "move", "x": 262, "speed": 30, "face": -1, "anim": "handshake"},
+    {"type": "player", "action": "anim", "name": null},
     {"type": "narration", "text": "윤 실장이 일어나 다시 손을 내민다."},
-    {"type": "say", "speaker": "윤 실장", "text": "그리고 도윤 씨. 입사 축하금은 방금 입금했어요."},
+    {"type": "say", "speaker": "윤 실장", "text": "그리고 도윤 씨. 입사 축하금은 방금 입금했어요.", "face": 4},
     {"type": "phone", "action": "bank", "kind": "입금", "title": "레테바이오(주) 3,000,000원", "lines": ["메모: 입사를 축하합니다"], "keep": true},
     {"type": "narration", "text": "도윤이 화면을 본다. 그리고 바로 다른 화면을 연다."},
     {"type": "phone", "action": "bank", "kind": "송금", "title": "한빛신장병원 2,847,600원", "lines": ["송금이 완료되었습니다."]},

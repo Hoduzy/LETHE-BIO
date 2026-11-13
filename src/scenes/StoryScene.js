@@ -13,6 +13,7 @@ import { HoldPress } from '../ui/HoldPress.js';
 import { Phone } from '../ui/Phone.js';
 import { Panels } from '../ui/Panels.js';
 import { Stage } from '../world/Stage.js';
+import { objTexture } from '../core/sprites.js';
 import { Player } from '../world/Player.js';
 import { VoidEnemy, Mannequin } from '../world/Enemies.js';
 
@@ -60,11 +61,14 @@ export class StoryScene extends Phaser.Scene {
     const st = def.stage || {};
     this.stage = new Stage(this, st);
     const p = st.player || {};
-    this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1 });
-    this.physics.add.collider(this.player.sprite, this.stage.solidGroup);
+    this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char });
+    this.physics.add.collider(this.player.cs.zone, this.stage.solidGroup);
     if (p.visible === false) this.player.setVisible(false);
-    if (p.lying) this.player.lie(true);
-    this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12, 0, 20);
+    if (p.anim) {
+      // 시작 자세 (예: lie_sleep, capsule_sleep)
+      this.player.lie(true, p.anim, { lift: p.lift, depth: p.depth });
+    }
+    this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12, 0, 0);
     this.cameras.main.setRoundPixels(true);
     this.lastSafeX = this.player.x;
 
@@ -75,11 +79,11 @@ export class StoryScene extends Phaser.Scene {
     this.markerT = 0;
 
     // UI
-    this.dialogue = new DialogueBox(this);
+    this.dialogue = new DialogueBox(this, { position: () => (this.phone && this.phone.visible) || (this.panels && this.panels.anyVisible()) ? 'bottom' : 'top' });
     this.phone = new Phone(this);
     this.panels = new Panels(this);
     this.fadeRect = this.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.fade);
-        if (def.startColor === 'white') this.fadeRect.setFillStyle(0xffffff, 1);
+    if (def.startColor === 'white') this.fadeRect.setFillStyle(0xffffff, 1);
     if (!def.startBlack) {
       this.tweens.add({ targets: this.fadeRect, alpha: 0, duration: 700 });
     }
@@ -97,7 +101,7 @@ export class StoryScene extends Phaser.Scene {
   }
 
   showHeading(h) {
-    const t = txt(this, 8, 6, h, { color: '#8a93a3', depth: DEPTH.banner });
+    const t = txt(this, W - 8, 252, h, { color: '#8a93a3', depth: DEPTH.banner, origin: [1, 0] });
     t.setAlpha(0);
     this.tweens.add({ targets: t, alpha: 1, duration: 600, delay: 400, hold: 2600, yoyo: true, onComplete: () => t.destroy() });
   }
@@ -178,7 +182,7 @@ export class StoryScene extends Phaser.Scene {
   // ------------------------------------------------------------------
   bounceSpeaker(name) {
     const a = this.stage.actorBySpeaker(name);
-    if (!a || !a.obj.visible || a.def.lying) return;
+    if (!a || !a.cs.visible || a.cs.realAny || a.cs.pose === 'lie') return;
     const o = a.obj;
     if (o._bouncing) return;
     o._bouncing = true;
@@ -186,13 +190,21 @@ export class StoryScene extends Phaser.Scene {
     this.tweens.add({ targets: o, y: y0 - 2, duration: 90, yoyo: true, onComplete: () => { o.y = y0; o._bouncing = false; } });
   }
 
+  // 대사: face = 초상화 표정 번호, anim = 말하는 사람이 할 동작 (선택)
   step_say(s) {
     this.bounceSpeaker(s.speaker);
-    return this.dialogue.show({ style: 'say', speaker: s.speaker, text: s.text });
+    if (s.anim) {
+      if (s.speaker === '도윤') this.player.setOverride(s.anim);
+      else {
+        const a = this.stage.actorBySpeaker(s.speaker);
+        if (a) a.cs.play(s.anim);
+      }
+    }
+    return this.dialogue.show({ style: 'say', speaker: s.speaker, text: s.text, face: s.face });
   }
 
   step_thought(s) {
-    return this.dialogue.show({ style: 'thought', speaker: s.speaker || '도윤(속마음)', text: s.text });
+    return this.dialogue.show({ style: 'thought', speaker: s.speaker || '도윤(속마음)', text: s.text, face: s.face });
   }
 
   step_narration(s) {
@@ -335,20 +347,33 @@ export class StoryScene extends Phaser.Scene {
   // ------------------------------------------------------------------
   // 인물 / 소품 / 플레이어 연출
   // ------------------------------------------------------------------
+  // 소품(이미지) 이동
   moveObj(o, x, speed = 50) {
     const dist = Math.abs(o.x - x);
     if (dist < 1) return Promise.resolve();
-    if (o.setFlipX) o.setFlipX(x < o.x);
+    const dur = G.auto ? 60 : (dist / speed) * 1000;
+    return new Promise((res) => this.tweens.add({ targets: o, x, duration: dur, onComplete: res }));
+  }
+
+  // 인물 이동: 걷기 동작을 재생하며 x 까지
+  moveChar(cs, x, speed = 50, after = 'idle') {
+    const from = cs.x;
+    const dist = Math.abs(from - x);
+    if (dist < 1) return Promise.resolve();
+    cs.face(x < from ? -1 : 1);
+    cs.play(cs.anims.walk ? 'walk' : 'idle');
+    if (!cs.anims.walk && !cs.realAny) cs.applyPose('bob');
     const dur = G.auto ? 60 : (dist / speed) * 1000;
     return new Promise((res) => {
-      const bob = this.tweens.add({ targets: o, scaleY: 1.05, duration: 120, yoyo: true, repeat: -1 });
+      const st = { x: from };
       this.tweens.add({
-        targets: o,
+        targets: st,
         x,
         duration: dur,
+        onUpdate: () => cs.setPosition(st.x, cs.zone ? undefined : cs.baseY),
         onComplete: () => {
-          bob.stop();
-          o.setScale(1);
+          cs.setPosition(x, cs.zone ? undefined : cs.baseY);
+          if (after) cs.play(after);
           res();
         }
       });
@@ -357,15 +382,17 @@ export class StoryScene extends Phaser.Scene {
 
   async step_actor(s) {
     const a = this.stage.get(s.id);
-    if (!a) {
+    if (!a || !a.cs) {
       console.warn('actor 없음', s.id);
       return;
     }
-    const o = a.obj;
+    const cs = a.cs;
+    const o = cs.sprite;
     switch (s.action) {
       case 'show':
-        o.setVisible(true);
-        if (s.x != null) o.x = s.x;
+        cs.setVisible(true);
+        if (s.x != null) cs.setPosition(s.x);
+        if (s.anim) cs.play(s.anim);
         if (s.fade) {
           o.setAlpha(0);
           await new Promise((r) => this.tweens.add({ targets: o, alpha: 1, duration: s.fade, onComplete: r }));
@@ -373,32 +400,36 @@ export class StoryScene extends Phaser.Scene {
         break;
       case 'hide':
         if (s.fade) await new Promise((r) => this.tweens.add({ targets: o, alpha: 0, duration: s.fade, onComplete: r }));
-        o.setVisible(false);
+        cs.setVisible(false);
         o.setAlpha(1);
         break;
       case 'move': {
-        const pr = this.moveObj(o, s.x, s.speed || 45);
+        const pr = this.moveChar(cs, s.x, s.speed || 45, s.anim || 'idle');
         if (s.wait !== false) await pr;
-        if (s.face) o.setFlipX(s.face < 0);
+        if (s.face) cs.face(s.face);
         break;
       }
       case 'face':
-        o.setFlipX(s.dir < 0);
+        cs.face(s.dir);
         break;
-      case 'texture':
-        o.setTexture(s.sprite);
+      // 이름으로 동작 재생 (data/sprites.json characters.<id>.anims). wait: true 면 끝날 때까지 기다림
+      case 'anim': {
+        const pr = cs.play(s.name);
+        if (s.wait) await pr;
         break;
+      }
       case 'stand':
-        o.setAngle(0).setOrigin(0.5, 1);
-        o.y = this.stage.floorY;
+        await cs.play(s.anim || 'idle');
         break;
       case 'toss': {
-        // 캔커피 던지기 등: 작은 물건이 actor → 플레이어로 날아간다
-        const it = this.add.image(o.x, o.y - 18, s.sprite || 'can_coffee').setDepth(DEPTH.fx);
+        // 캔커피 던지기: 작은 물건이 actor → 플레이어로 날아간다
+        if (s.anim) cs.play(s.anim);
+        const t = objTexture(s.obj || 'can_coffee');
+        const it = this.add.image(cs.x, cs.y - 34, t.key, t.frame).setDepth(DEPTH.fx);
         await new Promise((r) => this.tweens.add({
           targets: it,
           x: this.player.x,
-          y: this.player.y - 14,
+          y: this.player.y - 28,
           duration: G.auto ? 50 : 500,
           ease: 'Sine.out',
           onUpdate: (tw) => { it.angle = tw.progress * 540; },
@@ -417,10 +448,14 @@ export class StoryScene extends Phaser.Scene {
     const pl = this.player;
     switch (s.action) {
       case 'stand':
+        // 누운 자세에서 일어나기 (wake 등 동작이 있으면 재생 후)
+        if (s.anim) await pl.setOverride(s.anim);
         pl.lie(false);
         break;
       case 'lie':
-        pl.lie(true);
+        // lift: 바닥보다 높이 (캡슐 안), depth: 캡슐 뒤에 그리기
+        if (s.x != null) pl.setX(s.x);
+        pl.lie(true, s.anim || 'lie_sleep', { lift: s.lift, depth: s.depth });
         break;
       case 'hide':
         pl.setVisible(false);
@@ -431,14 +466,32 @@ export class StoryScene extends Phaser.Scene {
       case 'face':
         pl.face(s.dir);
         break;
+      // 이름으로 동작 재생 / 고정 (null 이면 자동으로)
+      case 'anim': {
+        const pr = pl.setOverride(s.name || null);
+        if (s.wait) await pr;
+        break;
+      }
       case 'move': {
-        pl.sprite.body.setVelocity(0, 0);
-        pl.sprite.body.enable = false;
-        await this.moveObj(pl.sprite, s.x, s.speed || 55);
-        pl.sprite.body.enable = true;
-        pl.sprite.body.reset(pl.sprite.x, pl.sprite.y);
+        const b = pl.body;
+        b.setVelocity(0, 0);
+        b.enable = false;
+        pl.override = null;
+        const walk = pl.dive ? 'run' : 'walk';
+        pl.setOverride(walk);
+        pl.face(s.x < pl.x ? -1 : 1);
+        const dist = Math.abs(pl.x - s.x);
+        const dur = G.auto ? 60 : (dist / (s.speed || 60)) * 1000;
+        const st = { x: pl.x };
+        await new Promise((res) => this.tweens.add({
+          targets: st, x: s.x, duration: dur,
+          onUpdate: () => { pl.cs.zone.x = st.x; pl.cs.sync(); },
+          onComplete: res
+        }));
+        b.enable = true;
+        b.reset(s.x, pl.cs.zone.y);
+        pl.setOverride(s.anim || null);
         if (s.face) pl.face(s.face);
-        else pl.face(pl.sprite.flipX ? -1 : 1);
         break;
       }
       default:
@@ -451,9 +504,27 @@ export class StoryScene extends Phaser.Scene {
     if (!p) return Promise.resolve();
     if (s.action === 'show') p.obj.setVisible(true);
     if (s.action === 'hide') p.obj.setVisible(false);
-    if (s.action === 'texture') p.obj.setTexture(s.sprite);
+    if (s.action === 'ph' && !p.obj.bgHidden) p.obj.setTexture(s.ph);
+    if (s.action === 'obj') {
+      // 물건 그림 바꾸기 (예: 캔 → 찌그러진 캔)
+      const t = objTexture(s.obj);
+      p.obj.setTexture(t.key, t.frame);
+    }
+    if (s.action === 'anim' && p.obj.play && this.anims.exists(s.name)) {
+      p.obj.play(s.name);
+      if (s.wait) return new Promise((r) => p.obj.once('animationcomplete', r));
+    }
     if (s.action === 'move') return this.moveObj(p.obj, s.x, s.speed || 40);
     return Promise.resolve();
+  }
+
+  // 플레이어를 순간이동 (시뮬레이션 공간이 다시 처음으로 이어지는 연출 등)
+  async step_teleport(s) {
+    if (s.flash !== false) this.cameras.main.flash(G.auto ? 50 : 500, 255, 255, 255);
+    this.player.body.setVelocity(0, 0);
+    this.player.setX(s.x);
+    if (s.face) this.player.face(s.face);
+    await this.wait(s.ms || 600);
   }
 
   step_sequence(s) {
@@ -469,6 +540,10 @@ export class StoryScene extends Phaser.Scene {
   // ------------------------------------------------------------------
   async step_phone(s) {
     const ph = this.phone;
+    // 도윤의 휴대폰 동작 (doyun_phone 시트): 꺼내기 → 화면 보기 → 귀에 대기 → 내리기
+    const PA = { sms: 'phone_look', incoming: 'phone_take', answer: 'phone_call', hangup: 'phone_lower', bank: 'phone_look', search: 'phone_look', page: 'phone_look' };
+    if (!s.noAnim && this.player.visible && this.player.cs.anims[PA[s.action]]) this.player.setOverride(PA[s.action]);
+    if (s.action === 'close' && !s.keepAnim) this.player.setOverride(null);
     switch (s.action) {
       case 'sms':
         ph.sms(s);
@@ -577,8 +652,11 @@ export class StoryScene extends Phaser.Scene {
     return this.launchOverlay(key, { cfg: s });
   }
 
-  step_contract(s) {
-    return this.launchOverlay('Contract', { cfg: s });
+  async step_contract(s) {
+    // 서명할 때 도윤: 펜을 든다(doyun_sign 3) → 다 쓰고 펜을 든다(5)
+    if (s.mode === 'sign') this.player.setOverride('sign_ready');
+    await this.launchOverlay('Contract', { cfg: s });
+    if (s.mode === 'sign') this.player.setOverride('sign_done');
   }
 
   // ------------------------------------------------------------------
@@ -595,7 +673,7 @@ export class StoryScene extends Phaser.Scene {
       this.exploreCfg = null;
       this.exploreResolve = null;
       this.mode = 'cutscene';
-      this.player.sprite.body.setVelocityX(0);
+      this.player.body.setVelocityX(0);
       if (s.tutorial) this.panels.hideBanner();
     });
   }
@@ -606,16 +684,16 @@ export class StoryScene extends Phaser.Scene {
     for (const id of ids) {
       if (!this.exploreCfg) return;
       const e = this.stage.get(id);
-      this.player.sprite.x = e.obj.x;
+      this.player.setX(e.obj.x);
       await this.interactWith(e);
     }
     if (!this.exploreCfg) return;
     if (s.exit) {
       const e = this.stage.get(s.exit);
-      this.player.sprite.x = e.obj.x;
+      this.player.setX(e.obj.x);
       await this.interactWith(e);
     } else if (s.reach != null) {
-      this.player.sprite.x = s.reach + 2;
+      this.player.setX(s.reach + 2);
     }
   }
 
@@ -658,7 +736,7 @@ export class StoryScene extends Phaser.Scene {
 
   async interactWith(e) {
     this.mode = 'busy';
-    this.player.sprite.body.setVelocityX(0);
+    this.player.body.setVelocityX(0);
     this.player.face(e.obj.x < this.player.x ? -1 : 1);
     const ex = e.def.examine;
     if (ex) {
@@ -718,8 +796,8 @@ export class StoryScene extends Phaser.Scene {
       let en;
       if (e.kind === 'mannequin') en = new Mannequin(this, e.x, y);
       else en = new VoidEnemy(this, e.x, y, e);
-      this.physics.add.collider(en.sprite, this.stage.solidGroup);
-      this.physics.add.collider(this.player.sprite, en.sprite);
+      this.physics.add.collider(en.cs.zone, this.stage.solidGroup);
+      this.physics.add.collider(this.player.cs.zone, en.cs.zone);
       this.enemies.push(en);
     });
     return Promise.resolve();
@@ -739,7 +817,7 @@ export class StoryScene extends Phaser.Scene {
     await this.wait(600);
     this.exploreCfg = null;
     this.mode = 'cutscene';
-    this.player.sprite.body.setVelocityX(0);
+    this.player.body.setVelocityX(0);
     this.panels.hideBanner();
   }
 
@@ -762,6 +840,14 @@ export class StoryScene extends Phaser.Scene {
       decay: s.decay != null ? s.decay : 0.35,
       onHoldChange: (held) => {
         this.player.frozen = held;
+        // diver_harvest: 리퍼를 뻗고(2) → 떨며 당기기(3~5). 손을 떼면 원래대로
+        if (held) {
+          this.player.face(o.x < this.player.x ? -1 : 1);
+          this.player.setOverride('harvest_reach');
+          this.time.delayedCall(250, () => { if (this.harvest && this.harvest.hp.holding) this.player.setOverride('harvest_pull'); });
+        } else if (!this.harvest || !this.harvest.hp.done) {
+          this.player.setOverride(null);
+        }
         if (held && !this.harvestSilenced) {
           // 수확하는 순간: 모든 소리를 끊고 정적
           this.harvestSilenced = true;
@@ -772,21 +858,31 @@ export class StoryScene extends Phaser.Scene {
     this.mode = 'play';
     this.exploreCfg = { harvest: true };
     this.harvest = { hp, target };
-    if (G.auto) this.player.sprite.x = o.x - 10;
+    if (G.auto) this.player.setX(o.x - 20);
     await hp.run();
     this.harvest = null;
     this.player.frozen = false;
     this.exploreCfg = null;
     this.mode = 'cutscene';
-    this.player.sprite.body.setVelocityX(0);
+    this.player.body.setVelocityX(0);
     hp.destroy();
     this.panels.hideBanner();
     Audio.silence();
     this.stage.stopEffects();
     // 결정이 손에 들어온다
-    await new Promise((r) => this.tweens.add({ targets: o, x: this.player.x + this.player.facing * 6, y: this.player.y - 10, duration: G.auto ? 50 : 700, ease: 'Sine.inOut', onComplete: r }));
-    this.tweens.add({ targets: o, alpha: 0, duration: 400, delay: 300 });
+    this.player.setOverride('harvest_hold');
+    const realCrystal = o.anims && target.def.obj && G.realSprites.has((G.spriteData.objects[target.def.obj] || { from: [''] }).from[0]);
+    if (realCrystal && this.anims.exists('obj_crystal_gray.pulled')) {
+      // obj_crystal_gray: 받침대에서 떨어져 당겨짐(4~6) → 빈 받침대(7~8)
+      o.play('obj_crystal_gray.pulled');
+      await new Promise((r) => o.once('animationcomplete', r));
+      o.play('obj_crystal_gray.empty');
+    } else {
+      await new Promise((r) => this.tweens.add({ targets: o, x: this.player.x + this.player.facing * 10, y: this.player.y - 20, duration: G.auto ? 50 : 700, ease: 'Sine.inOut', onComplete: r }));
+      this.tweens.add({ targets: o, alpha: 0, duration: 400, delay: 300 });
+    }
     await this.wait(s.after || 1800);
+    this.player.setOverride(null);
     if (s.restore !== false) Audio.restore();
   }
 
@@ -797,6 +893,15 @@ export class StoryScene extends Phaser.Scene {
     this.panels.hideBanner();
     this.stage.stopEffects();
     await this.wait(300);
+    if (G.realSprites.has('bg_simulation_collapse') && this.anims.exists('bg_simulation_collapse.collapse')) {
+      // 붕괴 오버레이 그림 (4프레임, 마젠타 부분은 투명 → 아래 하얀 공간이 비친다)
+      const ov = this.add.sprite(0, 0, 'bg_simulation_collapse', 0).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.panel - 1);
+      ov.play('bg_simulation_collapse.collapse');
+      await new Promise((r) => ov.once('animationcomplete', r));
+      this.fadeRect.setFillStyle(0x000000, 1).setAlpha(1);
+      await this.wait(s.hold || 1600);
+      return;
+    }
     const img = await new Promise((res) => {
       let done = false;
       try {
@@ -879,11 +984,11 @@ export class StoryScene extends Phaser.Scene {
     this.dialogue.update(dt);
 
     // 구덩이에 떨어지면 마지막 안전 지점으로 (페널티 없음)
-    if (this.player.grounded && this.player.sprite.body.enable) this.lastSafeX = this.player.x;
+    if (this.player.grounded && this.player.body.enable) this.lastSafeX = this.player.x;
     if (this.player.y > this.stage.floorY + 80) {
       const pit = (this.def.stage.respawn || []).filter((x) => x <= this.player.x).pop();
       const x = pit != null ? pit : this.lastSafeX - 20 * this.player.facing;
-      this.player.sprite.body.reset(x, this.stage.floorY - 2);
+      this.player.body.reset(x, this.stage.floorY - 30);
       this.cameras.main.flash(200, 255, 255, 255);
     }
 
@@ -901,7 +1006,7 @@ export class StoryScene extends Phaser.Scene {
 
     if (this.harvest) {
       const { hp, target } = this.harvest;
-      const near = Math.abs(this.player.x - target.obj.x) < 26;
+      const near = Math.abs(this.player.x - target.obj.x) < 44;
       hp.update(dt, near);
     }
 

@@ -3,6 +3,7 @@
 export const W = 480;
 export const H = 270;
 export const FONT = 'Galmuri11, "Apple SD Gothic Neo", sans-serif';
+export const FONT_SMALL = 'Galmuri9, Galmuri11, "Apple SD Gothic Neo", sans-serif';
 export const FONT_BIG = 'Galmuri14, Galmuri11, "Apple SD Gothic Neo", sans-serif';
 
 export const DEPTH = {
@@ -24,8 +25,8 @@ export const DEPTH = {
 
 export function txt(scene, x, y, str, opts = {}) {
   const style = {
-    fontFamily: opts.big ? FONT_BIG : FONT,
-    fontSize: (opts.size || (opts.big ? 16 : 12)) + 'px',
+    fontFamily: opts.big ? FONT_BIG : opts.small ? FONT_SMALL : FONT,
+    fontSize: (opts.size || (opts.big ? 16 : opts.small ? 10 : 12)) + 'px',
     color: opts.color || '#ffffff',
     fontStyle: opts.italic ? 'italic' : (opts.bold ? 'bold' : 'normal'),
     align: opts.align || 'left',

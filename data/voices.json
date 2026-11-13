@@ -2,7 +2,7 @@
   "_설명": "인물별 대사 효과음(목소리) 프로필. wave=파형(sine/square/triangle/sawtooth), freq=음 높이(Hz), dur=소리 길이(초), vol=음량, jitter=음 높이 흔들림, msPerChar=글자당 타이핑 시간(ms), lowpass=고음 깎기(Hz), grit=거친 노이즈 양, steps=번갈아 내는 음(기계음)",
   "doyun":     { "wave": "triangle", "freq": 140, "dur": 0.03,  "vol": 0.55, "jitter": 0.02, "msPerChar": 40, "lowpass": 1300 },
   "mother":    { "wave": "sine",     "freq": 330, "dur": 0.065, "vol": 0.42, "jitter": 0.04, "attack": 0.015, "msPerChar": 46 },
-  "minkyu":    { "wave": "square",   "freq": 540, "dur": 0.026, "vol": 0.2,  "jitter": 0.07, "msPerChar": 26, "lowpass": 3200 },
+  "mingyu":    { "wave": "square",   "freq": 540, "dur": 0.026, "vol": 0.2,  "jitter": 0.07, "msPerChar": 26, "lowpass": 3200 },
   "yoon":      { "wave": "sine",     "freq": 440, "dur": 0.045, "vol": 0.38, "jitter": 0,    "msPerChar": 36 },
   "jaehee":    { "wave": "sawtooth", "freq": 160, "dur": 0.045, "vol": 0.26, "jitter": 0.05, "msPerChar": 38, "lowpass": 950, "grit": 0.35 },
   "collector": { "wave": "sawtooth", "freq": 98,  "dur": 0.06,  "vol": 0.32, "jitter": 0.02, "msPerChar": 42, "lowpass": 480, "grit": 0.55 },
