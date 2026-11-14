@@ -8,29 +8,29 @@
   ],
 
   "sheets": {
-    "doyun_idle_breath": { "cell": [64, 64], "frames": 4,  "anims": { "idle": [1, 1], "breath": [1, 4, 3, "loop"] } },
-    "doyun_walk":        { "cell": [64, 64], "frames": 7,  "anims": { "idle": [1, 1], "walk": [2, 7, 9, "loop"] } },
-    "doyun_sleep_wake":  { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "lie_sleep": [2, 2], "lie_awake": [3, 3], "wake": [4, 6, 3], "sit_up": [5, 5] } },
-    "doyun_carry_box":   { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "grab": [2, 3, 10], "carry": [4, 6, 8, "loop"] } },
-    "doyun_phone":       { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "take": [2, 2], "look": [3, 3], "call": [4, 4], "call_fist": [5, 5], "lower": [6, 6] } },
-    "doyun_sit_eat":     { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "sit": [2, 2], "eat": [3, 5, 3, "loop"], "stare": [6, 6] } },
-    "doyun_sign":        { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "sit_chair": [2, 2], "sign_ready": [3, 3], "sign_hesitate": [4, 4], "sign_done": [5, 5] } },
-    "doyun_capsule":     { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "lie_nervous": [2, 2], "lie_closed": [3, 3], "gasp": [4, 4], "sit_breathe": [5, 5] } },
+    "doyun_idle_breath": { "cell": [128, 128], "frames": 4,  "anims": { "idle": [1, 1], "breath": [1, 4, 3, "loop"] } },
+    "doyun_walk":        { "cell": [128, 128], "frames": 7,  "anims": { "idle": [1, 1], "walk": [2, 7, 9, "loop"] } },
+    "doyun_sleep_wake":  { "cell": [128, 128], "frames": 6,  "anims": { "idle": [1, 1], "lie_sleep": [2, 2], "lie_awake": [3, 3], "wake": [4, 6, 3], "sit_up": [5, 5] } },
+    "doyun_carry_box":   { "cell": [128, 128], "frames": 6,  "anims": { "idle": [1, 1], "grab": [2, 3, 10], "carry": [4, 6, 8, "loop"] } },
+    "doyun_phone":       { "cell": [128, 128], "frames": 6,  "anims": { "idle": [1, 1], "take": [2, 2], "look": [3, 3], "call": [4, 4], "call_fist": [5, 5], "lower": [6, 6] } },
+    "doyun_sit_eat":     { "cell": [128, 128], "frames": 6,  "anims": { "idle": [1, 1], "sit": [2, 2], "eat": [3, 5, 3, "loop"], "stare": [6, 6] } },
+    "doyun_sign":        { "cell": [128, 128], "frames": 5,  "anims": { "idle": [1, 1], "sit_chair": [2, 2], "sign_ready": [3, 3], "sign_hesitate": [4, 4], "sign_done": [5, 5] } },
+    "doyun_capsule":     { "cell": [128, 128], "frames": 5,  "anims": { "idle": [1, 1], "lie_nervous": [2, 2], "lie_closed": [3, 3], "gasp": [4, 4], "sit_breathe": [5, 5] } },
 
-    "diver_run":     { "cell": [64, 64], "frames": 8,  "anims": { "idle": [1, 1], "run": [2, 8, 14, "loop"] } },
-    "diver_jump":    { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "crouch": [2, 2], "rise": [3, 3], "peak": [4, 4], "fall": [5, 5], "land": [6, 6] } },
-    "diver_dash":    { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "dash": [2, 4, 16], "brake": [5, 5] } },
-    "diver_attack":  { "cell": [64, 64], "frames": 10, "anims": { "idle": [1, 1], "attack1": [2, 4, 20], "attack2": [5, 7, 20], "attack3": [8, 10, 15] } },
-    "diver_parry":   { "cell": [64, 64], "frames": 5,  "anims": { "idle": [1, 1], "parry": [2, 5, 14] } },
-    "diver_hurt":    { "cell": [64, 64], "frames": 4,  "anims": { "idle": [1, 1], "hurt": [2, 4, 10] } },
-    "diver_harvest": { "cell": [64, 64], "frames": 6,  "anims": { "idle": [1, 1], "reach": [2, 2], "pull": [3, 5, 4, "loop"], "hold": [6, 6] } },
+    "diver_run":     { "cell": [128, 128], "frames": 8,  "anims": { "idle": [1, 1], "run": [2, 8, 14, "loop"] } },
+    "diver_jump":    { "cell": [128, 128], "frames": 6,  "anims": { "idle": [1, 1], "crouch": [2, 2], "rise": [3, 3], "peak": [4, 4], "fall": [5, 5], "land": [6, 6] } },
+    "diver_dash":    { "cell": [128, 128], "frames": 5,  "anims": { "idle": [1, 1], "dash": [2, 4, 16], "brake": [5, 5] } },
+    "diver_attack":  { "cell": [128, 128], "frames": 10, "anims": { "idle": [1, 1], "attack1": [2, 4, 20], "attack2": [5, 7, 20], "attack3": [8, 10, 15] } },
+    "diver_parry":   { "cell": [128, 128], "frames": 5,  "anims": { "idle": [1, 1], "parry": [2, 5, 14] } },
+    "diver_hurt":    { "cell": [128, 128], "frames": 4,  "anims": { "idle": [1, 1], "hurt": [2, 4, 10] } },
+    "diver_harvest": { "cell": [128, 128], "frames": 6,  "anims": { "idle": [1, 1], "reach": [2, 2], "pull": [3, 5, 4, "loop"], "hold": [6, 6] } },
 
-    "mother_actions":  { "cell": [64, 64], "frames": 10, "anims": { "idle": [1, 1], "sleep": [2, 2], "sit_rub": [3, 3], "cook": [4, 6, 4, "loop"], "sit_watch": [7, 7], "touch_face": [8, 8], "phone": [9, 9], "teary": [10, 10] } },
-    "mingyu_actions":  { "cell": [64, 64], "frames": 8,  "anims": { "idle": [1, 1], "talk": [2, 3, 4, "loop"], "arrange": [4, 6, 5, "loop"], "whisper": [7, 7], "shrug": [8, 8] } },
-    "jaehee_actions":  { "cell": [64, 64], "frames": 10, "anims": { "idle": [1, 1], "drink": [2, 3, 3, "loop"], "toss": [4, 4], "crush": [5, 5], "photo": [6, 6], "lie": [7, 7], "sit_up": [8, 8], "wave": [9, 9], "empty_hand": [10, 10] } },
-    "yoon_actions":    { "cell": [64, 64], "frames": 8,  "anims": { "idle": [1, 1], "handshake": [2, 2], "sit": [3, 3], "pour": [4, 4], "open_case": [5, 5], "slide_doc": [6, 6], "tablet": [7, 7], "glasses": [8, 8] } },
+    "mother_actions":  { "cell": [128, 128], "frames": 10, "anims": { "idle": [1, 1], "sleep": [2, 2], "sit_rub": [3, 3], "cook": [4, 6, 4, "loop"], "sit_watch": [7, 7], "touch_face": [8, 8], "phone": [9, 9], "teary": [10, 10] } },
+    "mingyu_actions":  { "cell": [128, 128], "frames": 8,  "anims": { "idle": [1, 1], "talk": [2, 3, 4, "loop"], "arrange": [4, 6, 5, "loop"], "whisper": [7, 7], "shrug": [8, 8] } },
+    "jaehee_actions":  { "cell": [128, 128], "frames": 10, "anims": { "idle": [1, 1], "drink": [2, 3, 3, "loop"], "toss": [4, 4], "crush": [5, 5], "photo": [6, 6], "lie": [7, 7], "sit_up": [8, 8], "wave": [9, 9], "empty_hand": [10, 10] } },
+    "yoon_actions":    { "cell": [128, 128], "frames": 8,  "anims": { "idle": [1, 1], "handshake": [2, 2], "sit": [3, 3], "pour": [4, 4], "open_case": [5, 5], "slide_doc": [6, 6], "tablet": [7, 7], "glasses": [8, 8] } },
     "npc_actions": {
-      "cell": [64, 64], "frames": 20, "columns": 4,
+      "cell": [128, 128], "frames": 20, "columns": 4,
       "_줄": "1줄 반장, 2줄 교육 직원, 3줄 안내원, 4줄 정장 여자, 5줄 정장 남자 (각 4칸)",
       "anims": {
         "foreman_idle": [1, 1], "foreman_point": [2, 2], "foreman_arms": [3, 3], "foreman_tsk": [4, 4],
@@ -42,7 +42,7 @@
     },
 
     "extra_actions": {
-      "cell": [64, 64], "frames": 24, "columns": 4,
+      "cell": [128, 128], "frames": 24, "columns": 4,
       "_줄": "1줄 물류센터 젊은 노동자, 2줄 중년 여성 노동자, 3줄 회사원 행인, 4줄 할머니 행인, 5줄 편의점 손님, 6줄 취객 (각 4칸)",
       "anims": {
         "young_idle": [1, 1], "young_carry": [2, 4, 6, "loop"],
@@ -54,13 +54,13 @@
       }
     },
     "char_extra_ref": {
-      "cell": [64, 64], "frames": 6,
+      "cell": [128, 128], "frames": 6,
       "_설명": "단역 기준 시트. extra_actions 가 없을 때 각 칸을 서 있는 그림으로 쓴다 (1 젊은 노동자, 2 중년 여성 노동자, 3 회사원 행인, 4 할머니 행인, 5 편의점 손님, 6 취객)",
       "anims": { "young": [1, 1], "older": [2, 2], "office": [3, 3], "elder": [4, 4], "customer": [5, 5], "drunk": [6, 6] }
     },
 
-    "enemy_void_small": { "cell": [32, 32], "frames": 12, "anims": { "idle": [1, 1], "ripple": [2, 4, 6, "loop"], "emerge": [5, 7, 6], "slide": [8, 9, 6, "loop"], "hit": [10, 10], "vanish": [11, 12, 8] } },
-    "enemy_mannequin":  { "cell": [64, 64], "frames": 9,  "_설명": "실제 그림은 오른쪽을 봄", "anims": { "idle": [1, 1], "sway": [1, 2, 2, "loop"], "windup": [3, 4, 4], "strike": [5, 5], "parried": [6, 6], "fall": [7, 8, 8], "down": [9, 9] } },
+    "enemy_void_small": { "cell": [64, 64], "frames": 12, "anims": { "idle": [1, 1], "ripple": [2, 4, 6, "loop"], "emerge": [5, 7, 6], "slide": [8, 9, 6, "loop"], "hit": [10, 10], "vanish": [11, 12, 8] } },
+    "enemy_mannequin":  { "cell": [128, 128], "frames": 9,  "_설명": "실제 그림은 오른쪽을 봄", "anims": { "idle": [1, 1], "sway": [1, 2, 2, "loop"], "windup": [3, 4, 4], "strike": [5, 5], "parried": [6, 6], "fall": [7, 8, 8], "down": [9, 9] } },
 
     "obj_prologue": {
       "cell": [32, 32], "frames": 22, "grid": true,
@@ -138,7 +138,7 @@
   "characters": {
     "_설명": "인물. 키는 장면 JSON 의 actor char 이름. anims: 게임 동작 이름 → [시트.동작, 임시움직임, (선택) 시트가 없을 때 쓸 기준 시트 칸]. 임시움직임: still bob lie sit crouch lean swing hurt bow shake raise. 모든 인물·적은 칸 맨 아래 줄이 발 → 기준점은 칸 아래 가운데.",
     "doyun": {
-      "note": "서도윤 (평상복)", "placeholder": { "w": 20, "h": 48, "color": "#3d6fe0" }, "body": [20, 46],
+      "note": "서도윤 (평상복)", "placeholder": { "w": 40, "h": 96, "color": "#3d6fe0" }, "body": [40, 92],
       "anims": {
         "idle": ["doyun_idle_breath.breath", "still"], "stand": ["doyun_walk.idle", "still"], "walk": ["doyun_walk.walk", "bob"],
         "lie_sleep": ["doyun_sleep_wake.lie_sleep", "lie"], "lie_awake": ["doyun_sleep_wake.lie_awake", "lie"], "wake": ["doyun_sleep_wake.wake", "rise"], "sit_up": ["doyun_sleep_wake.sit_up", "sit"],
@@ -150,7 +150,7 @@
       }
     },
     "diver": {
-      "note": "서도윤 (다이버 슈트, 리퍼)", "placeholder": { "w": 20, "h": 48, "color": "#2b4fa8", "details": [[0, 20, 20, 1, "#dfe6f0"]] }, "body": [20, 46], "reaper": true,
+      "note": "서도윤 (다이버 슈트, 리퍼)", "placeholder": { "w": 40, "h": 96, "color": "#2b4fa8", "details": [[0, 40, 40, 2, "#dfe6f0"]] }, "body": [40, 92], "reaper": true,
       "anims": {
         "idle": ["diver_run.idle", "still"], "run": ["diver_run.run", "bob"],
         "jump_crouch": ["diver_jump.crouch", "crouch"], "jump_rise": ["diver_jump.rise", "still"], "jump_peak": ["diver_jump.peak", "still"], "jump_fall": ["diver_jump.fall", "still"], "land": ["diver_jump.land", "crouch"],
@@ -161,72 +161,72 @@
       }
     },
     "mother": {
-      "note": "어머니", "placeholder": { "w": 18, "h": 45, "color": "#c98a72" }, "body": [18, 44],
+      "note": "어머니", "placeholder": { "w": 36, "h": 90, "color": "#c98a72" }, "body": [36, 88],
       "anims": { "idle": ["mother_actions.idle", "still"], "sleep": ["mother_actions.sleep", "lie"], "sit_rub": ["mother_actions.sit_rub", "sit"], "cook": ["mother_actions.cook", "shake"], "sit_watch": ["mother_actions.sit_watch", "sit"], "touch_face": ["mother_actions.touch_face", "raise"], "phone": ["mother_actions.phone", "bowhead"], "teary": ["mother_actions.teary", "bowhead"] }
     },
     "mingyu": {
-      "note": "박민규", "placeholder": { "w": 22, "h": 48, "color": "#4fae6b" }, "body": [22, 46],
+      "note": "박민규", "placeholder": { "w": 44, "h": 96, "color": "#4fae6b" }, "body": [44, 92],
       "anims": { "idle": ["mingyu_actions.idle", "still"], "talk": ["mingyu_actions.talk", "bob"], "arrange": ["mingyu_actions.arrange", "crouch"], "whisper": ["mingyu_actions.whisper", "lean"], "shrug": ["mingyu_actions.shrug", "raise"] }
     },
     "jaehee": {
-      "note": "강재희 (38세 여성) — 키 약 49", "placeholder": { "w": 18, "h": 49, "color": "#2a3550", "details": [[0, 0, 18, 9, "#8a7360"], [3, 9, 12, 14, "#1c1c22"]] }, "body": [18, 47],
+      "note": "강재희 (38세 여성) — 키 약 98", "placeholder": { "w": 36, "h": 98, "color": "#2a3550", "details": [[0, 0, 36, 18, "#8a7360"], [6, 18, 24, 28, "#1c1c22"]] }, "body": [36, 94],
       "anims": { "idle": ["jaehee_actions.idle", "still"], "drink": ["jaehee_actions.drink", "bowhead"], "toss": ["jaehee_actions.toss", "swing"], "crush": ["jaehee_actions.crush", "shake"], "photo": ["jaehee_actions.photo", "still"], "lie": ["jaehee_actions.lie", "lie"], "sit_up": ["jaehee_actions.sit_up", "sit"], "wave": ["jaehee_actions.wave", "raise"], "empty_hand": ["jaehee_actions.empty_hand", "bowhead"] }
     },
     "yoon": {
-      "note": "윤서진 실장 (41세 여성) — 키 약 48", "placeholder": { "w": 18, "h": 48, "color": "#1c1d22", "outline": "#9aa3ad", "details": [[0, 0, 18, 30, "#121216"], [4, 9, 10, 16, "#eef0f2"]] }, "body": [18, 46],
+      "note": "윤서진 실장 (41세 여성) — 키 약 96", "placeholder": { "w": 36, "h": 96, "color": "#1c1d22", "outline": "#9aa3ad", "details": [[0, 0, 36, 60, "#121216"], [8, 18, 20, 32, "#eef0f2"]] }, "body": [36, 92],
       "anims": { "idle": ["yoon_actions.idle", "still"], "handshake": ["yoon_actions.handshake", "lean"], "sit": ["yoon_actions.sit", "sit"], "pour": ["yoon_actions.pour", "sit"], "open_case": ["yoon_actions.open_case", "sit"], "slide_doc": ["yoon_actions.slide_doc", "sit"], "tablet": ["yoon_actions.tablet", "sit"], "glasses": ["yoon_actions.glasses", "raise"] }
     },
     "npc_foreman": {
-      "note": "물류센터 반장", "placeholder": { "w": 24, "h": 48, "color": "#d9a03a" }, "body": [24, 46],
+      "note": "물류센터 반장", "placeholder": { "w": 48, "h": 96, "color": "#d9a03a" }, "body": [48, 92],
       "anims": { "idle": ["npc_actions.foreman_idle", "still"], "point": ["npc_actions.foreman_point", "lean"], "arms": ["npc_actions.foreman_arms", "still"], "tsk": ["npc_actions.foreman_tsk", "shake"] }
     },
     "npc_staff": {
-      "note": "교육 직원", "placeholder": { "w": 18, "h": 46, "color": "#e6eef0", "outline": "#6fb8b4" }, "body": [18, 44],
+      "note": "교육 직원", "placeholder": { "w": 36, "h": 92, "color": "#e6eef0", "outline": "#6fb8b4" }, "body": [36, 88],
       "anims": { "idle": ["npc_actions.staff_idle", "still"], "look": ["npc_actions.staff_look", "bowhead"], "tap": ["npc_actions.staff_tap", "bowhead"], "smile": ["npc_actions.staff_smile", "still"] }
     },
     "npc_receptionist": {
-      "note": "안내원", "placeholder": { "w": 18, "h": 46, "color": "#a9b4c0" }, "body": [18, 44],
+      "note": "안내원", "placeholder": { "w": 36, "h": 92, "color": "#a9b4c0" }, "body": [36, 88],
       "anims": { "idle": ["npc_actions.reception_idle", "still"], "bow": ["npc_actions.reception_bow", "bow"], "gesture": ["npc_actions.reception_gesture", "lean"], "smile": ["npc_actions.reception_smile", "still"] }
     },
     "npc_woman": {
-      "note": "정장 차림 여자", "placeholder": { "w": 18, "h": 48, "color": "#c9b08a" }, "body": [18, 46],
+      "note": "정장 차림 여자", "placeholder": { "w": 36, "h": 96, "color": "#c9b08a" }, "body": [36, 92],
       "anims": { "idle": ["npc_actions.woman_idle", "still"], "walk": ["npc_actions.woman_walk", "bob"] }
     },
     "npc_man": {
-      "note": "정장 차림 남자", "placeholder": { "w": 20, "h": 50, "color": "#3f4f70" }, "body": [20, 48],
+      "note": "정장 차림 남자", "placeholder": { "w": 40, "h": 100, "color": "#3f4f70" }, "body": [40, 96],
       "anims": { "idle": ["npc_actions.man_idle", "still"], "walk": ["npc_actions.man_walk", "bob"] }
     },
     "extra_worker_young": {
-      "note": "물류센터 젊은 노동자 (extra_actions 1줄)", "placeholder": { "w": 20, "h": 48, "color": "#6a6e74" }, "body": [20, 46],
+      "note": "물류센터 젊은 노동자 (extra_actions 1줄)", "placeholder": { "w": 40, "h": 96, "color": "#6a6e74" }, "body": [40, 92],
       "anims": { "idle": ["extra_actions.young_idle", "still", "char_extra_ref.young"], "carry": ["extra_actions.young_carry", "bob", "char_extra_ref.young"] }
     },
     "extra_worker_older": {
-      "note": "물류센터 중년 여성 노동자 (extra_actions 2줄)", "placeholder": { "w": 18, "h": 45, "color": "#3e4a62" }, "body": [18, 44],
+      "note": "물류센터 중년 여성 노동자 (extra_actions 2줄)", "placeholder": { "w": 36, "h": 90, "color": "#3e4a62" }, "body": [36, 88],
       "anims": { "idle": ["extra_actions.older_idle", "still", "char_extra_ref.older"], "lift": ["extra_actions.older_lift", "crouch", "char_extra_ref.older"] }
     },
     "extra_pedestrian_office": {
-      "note": "회사원 행인 (extra_actions 3줄)", "placeholder": { "w": 20, "h": 49, "color": "#b8a888" }, "body": [20, 47],
+      "note": "회사원 행인 (extra_actions 3줄)", "placeholder": { "w": 40, "h": 98, "color": "#b8a888" }, "body": [40, 94],
       "anims": { "idle": ["extra_actions.office_idle", "still", "char_extra_ref.office"], "walk": ["extra_actions.office_walk", "bob", "char_extra_ref.office"] }
     },
     "extra_pedestrian_elder": {
-      "note": "할머니 행인 (extra_actions 4줄)", "placeholder": { "w": 22, "h": 42, "color": "#7a6a78" }, "body": [20, 40],
+      "note": "할머니 행인 (extra_actions 4줄)", "placeholder": { "w": 44, "h": 84, "color": "#7a6a78" }, "body": [40, 80],
       "anims": { "idle": ["extra_actions.elder_idle", "still", "char_extra_ref.elder"], "walk": ["extra_actions.elder_walk", "bob", "char_extra_ref.elder"] }
     },
     "extra_customer": {
-      "note": "편의점 손님 (extra_actions 5줄)", "placeholder": { "w": 20, "h": 48, "color": "#26282e" }, "body": [20, 46],
+      "note": "편의점 손님 (extra_actions 5줄)", "placeholder": { "w": 40, "h": 96, "color": "#26282e" }, "body": [40, 92],
       "anims": { "idle": ["extra_actions.customer_idle", "still", "char_extra_ref.customer"], "walk": ["extra_actions.customer_idle", "bob", "char_extra_ref.customer"], "reach": ["extra_actions.customer_reach", "lean", "char_extra_ref.customer"], "hold": ["extra_actions.customer_hold", "still", "char_extra_ref.customer"], "leave": ["extra_actions.customer_leave", "still", "char_extra_ref.customer"] }
     },
     "extra_drunk": {
-      "note": "취객 (extra_actions 6줄)", "placeholder": { "w": 20, "h": 48, "color": "#c8c4bc" }, "body": [20, 46],
+      "note": "취객 (extra_actions 6줄)", "placeholder": { "w": 40, "h": 96, "color": "#c8c4bc" }, "body": [40, 92],
       "anims": { "idle": ["extra_actions.drunk_sway", "shake", "char_extra_ref.drunk"], "walk": ["extra_actions.drunk_sway", "bob", "char_extra_ref.drunk"], "stumble": ["extra_actions.drunk_stumble", "lean", "char_extra_ref.drunk"] }
     },
 
     "void": {
-      "note": "공백", "cell": [32, 32], "placeholder": { "shape": "blob", "w": 24, "h": 16, "color": "#000000" }, "body": [20, 14],
+      "note": "공백", "cell": [64, 64], "placeholder": { "shape": "blob", "w": 48, "h": 32, "color": "#000000" }, "body": [40, 28],
       "anims": { "idle": ["enemy_void_small.ripple", "still"], "emerge": ["enemy_void_small.emerge", "still"], "slide": ["enemy_void_small.slide", "still"], "hit": ["enemy_void_small.hit", "still"], "vanish": ["enemy_void_small.vanish", "still"] }
     },
     "mannequin": {
-      "note": "시뮬레이션 마네킹 (그림은 오른쪽을 봄)", "placeholder": { "w": 20, "h": 48, "color": "#8c8c8c", "outline": "#5c5c5c" }, "body": [20, 46],
+      "note": "시뮬레이션 마네킹 (그림은 오른쪽을 봄)", "placeholder": { "w": 40, "h": 96, "color": "#8c8c8c", "outline": "#5c5c5c" }, "body": [40, 92],
       "anims": { "idle": ["enemy_mannequin.sway", "still"], "windup": ["enemy_mannequin.windup", "lean"], "strike": ["enemy_mannequin.strike", "swing"], "parried": ["enemy_mannequin.parried", "hurt"], "fall": ["enemy_mannequin.fall", "still"], "down": ["enemy_mannequin.down", "still"] }
     }
   },

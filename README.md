@@ -84,6 +84,9 @@ python3 -m http.server 8000
    - **복사**: 지금 장면 JSON 전체를 클립보드에 복사 → `data/scenes/<장면>.json` 에 통째로 붙여넣기. 클립보드가 막혀 있으면 글상자로 보여 줍니다.
    - 이동 표시 켜기/끄기: 스크립트 속 위치 표시 (의자에 앉는/일어서는 이동은 '앉는 위치'·'서는 위치'로 표시)
    - **인물 배율 / 바닥선 / 인물 색 / 밝기** 슬라이더: 장면의 `charScale`, `floorY`, `charTint`, `charBrightness` 를 바로 바꿉니다. 복사 결과에 들어갑니다.
+   - **가림막 그리기**: 누른 뒤 배경 위를 차례로 눌러 점을 찍고 '완료' → 그 다각형 모양대로 배경을 오려 인물 위에 그리는 가림막이 생깁니다. 이미 있는 가림막은 분홍 꼭짓점을 끌어 고치고, 꼭짓점을 누른 뒤 **선택한 가림막 지우기** 로 지웁니다.
+   - **줄(lane) 슬라이더**: 안쪽 줄의 y 와 배율. 줄 선(초록 가로선)과 통로(점선)도 끌어서 옮길 수 있습니다.
+   - 가림막 모양을 바꿔 복사·붙여넣기 한 뒤에는 `python3 tools/make_occluders.py --write` 로 `assets/sprites/fg/` PNG 를 다시 만듭니다. (안 해도 게임은 실행 중에 배경을 오려서 그대로 보여 줍니다)
 5. 편집 모드에서는 대사·전투·저장이 멈춰 있고, 터치 조작 패드는 숨겨집니다.
 
 ---
@@ -138,11 +141,15 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
   "stage": {
     "bg": "bg_banjiha_dawn", "width": 480,
     "floorY": 224,                         // 인물 발이 닿는 바닥선 (배경 그림의 바닥)
-    "charScale": 2.0,                      // 인물·적 배율 (소수 가능, nearest). 속도·점프·대시·충돌·상호작용 거리도 같이
+    "charScale": 1.0,                      // 인물·적 배율 (칸 128·키 약 96px 기준이라 대부분 1 근처). 속도·점프·대시·충돌·상호작용 거리도 같이
     "charTint": "#d0d8ff",                 // 인물에 곱하는 색 (배경 평균 색에서 자동으로 뽑은 초기값)
     "charBrightness": 0.65,                // 0.5~1.2. 초상화에는 적용 안 함
     "lightZones": [ { "x0": 330, "x1": 410, "color": "#e6dcd0", "brightness": 0.82, "soft": 36 } ],  // 들어가면 부드럽게 바뀜
-    "foreground": [[0, 178, 122, 70]],     // 배경의 이 부분(계산대 등)을 인물 위에 다시 그림 → 인물이 그 뒤에 선 것처럼
+    // 앞뒤 줄: 안쪽 줄은 위쪽 y·조금 작게 그리고 가림막 뒤에. 줄 사이는 laneLinks 의 x(통로)에서만 오간다
+    "lanes": { "counter_inside": { "y": 222, "scale": 0.92, "x0": 0, "x1": 104 } },
+    "laneLinks": [ { "x": 126, "a": "counter_inside", "b": "floor" } ],
+    // 앞 가림막: 배경을 poly 모양대로 오린 조각(assets/sprites/fg/)을 인물 위에 그림 → 안쪽 줄 인물의 허리 아래가 가려짐
+    "occluders": [ { "id": "counter", "poly": [[0,176],[112,176],[117,182],[117,247],[0,247]], "png": "fg/bg_convenience_store__counter__7a7e89.png" } ],
     "ambience": ["rain", "drip"],          // rain drip conveyor fridge street hum
     "abilities": ["move"],                 // 다이브: move jump dash attack parry
     "player": { "x": 80, "anim": "lie_sleep" },            // 시작 자세
@@ -152,7 +159,7 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
     "props":  [ { "id": "bucket", "obj": "bucket", "x": 270 },              // obj_prologue 칸
                 { "id": "fridge", "ph": "ph_fridge", "x": 322, "label": "냉장고",  // 배경 속 가구
                   "examine": { "lines": ["…"] } } ],
-    "actors": [ { "id": "mother", "char": "mother", "x": 200, "anim": "sleep", "speaker": "어머니" } ]
+    "actors": [ { "id": "mother", "char": "mother", "x": 200, "anim": "sleep", "speaker": "어머니", "lane": "floor" } ]
   },
   "steps": [
     { "type": "narration", "text": "…" },
@@ -184,7 +191,7 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
 | `card` | 광고판·로비 글씨 | `style`: ad, adSmall, lobby, post |
 | `item` | 물건 클로즈업 | 견본 결정 등 |
 | `title` | [타이틀] | `endChapter: true` 면 장 완료 저장 |
-| `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, anim(이름으로 동작 재생), toss, stand, lie. 의자에 앉기: `{"action":"move","x":143,"anim":"sit_chair","lift":4}` (`lift` = 좌판 높이에 맞춰 그림을 올리는 px, 일어날 때 `lift: 0`) |
+| `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, anim(이름으로 동작 재생), toss, stand, lie. 의자에 앉기: `{"action":"move","x":143,"anim":"sit_chair","lift":4}` (`lift` = 좌판 높이에 맞춰 그림을 올리는 px, 일어날 때 `lift: 0`). 줄 바꾸기: move 에 `"lane"` 을 주면 통로까지 걸어가 줄을 바꾼 뒤 이동, `{"action":"lane","lane":"floor"}` 는 그 자리에서 |
 | `teleport` | | 플레이어 순간이동 (시뮬레이션 공간이 다시 이어지는 연출) |
 | `fade`, `wait`, `sfx`, `ambience`, `silence`, `shake` | 연출 | |
 | `parallel`, `sequence` | | 동시에 / 차례로 실행 |

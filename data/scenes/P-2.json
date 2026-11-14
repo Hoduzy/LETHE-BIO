@@ -5,10 +5,17 @@
   "stage": {
     "bg": "bg_warehouse",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.55,
+    "floorY": 250,
+    "charScale": 1.0,
     "charTint": "#dcfbff",
     "charBrightness": 0.64,
+    "lanes": {"behind_conveyor": {"y": 202, "scale": 0.8, "x0": 0, "x1": 330}},
+    "laneLinks": [
+      {"x": 345, "a": "behind_conveyor", "b": "floor"}
+    ],
+    "occluders": [
+      {"id": "conveyor", "poly": [[0, 184], [335, 184], [335, 214], [0, 214]], "png": "fg/bg_warehouse__conveyor__efe7df.png"}
+    ],
     "bgColor": "#000000",
     "ambience": ["conveyor"],
     "abilities": ["move"],
@@ -35,8 +42,8 @@
     ],
     "actors": [
       {"id": "foreman", "char": "npc_foreman", "x": 170, "speaker": "반장", "facing": 1},
-      {"id": "worker1", "char": "extra_worker_young", "x": 40, "anim": "carry", "alpha": 0.8},
-      {"id": "worker2", "char": "extra_worker_older", "x": 96, "anim": "lift", "alpha": 0.8},
+      {"id": "worker1", "char": "extra_worker_young", "x": 40, "lane": "behind_conveyor", "anim": "carry", "alpha": 0.85},
+      {"id": "worker2", "char": "extra_worker_older", "x": 110, "lane": "behind_conveyor", "anim": "lift", "alpha": 0.85},
       {"id": "worker3", "char": "extra_worker_young", "x": 452, "facing": -1, "anim": "idle", "alpha": 0.8}
     ]
   },

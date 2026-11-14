@@ -10,16 +10,17 @@
     "bg": "bg_simulation",
     "width": 480,
     "floorY": 216,
-    "charScale": 1.0,
+    "charScale": 0.75,
     "charTint": "#ffffff",
     "charBrightness": 1.0,
     "bgColor": "#000000",
     "ambience": [],
     "abilities": ["move", "jump", "dash", "attack", "parry"],
     "player": {"x": 125, "facing": 1},
-    "_구덩이": "335~470 (135px). 점프만: 약 115px → 못 건넘. 점프+공중 대시: 약 190px → 건넘. 그림의 홈은 337부터",
-    "floors": [[0, 335], [470, 480]],
-    "respawn": [125, 300],
+    "_구덩이": "262~464 (202px). 배율 0.75 → 이동 단위 1.5. 점프만: 약 172px → 못 건넘. 점프+공중 대시: 약 285px → 건넘. 그림의 홈(334~416)을 가로로 늘려 그림",
+    "floors": [[0, 262], [464, 480]],
+    "pitArt": {"src": [329, 212, 94, 50], "dst": [250, 212, 230, 50], "edge": 1},
+    "respawn": [125, 225],
     "backdrop": [
       {"rect": [0, 0, 480, 216], "color": "#f6f7f8"},
       {"rect": [0, 216, 300, 54], "color": "#eef0f2"},
@@ -35,10 +36,10 @@
     "solids": [
       {"ph": "ph_sim_box", "x": 39, "w": 58, "h": 48},
       {"ph": "ph_sim_box", "x": 84, "w": 32, "h": 30},
-      {"ph": "ph_sim_box", "x": 250, "visible": true}
+      {"ph": "ph_sim_box", "x": 190, "w": 44, "h": 44, "visible": true}
     ],
     "props": [
-      {"id": "crystal", "obj": "crystal_gray", "x": 305, "visible": false, "keep": true}
+      {"id": "crystal", "obj": "crystal_gray", "x": 222, "visible": false, "keep": true}
     ],
     "actors": []
   },
@@ -51,7 +52,7 @@
     {"type": "goal", "reach": 472, "tutorial": {"title": "[튜토리얼: 이동, 점프, 대시]", "lines": ["←→ 이동", "↑ 점프", "X / 대시 (공중에서도)"]}},
     {"type": "teleport", "x": 125, "face": 1},
     {"type": "say", "speaker": "교육 직원(목소리)", "text": "기억 공간에는 가끔 '공백'이 있어요. 지워진 기억 자리에 생기는 그림자예요. 해롭진 않은데 길을 막아요."},
-    {"type": "spawn", "enemies": [{"kind": "void", "x": 180}, {"kind": "void", "x": 210}]},
+    {"type": "spawn", "enemies": [{"kind": "void", "x": 165}, {"kind": "void", "x": 215}]},
     {"type": "narration", "text": "바닥에서 검은 얼룩이 스며 나온다. 작고 느리다. 형태가 없다."},
     {"type": "clear", "tutorial": {"title": "[튜토리얼: 공격 3연타]", "lines": ["Z / 공격 — 세 번 이어서 휘두르기"]}},
     {"type": "spawn", "enemies": [{"kind": "mannequin", "x": 195}]},

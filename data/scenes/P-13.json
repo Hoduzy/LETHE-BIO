@@ -6,7 +6,7 @@
     "bg": "bg_banjiha_night",
     "width": 480,
     "floorY": 224,
-    "charScale": 2.0,
+    "charScale": 1.0,
     "charTint": "#e1d4ff",
     "charBrightness": 0.61,
     "lightZones": [

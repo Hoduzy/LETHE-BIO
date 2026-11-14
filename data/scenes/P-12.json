@@ -6,9 +6,15 @@
     "bg": "bg_interview_room",
     "width": 480,
     "floorY": 223,
-    "charScale": 2.6,
+    "charScale": 1.3,
     "charTint": "#f8f9ff",
     "charBrightness": 0.97,
+    "lanes": {"floor": {"depth": -15}},
+    "occluders": [
+      {"id": "desk", "poly": [[146, 166], [336, 166], [336, 222], [290, 222], [290, 206], [190, 206], [190, 222], [146, 222]], "png": "fg/bg_interview_room__desk__0763ed.png"},
+      {"id": "chair_back_l", "poly": [[108, 150], [122, 148], [130, 152], [128, 192], [112, 194], [108, 190]], "png": "fg/bg_interview_room__chair_back_l__c6589b.png"},
+      {"id": "chair_back_r", "poly": [[350, 152], [358, 148], [372, 150], [372, 190], [368, 194], [352, 192]], "png": "fg/bg_interview_room__chair_back_r__652dce.png"}
+    ],
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],

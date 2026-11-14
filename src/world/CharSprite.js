@@ -8,14 +8,19 @@
 import { G } from '../core/state.js';
 import { DEPTH } from '../core/gfx.js';
 
+export const UNIT = 2;
+
 export class CharSprite {
   constructor(scene, x, y, id, opts = {}) {
     this.scene = scene;
     this.id = id;
     this.def = G.spriteData.characters[id] || G.spriteData.characters.doyun;
-    const [cw, ch] = this.def.cell || [64, 64];
+    const [cw, ch] = this.def.cell || [128, 128];
     this.cell = [cw, ch];
     this.k = opts.scale != null ? opts.scale : (scene.charScale || 1);
+    // 이동·충돌 단위: 이동 수치(MOVE)는 키 48px 기준이라, 칸을 두 배(인물 128, 공백 64)로 키운 지금은 ×2
+    this.u = this.k * UNIT;
+    this.laneScale = 1;
     this.facesLeft = this.def.faces === 'left';
     this.anims = this.def.anims || {};
     this.realAny = Object.keys(this.anims).some((n) => !!this.resolve(n));
@@ -23,6 +28,8 @@ export class CharSprite {
     const start = this.startTexture();
     this.sprite = scene.add.sprite(x, y, start.key, start.frame).setOrigin(0.5, 1).setDepth(opts.depth != null ? opts.depth : DEPTH.actor);
     this.sprite.setScale(this.k);
+    this.baseDepth = opts.depth != null ? opts.depth : DEPTH.actor;
+    this.laneName = 'floor';
     this.facing = 1;
     this.pose = null;
     this.poseTweens = [];
@@ -34,7 +41,7 @@ export class CharSprite {
     this.flashing = false;
 
     if (opts.physics) {
-      const [bw, bh] = this.def.body || [20, 46];
+      const [bw, bh] = this.def.body || [40, 92];
       this.bw = Math.round(bw * this.k);
       this.bh = Math.round(bh * this.k);
       this.zone = scene.add.zone(x, y - this.bh / 2, this.bw, this.bh);
@@ -91,6 +98,16 @@ export class CharSprite {
     if (!this.zone || !this.sprite.active || this.detached) return;
     this.sprite.x = Math.round(this.zone.x);
     this.sprite.y = Math.round(this.zone.y + this.bh / 2 - this.lyingOffset - this.liftY);
+  }
+
+  // 그림 배율 = 장면 배율 × lane 배율 (안쪽 줄은 조금 작게). 이동·충돌 단위(u)는 그대로
+  get sk() { return this.k * this.laneScale; }
+
+  setLaneScale(m) {
+    this.laneScale = m;
+    if (!this.pose) this.sprite.setScale(this.sk);
+    else this.applyPose(this.pose);
+    return this;
   }
 
   // 바닥보다 높이 (의자 좌판에 앉기, 캡슐 위에 눕기). 배경 좌표 기준 px
@@ -187,7 +204,7 @@ export class CharSprite {
     this.poseTweens.forEach((t) => t.stop());
     this.poseTweens = [];
     const s = this.sprite;
-    s.setAngle(0).setScale(this.k);
+    s.setAngle(0).setScale(this.sk);
     this.restoreTint();
     s.setOrigin(0.5, 1);
     if (this.lyingOffset) {
@@ -200,7 +217,7 @@ export class CharSprite {
   applyPose(pose) {
     const s = this.sprite;
     const sc = this.scene;
-    const k = this.k;
+    const k = this.sk;
     const keepLie = this.pose === 'lie' && pose === 'lie';
     if (!keepLie) this.clearPose();
     this.pose = pose;

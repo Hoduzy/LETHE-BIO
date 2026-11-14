@@ -5,8 +5,8 @@
   "stage": {
     "bg": "bg_street_billboard",
     "width": 480,
-    "floorY": 226,
-    "charScale": 1.6,
+    "floorY": 246,
+    "charScale": 1.0,
     "charTint": "#eaefff",
     "charBrightness": 0.73,
     "bgColor": "#000000",

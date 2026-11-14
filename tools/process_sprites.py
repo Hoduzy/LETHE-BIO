@@ -8,8 +8,9 @@
 하는 일
   1. #FF00FF 와 그 근처 분홍·보라(가장자리 번짐 포함)를 투명으로
   2. 시트는 마젠타 빈칸을 기준으로 프레임(그림 덩어리)을 찾아 칸 단위로 잘라 냄 (늘리지 않음)
-  3. 최근접 보간(nearest)으로 줄임
-  4. 인물·적: 프레임마다 가장 아래 불투명 픽셀을 칸 맨 아래 줄에, 좌우는 몸 중심(불투명 픽셀 x 중앙값)을 칸 가운데에
+  3. 인물·적: 프레임(칸)마다 따로 평균 색(면적 평균)으로 줄인 뒤 반투명은 0/255 로 정리
+     (물건·UI 는 최근접 보간)
+  4. 인물·적: 프레임마다 가장 아래 불투명 픽셀을 칸 맨 아래 줄에, 좌우는 몸통 중심을 첫 프레임과 같은 자리(칸 가운데)에
   5. 파일마다 32색 이하로 줄임
   6. 프레임 수가 data/sprites.json 과 다르면 보고만 하고 억지로 맞추지 않음
 
@@ -32,11 +33,13 @@ DATA = json.load(open(os.path.join(ROOT, 'data', 'sprites.json'), encoding='utf-
 SHEETS = DATA['sheets']
 IMAGES = {k: v for k, v in DATA['images'].items() if not k.startswith('_')}
 
-# 인물 키 (칸 64, 키 약 48). 프롬프트에 적힌 키
+# 인물 칸 128x128, 키 약 96 (프롬프트의 64칸 키 × 2). 공백은 칸 64x64, 크기 약 32
 CHAR_HEIGHT = {
-    'mother_actions': 45, 'jaehee_actions': 49, 'enemy_mannequin': 48,
+    'mother_actions': 90, 'jaehee_actions': 98, 'enemy_mannequin': 96,
 }
-# 여러 인물이 한 시트에 있는 것: 줄(또는 칸)마다 키가 다르므로 첫 프레임들의 중앙값을 48 로
+BASE_HEIGHT = 96
+VOID_HEIGHT = 32
+# 여러 인물이 한 시트에 있는 것: 줄(또는 칸)마다 키가 다르므로 첫 프레임들의 중앙값을 96 으로
 MULTI = {'npc_actions', 'extra_actions', 'char_extra_ref'}
 OBJ_ROWS = {  # 물건 한 줄 시트: (기준, 목표 크기px, 좌우 정렬 기준)
     'obj_crystal_amber': ('h', 12, 'center'),
@@ -234,6 +237,36 @@ def crop(a, box):
     return a[y0:y1, x0:x1]
 
 
+def scale_area(a, s):
+    """평균 색으로 줄이기: 투명 픽셀 색이 섞이지 않게 알파를 곱해서 평균 낸 뒤 나눔.
+    가장자리 반투명은 알파 110 이상만 남기고 불투명으로"""
+    h, w = a.shape[:2]
+    nw, nh = max(1, round(w * s)), max(1, round(h * s))
+    f = a.astype(np.float32)
+    al = f[..., 3:4] / 255.0
+    pre = np.concatenate([f[..., :3] * al, f[..., 3:4]], axis=2)
+    out = np.zeros((nh, nw, 4), np.float32)
+    for c in range(4):
+        out[..., c] = np.array(Image.fromarray(pre[..., c], 'F').resize((nw, nh), Image.BOX))
+    alpha = out[..., 3]
+    keep = alpha >= 110
+    rgb = np.where(alpha[..., None] > 0, out[..., :3] / np.maximum(alpha[..., None] / 255.0, 1e-6), 0)
+    res = np.zeros((nh, nw, 4), np.uint8)
+    res[..., :3] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)
+    res[..., 3] = np.where(keep, 255, 0)
+    res[~keep] = 0
+    return res
+
+
+def body_center(al):
+    """몸통 중심 x: 위에서 20~55% 높이(머리 아래 몸통) 픽셀의 x 중앙값. 팔·다리·도구에 덜 흔들린다"""
+    ys, xs = np.where(al)
+    top, bot = ys.min(), ys.max()
+    hgt = bot - top + 1
+    band = (ys >= top + hgt * 0.2) & (ys <= top + hgt * 0.55)
+    return int(np.median(xs[band] if band.sum() > 4 else xs))
+
+
 def scale_nearest(a, s):
     h, w = a.shape[:2]
     nw, nh = max(1, round(w * s)), max(1, round(h * s))
@@ -424,26 +457,27 @@ def process_char(name, sheet):
     n = sheet['frames']
     cols = sheet.get('columns') or n
     if name == 'enemy_void_small':
-        target = 16
+        target = VOID_HEIGHT
         ref_h = frames[0].shape[0]
     elif name in MULTI:
-        target = 48
+        target = BASE_HEIGHT
         firsts = [frames[i].shape[0] for i in range(0, n, cols)] if name != 'char_extra_ref' else [f.shape[0] for f in frames]
         ref_h = float(np.median(firsts))
     else:
-        target = CHAR_HEIGHT.get(name, 48)
+        target = CHAR_HEIGHT.get(name, BASE_HEIGHT)
         ref_h = frames[0].shape[0]
     s = target / ref_h
     rows = (n + cols - 1) // cols
     out = np.zeros((ch * rows, cw * cols, 4), np.uint8)
     for i, f in enumerate(frames):
-        small = drop_edge_fragments(clean_specks(scale_nearest(f, s)), *flags[i])
+        # 칸마다 따로 평균 색으로 줄인다
+        small = drop_edge_fragments(clean_specks(scale_area(f, s)), *flags[i])
         al = small[..., 3] > 0
         if not al.any():
             continue
         ys, xs = np.where(al)
         bottom = ys.max()
-        mid = int(np.median(xs))
+        mid = body_center(al)
         cell = np.zeros((ch, cw, 4), np.uint8)
         place(cell, small, cw // 2 - mid, ch - 1 - bottom, f'{name} {i + 1}번 칸')
         r, c = divmod(i, cols)
@@ -614,6 +648,28 @@ def process_collapse(name, sheet):
     return out
 
 
+# 둥근 모서리 테두리 바깥에 남은 픽셀(검은 점 등)을 지울 UI: 바깥에서부터 테두리 선에 닿을 때까지 채우기
+CLEAR_OUTSIDE = {'ui_dialog_box', 'ui_nametag', 'ui_portrait_frame'}
+
+
+def clear_outside(img, light=110):
+    """테두리 선(밝은 픽셀) 바깥쪽을 상하좌우 4방향 채우기로 찾아 전부 투명으로"""
+    a = np.array(img.convert('RGBA'))
+    h, w = a.shape[:2]
+    border = (a[..., 3] > 0) & (a[..., :3].mean(axis=2) > light)
+    out = np.zeros((h, w), bool)
+    stack = [(x, 0) for x in range(w)] + [(x, h - 1) for x in range(w)] + [(0, y) for y in range(h)] + [(w - 1, y) for y in range(h)]
+    while stack:
+        x, y = stack.pop()
+        if x < 0 or y < 0 or x >= w or y >= h or out[y, x] or border[y, x]:
+            continue
+        out[y, x] = True
+        stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+    a[out] = 0
+    REPORT['notes'].append(f'테두리 바깥 픽셀 {int((out & (np.array(img.convert("RGBA"))[..., 3] > 0)).sum())}개 투명으로')
+    return Image.fromarray(a, 'RGBA')
+
+
 def kind(name):
     if name in IMAGES:
         return 'image'
@@ -653,6 +709,8 @@ def main():
                 shutil.copy2(bak, src)
             continue
         img = quantize(img, 32)
+        if name in CLEAR_OUTSIDE:
+            img = clear_outside(img)
         img.save(src)
         done.append(f'{name} {img.size[0]}x{img.size[1]}')
     print('처리:', len(done))

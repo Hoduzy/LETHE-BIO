@@ -5,12 +5,18 @@
   "stage": {
     "bg": "bg_lethe_lobby",
     "width": 480,
-    "floorY": 228,
-    "charScale": 1.4,
+    "floorY": 250,
+    "charScale": 1.0,
     "charTint": "#fcfaff",
     "charBrightness": 0.96,
+    "lanes": {"desk_inside": {"y": 212, "scale": 0.82, "x0": 0, "x1": 110}},
+    "laneLinks": [
+      {"x": 132, "a": "desk_inside", "b": "floor"}
+    ],
+    "occluders": [
+      {"id": "desk", "poly": [[0, 178], [118, 178], [124, 184], [122, 206], [112, 218], [60, 222], [0, 226]], "png": "fg/bg_lethe_lobby__desk__92a67a.png"}
+    ],
     "bgColor": "#000000",
-    "foreground": [[0, 184, 128, 40]],
     "ambience": ["hum"],
     "abilities": ["move"],
     "player": {"x": 300, "facing": -1},
@@ -33,7 +39,7 @@
       {"id": "elevator", "ph": "ph_elevator", "x": 437, "label": "엘리베이터", "interact": {"steps": []}}
     ],
     "actors": [
-      {"id": "receptionist", "char": "npc_receptionist", "x": 52, "y": 210, "speaker": "안내원", "facing": 1, "depth": 5}
+      {"id": "receptionist", "char": "npc_receptionist", "x": 58, "lane": "desk_inside", "speaker": "안내원", "facing": 1}
     ]
   },
   "steps": [

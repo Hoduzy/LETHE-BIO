@@ -4,15 +4,36 @@
 //  - actors: 인물 NPC
 //  - floors/solids: 발판, 장애물 (시뮬레이션 공간)
 //  - effects: 지나가는 발, 형광등 깜빡임, 로비 화면, 격자 등 작은 연출
+//  - lanes: 앞뒤 바닥 줄. { 이름: { y, scale, depth, x0, x1 } }. 기본 'floor' = floorY
+//    laneLinks: [{ x, a, b }] — 두 줄 사이는 이 x 지점(통로)에서만 오간다
+//  - occluders: 앞 가림막. 배경에서 다각형(poly) 모양대로 오린 조각을 인물 위에 그린다
+//    png 가 있고 이름 속 해시가 poly 와 맞으면 그 PNG(assets/sprites/fg/), 아니면 실행 중에 배경을 오려 만든다
+//  - pitArt: 배경의 구덩이 그림 일부를 늘려서 더 넓은 구덩이로 그린다
 
 import { G } from '../core/state.js';
 import { objTexture } from '../core/sprites.js';
-import { CharSprite } from './CharSprite.js';
+import { CharSprite, UNIT } from './CharSprite.js';
 import { W, H, DEPTH, txt } from '../core/gfx.js';
 
 function col(hex) {
   return Phaser.Display.Color.HexStringToColor(hex).color;
 }
+
+// 다각형 → 짧은 해시 (tools/make_occluders.py 와 같은 계산)
+export function polyHash(poly) {
+  const str = JSON.stringify(poly.map(([x, y]) => [Math.round(x), Math.round(y)]));
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+  return h.toString(16).padStart(8, '0').slice(0, 6);
+}
+
+export function occluderPng(bg, oc) {
+  return `fg/${bg}__${oc.id}__${polyHash(oc.poly)}.png`;
+}
+
+// 안쪽 줄일수록 그림 순서를 뒤로 (가림막 기본 depth 18 보다 아래)
+export const BEHIND = -15;
+export const OCC_DEPTH = 18;
 
 export class Stage {
   constructor(scene, def) {
@@ -26,6 +47,7 @@ export class Stage {
     this.timers = [];
     // 배경 PNG 가 있으면 배경 속 가구(bgPart)는 그리지 않는다
     this.bgReal = !!(def.bg && G.realSprites.has(def.bg));
+    this.setupLanes();
 
     scene.cameras.main.setBackgroundColor(def.bgColor || '#000000');
     scene.cameras.main.setBounds(0, 0, this.width, H);
@@ -37,10 +59,134 @@ export class Stage {
     this.buildProps();
     this.buildActors();
     this.buildEffects();
+    this.buildOccluders();
     if (def.tint) {
       this.tint = scene.add.rectangle(0, 0, W, H, col(def.tint.color), def.tint.alpha)
         .setOrigin(0).setScrollFactor(0).setDepth(DEPTH.light);
     }
+  }
+
+  // ---------- 앞뒤 줄 (lane) ----------
+  setupLanes() {
+    const def = this.def;
+    this.lanes = {};
+    const raw = Object.assign({ floor: {} }, def.lanes || {});
+    Object.entries(raw).forEach(([name, l]) => {
+      this.lanes[name] = {
+        name,
+        y: l.y != null ? l.y : this.floorY,
+        scale: l.scale != null ? l.scale : 1,
+        depth: l.depth != null ? l.depth : (name === 'floor' ? 0 : BEHIND),
+        x0: l.x0 != null ? l.x0 : 0,
+        x1: l.x1 != null ? l.x1 : this.width
+      };
+    });
+    this.laneLinks = def.laneLinks || [];
+  }
+
+  lane(name) {
+    return this.lanes[name || 'floor'] || this.lanes.floor;
+  }
+
+  // 현재 줄에서 x 로 가려면 어느 줄로, 어느 통로를 거쳐야 하나
+  routeTo(fromName, x, toName) {
+    const from = this.lane(fromName);
+    let target = toName ? this.lane(toName) : null;
+    if (!target) {
+      if (x >= from.x0 && x <= from.x1) return null;
+      const link = this.laneLinks.find((l) => (l.a === from.name || l.b === from.name) && (() => {
+        const other = this.lane(l.a === from.name ? l.b : l.a);
+        return x >= other.x0 && x <= other.x1;
+      })());
+      if (!link) return null;
+      target = this.lane(link.a === from.name ? link.b : link.a);
+    }
+    if (target.name === from.name) return null;
+    const link = this.laneLinks.find((l) => (l.a === from.name && l.b === target.name) || (l.b === from.name && l.a === target.name));
+    return { lane: target, x: link ? link.x : null };
+  }
+
+  // ---------- 앞 가림막 ----------
+  buildOccluders() {
+    const s = this.scene;
+    this.occluders = [];
+    if (!this.bgReal) return;
+    (this.def.occluders || []).forEach((oc) => {
+      if (!oc.poly || oc.poly.length < 3) return;
+      const o = this.makeOccluder(oc);
+      if (o) this.occluders.push(o);
+    });
+  }
+
+  makeOccluder(oc) {
+    const s = this.scene;
+    const xs = oc.poly.map((p) => p[0]);
+    const ys = oc.poly.map((p) => p[1]);
+    const x0 = Math.max(0, Math.floor(Math.min(...xs)));
+    const y0 = Math.max(0, Math.floor(Math.min(...ys)));
+    const x1 = Math.min(W, Math.ceil(Math.max(...xs)));
+    const y1 = Math.min(H, Math.ceil(Math.max(...ys)));
+    if (x1 <= x0 || y1 <= y0) return null;
+    const pngKey = 'fg:' + occluderPng(this.def.bg, oc);
+    let key = pngKey;
+    let fromPng = !G.edit && oc.png === occluderPng(this.def.bg, oc) && s.textures.exists(pngKey);
+    if (!fromPng) {
+      // 배경을 다각형 모양대로 오려 낸 캔버스 텍스처
+      key = 'occ:' + this.def.bg + ':' + oc.id + ':' + polyHash(oc.poly);
+      if (!s.textures.exists(key)) {
+        const tex = s.textures.createCanvas(key, x1 - x0, y1 - y0);
+        const ctx = tex.getContext();
+        ctx.imageSmoothingEnabled = false;
+        ctx.save();
+        ctx.beginPath();
+        oc.poly.forEach(([x, y], i) => (i ? ctx.lineTo(x - x0, y - y0) : ctx.moveTo(x - x0, y - y0)));
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(s.textures.get(this.def.bg).getSourceImage(), -x0, -y0);
+        ctx.restore();
+        tex.refresh();
+      }
+    }
+    const img = s.add.image(x0, y0, key).setOrigin(0).setDepth(oc.depth != null ? oc.depth : OCC_DEPTH);
+    img.occDef = oc;
+    img.fromPng = fromPng;
+    return img;
+  }
+
+  // ---------- 늘린 구덩이 그림 ----------
+  buildPitArt() {
+    const pa = this.def.pitArt;
+    if (!pa || !this.bgReal) return;
+    const s = this.scene;
+    const [sx, sy, sw, sh] = pa.src;
+    const [dx, dy, dw, dh] = pa.dst;
+    const key = 'pit:' + this.def.bg + ':' + pa.src.join(',') + ':' + dw;
+    if (!s.textures.exists(key)) {
+      const tex = s.textures.createCanvas(key, dw, dh);
+      const ctx = tex.getContext();
+      ctx.imageSmoothingEnabled = false;
+      const src = s.textures.get(this.def.bg).getSourceImage();
+      // 구덩이 양쪽 벽(edge px)은 그대로, 가운데만 늘린다
+      const e = pa.edge || 12;
+      ctx.drawImage(src, sx, sy, e, sh, 0, 0, e, dh);
+      ctx.drawImage(src, sx + e, sy, sw - 2 * e, sh, e, 0, dw - 2 * e, dh);
+      ctx.drawImage(src, sx + sw - e, sy, e, sh, dw - e, 0, e, dh);
+      tex.refresh();
+    }
+    // 원래 구덩이 자리는 바닥 그림으로 덮는다
+    if (pa.cover) {
+      const [cx, cy, cw, chh, fx] = pa.cover;
+      const ck = 'pitcover:' + this.def.bg + ':' + pa.cover.join(',');
+      if (!s.textures.exists(ck)) {
+        const t2 = s.textures.createCanvas(ck, cw, chh);
+        const c2 = t2.getContext();
+        c2.imageSmoothingEnabled = false;
+        c2.drawImage(s.textures.get(this.def.bg).getSourceImage(), fx, cy, cw, chh, 0, 0, cw, chh);
+        t2.refresh();
+      }
+      s.add.image(cx, cy, ck).setOrigin(0).setDepth(DEPTH.backdrop + 0.5);
+    }
+    s.add.image(dx, dy, key).setOrigin(0).setDepth(DEPTH.backdrop + 0.6);
   }
 
   // ---------- 배경 ----------
@@ -50,6 +196,7 @@ export class Stage {
     if (this.bgReal) {
       // 배경은 480x270 한 장. 장면 폭은 480 으로 맞춘다 (반복하지 않음)
       s.add.image(0, 0, def.bg).setOrigin(0).setDepth(DEPTH.backdrop);
+      this.buildPitArt();
       // foreground: 배경의 일부(계산대 등)를 인물 위에 한 번 더 그려서, 인물이 그 뒤에 선 것처럼
       (def.foreground || []).forEach((r) => {
         const [x, y, w, h] = r.rect || r;
@@ -132,7 +279,7 @@ export class Stage {
       // 배경 그림에 이미 그려진 물건: 그리지 않고 살펴보기 영역만 남긴다
       const t = objTexture(p.obj);
       const fr = s.textures.getFrame(t.key, t.frame);
-      const k = s.charScale || 1;
+      const k = (s.charScale || 1) * UNIT;
       img = s.add.image(p.x, y, 'px').setOrigin(0.5, 1).setDisplaySize(p.w || (fr ? fr.width * k : 24), p.h || (fr ? fr.height * k : 24)).setAlpha(0);
       img.bgHidden = true;
     } else if (p.obj) {
@@ -140,7 +287,7 @@ export class Stage {
       img = s.add.sprite(p.x, y, t.key, t.real && p.frame ? p.frame - 1 : t.frame).setOrigin(0.5, 1);
       if (t.real && t.anim && s.anims.exists(t.anim) && p.animate !== false) img.play(t.anim);
       // 손에 드는 물건은 인물과 같은 배율 (따로 정하면 그 값)
-      img.setScale(p.scale != null ? p.scale : (s.charScale || 1));
+      img.setScale(p.scale != null ? p.scale : (s.charScale || 1) * UNIT);
     } else if (p.ph) {
       if (this.bgReal) {
         // 배경에 이미 그려져 있다: 살펴보기/출구용이면 보이지 않는 영역만
@@ -178,7 +325,11 @@ export class Stage {
   buildActors() {
     const s = this.scene;
     (this.def.actors || []).forEach((a) => {
-      const cs = new CharSprite(s, a.x, a.y != null ? a.y : this.floorY, a.char, { depth: a.depth != null ? a.depth : DEPTH.actor });
+      const ln = this.lane(a.lane);
+      const cs = new CharSprite(s, a.x, a.y != null ? a.y : ln.y, a.char, { depth: a.depth != null ? a.depth : DEPTH.actor });
+      cs.laneName = ln.name;
+      cs.setDepth(cs.baseDepth + ln.depth);
+      if (ln.scale !== 1) cs.setLaneScale(ln.scale);
       cs.face(a.facing || 1);
       if (a.visible === false) cs.setVisible(false);
       if (a.alpha != null) cs.setAlpha(a.alpha);

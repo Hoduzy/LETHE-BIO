@@ -21,7 +21,9 @@ const COLORS = {
   respawn: 0xf06292,  // 다시 서는 자리
   fx: 0x4dd0e1,       // 연출 위치
   step: 0xd4e157,     // 스크립트 안의 위치 (이동 목표, 적 생성 등)
-  line: 0xffffff      // 바닥선
+  line: 0xffffff,     // 바닥선
+  occ: 0xff4fd8,      // 앞 가림막
+  lane: 0xa5d6a7      // 앞뒤 줄 (lane)
 };
 const CORNER = 7;   // 모서리 잡는 범위 (게임 픽셀)
 const r0 = (v) => Math.round(v);
@@ -310,6 +312,48 @@ export class Editor {
       });
       this.stepCount = n;
     }
+    // 앞 가림막: 꼭짓점마다 작은 손잡이 (끌면 그 모양대로 다시 오린다)
+    (st.occluders || []).forEach((oc) => {
+      (oc.poly || []).forEach((v, i) => {
+        H_.push({
+          label: i === 0 ? `가림막 ${oc.id}` : '',
+          color: COLORS.occ,
+          occ: oc,
+          rect: () => ({ x: v[0] - 3, y: v[1] - 3, w: 6, h: 6 }),
+          apply: (r) => {
+            v[0] = Phaser.Math.Clamp(r0(r.x + 3), 0, W);
+            v[1] = Phaser.Math.Clamp(r0(r.y + 3), 0, H);
+            // 모양이 바뀌면 미리 만든 PNG 는 맞지 않으므로 이름을 지운다 (tools/make_occluders.py 로 다시 만들기)
+            delete oc.png;
+          },
+          rebuild: true
+        });
+      });
+    });
+    // 앞뒤 줄 (lane): 바닥선처럼 가로선
+    Object.entries(st.lanes || {}).forEach(([name, ln]) => {
+      if (name === 'floor' && ln.y == null) return;
+      const lane = s.stage.lane(name);
+      H_.push({
+        label: `줄 ${name} y=${lane.y} ×${lane.scale}`,
+        color: COLORS.lane,
+        axis: 'y',
+        thin: true,
+        rect: () => ({ x: lane.x0, y: (ln.y != null ? ln.y : lane.y) - 1, w: lane.x1 - lane.x0, h: 2 }),
+        apply: (r) => { ln.y = r0(r.y + 1); },
+        rebuild: true
+      });
+    });
+    (st.laneLinks || []).forEach((lk) => {
+      H_.push({
+        label: `통로 ${lk.a}↔${lk.b}`,
+        color: COLORS.lane,
+        axis: 'x',
+        dashed: true,
+        rect: () => ({ x: lk.x - 3, y: fy - 60, w: 6, h: 60 }),
+        apply: (r) => { lk.x = r0(r.x + 3); }
+      });
+    });
     this.handles = H_;
   }
 
@@ -372,6 +416,12 @@ export class Editor {
   setupInput() {
     const inp = this.s.input;
     inp.on('pointerdown', (p) => {
+      if (this.drawPoly) {
+        // 가림막 그리기: 점 찍기
+        this.drawPoly.push([r0(p.worldX), r0(p.worldY)]);
+        this.updateInfo();
+        return;
+      }
       const found = this.hit(p.worldX, p.worldY);
       this.sel = found ? found.h : null;
       if (!found) {
@@ -435,6 +485,8 @@ export class Editor {
       <select class="scene"></select>
       <button class="copy">복사</button>
       <button class="steps"></button>
+      <button class="occdraw">가림막 그리기</button>
+      <button class="occdel">선택한 가림막 지우기</button>
       <span class="info"></span>
       <div class="sliders">
         <label>인물 배율 <input type="range" class="charScale" min="0.5" max="3" step="0.05"><b></b></label>
@@ -467,6 +519,8 @@ export class Editor {
     this.info = bar.querySelector('.info');
     this.updateInfo();
     this.setupSliders(bar);
+    this.setupOccluderTools(bar);
+    this.setupLaneSliders(bar);
     this.s.events.once('shutdown', () => { if (bar.parentNode) bar.remove(); });
   }
 
@@ -499,7 +553,76 @@ export class Editor {
     });
   }
 
+  // 가림막: 배경 위에 점을 찍어 다각형을 그리면 그 모양대로 배경을 오려 인물 위에 그린다
+  setupOccluderTools(bar) {
+    const st = this.st;
+    const drawBtn = bar.querySelector('.occdraw');
+    drawBtn.addEventListener('click', () => {
+      if (!this.drawPoly) {
+        this.drawPoly = [];
+        this.sel = null;
+        drawBtn.textContent = '완료 (점 3개 이상)';
+        this.updateInfo();
+        return;
+      }
+      const poly = this.drawPoly;
+      this.drawPoly = null;
+      drawBtn.textContent = '가림막 그리기';
+      if (poly.length >= 3) {
+        st.occluders = st.occluders || [];
+        let n = st.occluders.length + 1;
+        while (st.occluders.some((o) => o.id === 'occ' + n)) n++;
+        st.occluders.push({ id: 'occ' + n, poly });
+        this.markDirty();
+        this.s.scene.restart({ sceneId: this.s.sceneId });
+      }
+      this.updateInfo();
+    });
+    bar.querySelector('.occdel').addEventListener('click', () => {
+      if (!this.sel || !this.sel.occ) {
+        this.toast('지울 가림막의 꼭짓점을 먼저 누르세요');
+        return;
+      }
+      st.occluders = (st.occluders || []).filter((o) => o !== this.sel.occ);
+      if (!st.occluders.length) delete st.occluders;
+      this.markDirty();
+      this.s.scene.restart({ sceneId: this.s.sceneId });
+    });
+  }
+
+  // 앞뒤 줄(lane)마다 y 와 배율 슬라이더
+  setupLaneSliders(bar) {
+    const st = this.st;
+    const names = Object.keys(st.lanes || {}).filter((n) => n !== 'floor' || (st.lanes.floor && st.lanes.floor.y != null));
+    if (!names.length) return;
+    const box = document.createElement('div');
+    box.className = 'sliders lanes';
+    names.forEach((name) => {
+      const ln = st.lanes[name];
+      const lane = this.s.stage.lane(name);
+      const row = document.createElement('span');
+      row.innerHTML = `<label>줄 ${name} y <input type="range" class="ly" min="120" max="268" step="1"><b></b></label>
+        <label>배율 <input type="range" class="ls" min="0.5" max="1.5" step="0.01"><b></b></label>`;
+      const ly = row.querySelector('.ly');
+      const ls = row.querySelector('.ls');
+      const [by, bs] = row.querySelectorAll('b');
+      ly.value = lane.y;
+      ls.value = lane.scale;
+      by.textContent = lane.y;
+      bs.textContent = Number(lane.scale).toFixed(2);
+      ly.addEventListener('input', () => { ln.y = Number(ly.value); by.textContent = ln.y; this.markDirty(); });
+      ls.addEventListener('input', () => { ln.scale = Math.round(Number(ls.value) * 100) / 100; bs.textContent = ln.scale.toFixed(2); this.markDirty(); });
+      [ly, ls].forEach((i) => i.addEventListener('change', () => this.s.scene.restart({ sceneId: this.s.sceneId })));
+      box.appendChild(row);
+    });
+    bar.appendChild(box);
+  }
+
   updateInfo() {
+    if (this.info && this.drawPoly) {
+      this.info.textContent = `가림막 그리기 — 배경 위를 눌러 점 찍기 (${this.drawPoly.length}개). 다 찍으면 '완료'`;
+      return;
+    }
     if (!this.info) return;
     if (!this.sel) {
       this.info.textContent = `${this.s.sceneId} — 끌어서 옮기기 · 모서리로 크기`;
@@ -649,9 +772,26 @@ export class Editor {
       }
       // 살펴보기 범위 이름표는 선택했을 때만 (화면이 복잡해지지 않게)
       if (h.dashed && h.movable === false && !on) return;
+      if (!h.label) return;
       const ly = r.y - 11 < 0 ? r.y + r.h + 1 : r.y - 11;
       place(Math.min(Math.max(0, r.x), W - 60), ly, h.label, h.color);
     });
+    // 가림막 테두리와 그리는 중인 다각형
+    const poly = (pts, closed, alpha) => {
+      if (pts.length < 2) return;
+      g.lineStyle(1, COLORS.occ, alpha);
+      for (let i = 0; i < pts.length - (closed ? 0 : 1); i++) {
+        const a = pts[i];
+        const b = pts[(i + 1) % pts.length];
+        g.lineBetween(a[0], a[1], b[0], b[1]);
+      }
+    };
+    (this.st.occluders || []).forEach((oc) => poly(oc.poly || [], true, this.sel && this.sel.occ === oc ? 1 : 0.7));
+    if (this.drawPoly) {
+      poly(this.drawPoly, false, 1);
+      g.fillStyle(COLORS.occ, 1);
+      this.drawPoly.forEach(([x, y]) => g.fillRect(x - 2, y - 2, 4, 4));
+    }
     for (let i = li; i < this.labelPool.length; i++) this.labelPool[i].setVisible(false);
   }
 }

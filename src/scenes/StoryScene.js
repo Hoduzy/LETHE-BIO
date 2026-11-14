@@ -12,7 +12,8 @@ import { DialogueBox } from '../ui/DialogueBox.js';
 import { HoldPress } from '../ui/HoldPress.js';
 import { Phone } from '../ui/Phone.js';
 import { Panels } from '../ui/Panels.js';
-import { Stage } from '../world/Stage.js';
+import { Stage, occluderPng } from '../world/Stage.js';
+import { UNIT } from '../world/CharSprite.js';
 import { objTexture } from '../core/sprites.js';
 import { Editor } from '../editor/Editor.js';
 import { Player } from '../world/Player.js';
@@ -32,7 +33,21 @@ export class StoryScene extends Phaser.Scene {
 
   preload() {
     const key = 'scene:' + this.sceneId;
-    if (!this.cache.json.exists(key)) this.load.json(key, `data/scenes/${this.sceneId}.json`);
+    // 앞 가림막 PNG (assets/sprites/fg/) 도 함께 불러온다
+    const queueFg = (def) => {
+      const st = (def && def.stage) || {};
+      (st.occluders || []).forEach((oc) => {
+        if (!oc.png || !oc.poly || oc.png !== occluderPng(st.bg, oc)) return;
+        const k = 'fg:' + oc.png;
+        if (!this.textures.exists(k)) this.load.image(k, 'assets/sprites/' + oc.png);
+      });
+    };
+    if (!this.cache.json.exists(key)) {
+      this.load.json(key, `data/scenes/${this.sceneId}.json`);
+      this.load.once('filecomplete-json-' + key, (k, t, data) => queueFg(data));
+    } else {
+      queueFg(this.cache.json.get(key));
+    }
   }
 
   create() {
@@ -62,11 +77,14 @@ export class StoryScene extends Phaser.Scene {
     const st = def.stage || {};
     // 장면 캐릭터 배율·조명 (Stage 를 만들기 전에 정해야 인물에 적용된다)
     this.charScale = st.charScale || 1;
+    // 이동 속도·상호작용 거리 단위 (예전 키 48px 기준 수치 × 2 × 장면 배율)
+    this.unit = this.charScale * UNIT;
     this.lightTargets = [];
     this.stage = new Stage(this, st);
     const p = st.player || {};
     this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char });
     this.physics.add.collider(this.player.cs.zone, this.stage.solidGroup);
+    this.setLane(this.player.cs, p.lane || 'floor', 0);
     if (p.visible === false) this.player.setVisible(false);
     if (p.anim) {
       // 시작 자세 (예: lie_sleep, capsule_sleep)
@@ -410,11 +428,79 @@ export class StoryScene extends Phaser.Scene {
   moveObj(o, x, speed = 50) {
     const dist = Math.abs(o.x - x);
     if (dist < 1) return Promise.resolve();
-    const dur = G.auto ? 60 : (dist / (speed * this.charScale)) * 1000;
+    const dur = G.auto ? 60 : (dist / (speed * this.unit)) * 1000;
     return new Promise((res) => this.tweens.add({ targets: o, x, duration: dur, onComplete: res }));
   }
 
   // 인물 이동: 걷기 동작을 재생하며 x 까지
+  // 직접 움직일 때: 줄 밖으로는 못 나가고, 통로(laneLinks x)에서 위·아래(또는 바깥쪽)로 밀면 다른 줄로
+  keepInLane() {
+    const st = this.stage;
+    if (Object.keys(st.lanes).length < 2 || this.laneSwitching) return;
+    const cs = this.player.cs;
+    const ln = st.lane(cs.laneName);
+    const x = cs.x;
+    const near = st.laneLinks.find((l) => (l.a === ln.name || l.b === ln.name) && Math.abs(l.x - x) < 14 * this.unit);
+    const other = near ? st.lane(near.a === ln.name ? near.b : near.a) : null;
+    const wantBack = Input.isDown('up');
+    const wantFront = Input.isDown('down');
+    const out = x < ln.x0 || x > ln.x1;
+    if (other && (out || (wantBack && other.depth < ln.depth) || (wantFront && other.depth > ln.depth))) {
+      this.laneSwitching = true;
+      this.setLane(cs, other.name).then(() => { this.laneSwitching = false; });
+      return;
+    }
+    if (out) {
+      this.player.setX(Phaser.Math.Clamp(x, ln.x0, ln.x1));
+      this.player.body.setVelocityX(0);
+    }
+  }
+
+  // ---------- 앞뒤 줄 (lane) ----------
+  // 인물을 다른 줄로: y·그림 배율·그리는 순서를 바꾼다 (ms 동안 부드럽게)
+  setLane(cs, name, ms = 220) {
+    const ln = this.stage.lane(name);
+    cs.laneName = ln.name;
+    const isPlayer = this.player && cs === this.player.cs;
+    cs.baseDepth = cs.baseDepth != null ? cs.baseDepth : DEPTH.actor;
+    cs.setDepth(cs.baseDepth + ln.depth);
+    const fromY = cs.y;
+    const fromS = cs.laneScale;
+    const apply = (y, sc) => {
+      if (cs.zone) {
+        const b = cs.body;
+        // 바닥선이 아닌 줄에서는 중력 없이 그 줄의 y 에 고정
+        b.setAllowGravity(Math.abs(ln.y - this.stage.floorY) < 0.5);
+        b.setVelocityY(0);
+        b.reset(cs.x, y - cs.bh / 2);
+        cs.sync();
+      } else {
+        cs.setPosition(cs.x, y);
+      }
+      cs.setLaneScale(sc);
+    };
+    if (!ms || G.auto) {
+      apply(ln.y, ln.scale);
+      return Promise.resolve();
+    }
+    return new Promise((res) => {
+      this.tweens.addCounter({
+        from: 0, to: 1, duration: ms,
+        onUpdate: (tw) => { const t = tw.getValue(); apply(fromY + (ln.y - fromY) * t, fromS + (ln.scale - fromS) * t); },
+        onComplete: () => { apply(ln.y, ln.scale); res(); }
+      });
+    });
+    void isPlayer;
+  }
+
+  // x 로 가는 길에 줄을 바꿔야 하면 통로까지 걸어가서 줄을 바꾼다
+  async laneRoute(cs, x, laneName, walk) {
+    const r = this.stage.routeTo(cs.laneName, x, laneName);
+    if (!r) return;
+    if (r.x != null) await walk(r.x);
+    await this.setLane(cs, r.lane.name);
+  }
+
   moveChar(cs, x, speed = 50, after = 'idle') {
     const from = cs.x;
     const dist = Math.abs(from - x);
@@ -422,7 +508,7 @@ export class StoryScene extends Phaser.Scene {
     cs.face(x < from ? -1 : 1);
     cs.play(cs.anims.walk ? 'walk' : 'idle');
     if (!cs.anims.walk && !cs.realAny) cs.applyPose('bob');
-    const dur = G.auto ? 60 : (dist / (speed * this.charScale)) * 1000;
+    const dur = G.auto ? 60 : (dist / (speed * this.unit)) * 1000;
     return new Promise((res) => {
       const st = { x: from };
       this.tweens.add({
@@ -465,7 +551,7 @@ export class StoryScene extends Phaser.Scene {
       case 'move': {
         // 앉으러 갈 때는 서서 걷다가 도착해서 lift(의자 좌판 높이)를 준다
         if ('lift' in s) cs.setLift(0);
-        const pr = this.moveChar(cs, s.x, s.speed || 45, s.anim || 'idle').then(() => {
+        const pr = this.laneRoute(cs, s.x, s.lane, (x) => this.moveChar(cs, x, s.speed || 45, 'idle')).then(() => this.moveChar(cs, s.x, s.speed || 45, s.anim || 'idle')).then(() => {
           if (s.face) cs.face(s.face);
           if ('lift' in s) cs.setLift(s.lift);
         });
@@ -474,6 +560,9 @@ export class StoryScene extends Phaser.Scene {
       }
       case 'face':
         cs.face(s.dir);
+        break;
+      case 'lane':
+        await this.setLane(cs, s.lane, s.ms);
         break;
       // 이름으로 동작 재생 (data/sprites.json characters.<id>.anims). wait: true 면 끝날 때까지 기다림
       case 'anim': {
@@ -484,18 +573,19 @@ export class StoryScene extends Phaser.Scene {
       }
       case 'stand':
         // 캡슐 위처럼 높이 누워 있던 인물을 바닥으로
-        cs.setPosition(cs.x, s.y != null ? s.y : this.stage.floorY);
+        if (s.lane) await this.setLane(cs, s.lane);
+        else cs.setPosition(cs.x, s.y != null ? s.y : this.stage.lane(cs.laneName).y);
         await cs.play(s.anim || 'idle');
         break;
       case 'toss': {
         // 캔커피 던지기: 작은 물건이 actor → 플레이어로 날아간다
         if (s.anim) cs.play(s.anim);
         const t = objTexture(s.obj || 'can_coffee');
-        const it = this.add.image(cs.x, cs.y - 34, t.key, t.frame).setDepth(DEPTH.fx);
+        const it = this.add.image(cs.x, cs.y - 34 * this.unit, t.key, t.frame).setDepth(DEPTH.fx).setScale(this.unit);
         await new Promise((r) => this.tweens.add({
           targets: it,
           x: this.player.x,
-          y: this.player.y - 28,
+          y: this.player.y - 28 * this.unit,
           duration: G.auto ? 50 : 500,
           ease: 'Sine.out',
           onUpdate: (tw) => { it.angle = tw.progress * 540; },
@@ -532,6 +622,9 @@ export class StoryScene extends Phaser.Scene {
       case 'face':
         pl.face(s.dir);
         break;
+      case 'lane':
+        await this.setLane(pl.cs, s.lane, s.ms);
+        break;
       // 이름으로 동작 재생 / 고정 (null 이면 자동으로)
       case 'anim': {
         if ('lift' in s) pl.cs.setLift(s.lift);
@@ -547,15 +640,20 @@ export class StoryScene extends Phaser.Scene {
         pl.override = null;
         const walk = pl.dive ? 'run' : 'walk';
         pl.setOverride(walk);
-        pl.face(s.x < pl.x ? -1 : 1);
-        const dist = Math.abs(pl.x - s.x);
-        const dur = G.auto ? 60 : (dist / ((s.speed || 60) * this.charScale)) * 1000;
-        const st = { x: pl.x };
-        await new Promise((res) => this.tweens.add({
-          targets: st, x: s.x, duration: dur,
-          onUpdate: () => { pl.cs.zone.x = st.x; pl.cs.sync(); },
-          onComplete: res
-        }));
+        const walkTo = (x) => {
+          pl.face(x < pl.x ? -1 : 1);
+          const dist = Math.abs(pl.x - x);
+          const dur = G.auto ? 60 : (dist / ((s.speed || 60) * this.unit)) * 1000;
+          const st = { x: pl.x };
+          return new Promise((res) => this.tweens.add({
+            targets: st, x, duration: Math.max(1, dur),
+            onUpdate: () => { pl.cs.zone.x = st.x; pl.cs.sync(); },
+            onComplete: res
+          }));
+        };
+        // 다른 줄(lane)이면 통로를 거쳐서
+        await this.laneRoute(pl.cs, s.x, s.lane, walkTo);
+        await walkTo(s.x);
         b.enable = true;
         b.reset(s.x, pl.cs.zone.y);
         pl.setOverride(s.anim || null);
@@ -794,7 +892,7 @@ export class StoryScene extends Phaser.Scene {
       if (!e.obj.visible) return;
       if (this.exploreCfg && this.exploreCfg.only && !this.exploreCfg.only.includes(e.id)) return;
       if (this.exploreCfg && e.id === this.exploreCfg.exit && !this.exploreRequirementsMet()) return;
-      const range = (e.def.range || 20) * this.charScale;
+      const range = (e.def.range || 20) * this.unit;
       const d = Math.abs(e.obj.x - px);
       if (d <= range && d < bestD) {
         best = e;
@@ -922,7 +1020,7 @@ export class StoryScene extends Phaser.Scene {
     this.mode = 'play';
     this.exploreCfg = { harvest: true };
     this.harvest = { hp, target };
-    if (G.auto) this.player.setX(o.x - 20);
+    if (G.auto) this.player.setX(o.x - 20 * this.unit);
     await hp.run();
     this.harvest = null;
     this.player.frozen = false;
@@ -942,7 +1040,7 @@ export class StoryScene extends Phaser.Scene {
       await new Promise((r) => o.once('animationcomplete', r));
       o.play('obj_crystal_gray.empty');
     } else {
-      await new Promise((r) => this.tweens.add({ targets: o, x: this.player.x + this.player.facing * 10, y: this.player.y - 20, duration: G.auto ? 50 : 700, ease: 'Sine.inOut', onComplete: r }));
+      await new Promise((r) => this.tweens.add({ targets: o, x: this.player.x + this.player.facing * 10 * this.unit, y: this.player.y - 20 * this.unit, duration: G.auto ? 50 : 700, ease: 'Sine.inOut', onComplete: r }));
       this.tweens.add({ targets: o, alpha: 0, duration: 400, delay: 300 });
     }
     await this.wait(s.after || 1800);
@@ -1049,6 +1147,7 @@ export class StoryScene extends Phaser.Scene {
 
     const playing = this.mode === 'play' && !this.harvest;
     this.player.update(dt, playing || (this.mode === 'play' && this.harvest && !this.harvest.hp.holding));
+    if (playing) this.keepInLane();
     this.stage.update(dt);
     this.updateLighting(dt);
     if (this.mode === 'play') this.enemies.forEach((e) => e.update(dt, this.player));
@@ -1064,7 +1163,7 @@ export class StoryScene extends Phaser.Scene {
     if (this.player.y > this.stage.floorY + 80) {
       const pit = (this.def.stage.respawn || []).filter((x) => x <= this.player.x).pop();
       const x = pit != null ? pit : this.lastSafeX - 20 * this.player.facing;
-      this.player.body.reset(x, this.stage.floorY - 30);
+      this.player.body.reset(x, this.stage.floorY - this.player.cs.bh / 2 - 6);
       this.cameras.main.flash(200, 255, 255, 255);
     }
 
@@ -1083,7 +1182,7 @@ export class StoryScene extends Phaser.Scene {
 
     if (this.harvest) {
       const { hp, target } = this.harvest;
-      const near = Math.abs(this.player.x - target.obj.x) < 44 * this.charScale;
+      const near = Math.abs(this.player.x - target.obj.x) < 44 * this.unit;
       hp.update(dt, near);
     }
 

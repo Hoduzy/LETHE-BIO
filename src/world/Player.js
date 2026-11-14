@@ -30,7 +30,8 @@ export class Player {
     this.sprite = this.cs.sprite;
     this.body = this.cs.body;
     // 장면 배율: 속도·중력·점프·대시·공격 범위를 모두 같은 배율로 (점프 높이·거리도 배율만큼, 체공 시간은 그대로)
-    const k = this.k = this.cs.k;
+    const k = this.u = this.cs.u;
+    this.k = this.cs.k;
     this.body.setGravityY(MOVE.gravity * k);
     this.body.setMaxVelocityY(900 * k);
     this.speed = (opts.speed || (this.dive ? MOVE.run : MOVE.walk)) * k;
@@ -55,7 +56,7 @@ export class Player {
     // 그림이 없을 때만 손에 리퍼를 그린다
     const diverReal = Object.values(this.cs.anims).some(([k]) => this.cs.realSheet(k));
     if (this.cs.def.reaper && !diverReal) {
-      this.reaper = scene.add.image(x, y, 'ph_reaper').setOrigin(0.5, 0.9).setScale(this.cs.k).setDepth(DEPTH.player + 1);
+      this.reaper = scene.add.image(x, y, 'ph_reaper').setOrigin(0.5, 0.9).setScale(this.cs.u).setDepth(DEPTH.player + 1);
       this.swingAngle = 0;
     }
     this.fx = scene.add.graphics().setDepth(DEPTH.fx);
@@ -97,7 +98,8 @@ export class Player {
   // 누워 있기 / 일어나기
   lie(lying, anim = 'lie_sleep', opts = {}) {
     this.cs.liftY = lying ? (opts.lift || 0) : 0;
-    this.cs.setDepth(lying && opts.depth != null ? opts.depth : DEPTH.player);
+    // depth 를 따로 주면 그 값, 아니면 지금 줄(lane)의 순서 그대로
+    if (lying && opts.depth != null) this.cs.setDepth(opts.depth);
     if (lying) {
       this.body.enable = false;
       this.body.setVelocity(0, 0);
@@ -119,7 +121,7 @@ export class Player {
   knock(dir) {
     this.stun = 360;
     this.actionLock = 360;
-    this.body.setVelocity(dir * 200 * this.k, -220 * this.k);
+    this.body.setVelocity(dir * 200 * this.u, -220 * this.u);
     this.cs.current = null;
     this.cs.play('hurt');
     Audio.sfx('hit');
@@ -151,7 +153,7 @@ export class Player {
     // 대시 중
     if (this.dashTime > 0) {
       this.dashTime -= dt;
-      b.setVelocity(this.facing * MOVE.dashV * this.k, 0);
+      b.setVelocity(this.facing * MOVE.dashV * this.u, 0);
       if (Math.random() < 0.6) this.afterImage();
       if (this.dashTime <= 0) {
         b.setAllowGravity(true);
@@ -175,7 +177,7 @@ export class Player {
 
     if (canAct) {
       if (this.abilities.has('jump') && Input.justPressed('up') && grounded) {
-        b.setVelocityY(-MOVE.jumpV * this.k);
+        b.setVelocityY(-MOVE.jumpV * this.u);
         Audio.sfx('jump');
       }
       if (this.abilities.has('dash') && Input.justPressed('dash') && this.dashCooldown <= 0 && (grounded || !this.airDashUsed)) {
@@ -208,7 +210,7 @@ export class Player {
       if (this.dive) {
         if (!grounded) {
           const vy = b.velocity.y;
-          this.setAnim(vy < -120 ? 'jump_rise' : vy > 120 ? 'jump_fall' : 'jump_peak');
+          this.setAnim(vy < -120 * this.u ? 'jump_rise' : vy > 120 * this.u ? 'jump_fall' : 'jump_peak');
         } else if (this.landT > 0) {
           this.setAnim('land');
         } else if (Math.abs(b.velocity.x) > 1) {
@@ -238,8 +240,8 @@ export class Player {
         onComplete: () => { this.swingAngle = 0; }
       });
     }
-    const reach = (step === 3 ? MOVE.reach3 : MOVE.reach) * this.k;
-    const hitbox = new Phaser.Geom.Rectangle(this.facing > 0 ? this.x : this.x - reach, this.y - 46 * this.k, reach, 48 * this.k);
+    const reach = (step === 3 ? MOVE.reach3 : MOVE.reach) * this.u;
+    const hitbox = new Phaser.Geom.Rectangle(this.facing > 0 ? this.x : this.x - reach, this.y - 46 * this.u, reach, 48 * this.u);
     if (!this.cs.has('attack' + step)) {
       // 임시 궤적
       const g = this.fx;
@@ -248,7 +250,7 @@ export class Player {
       g.beginPath();
       const a0 = this.facing > 0 ? -1.2 : Math.PI + 1.2;
       const a1 = this.facing > 0 ? 1.0 : Math.PI - 1.0;
-      g.arc(this.x, this.y - 24 * this.k, reach - 6 * this.k, Math.min(a0, a1), Math.max(a0, a1), false);
+      g.arc(this.x, this.y - 24 * this.u, reach - 6 * this.u, Math.min(a0, a1), Math.max(a0, a1), false);
       g.strokePath();
       this.scene.time.delayedCall(90, () => g.clear());
     }
@@ -257,8 +259,8 @@ export class Player {
 
   parryFlash() {
     if (this.cs.has('parry')) return;
-    const ring = this.scene.add.circle(this.x + this.facing * 8 * this.k, this.y - 26 * this.k, 8 * this.k, 0xffffff, 0).setStrokeStyle(1, 0xffffff, 1).setDepth(DEPTH.fx);
-    this.scene.tweens.add({ targets: ring, radius: 26 * this.k, alpha: 0, duration: 260, onComplete: () => ring.destroy() });
+    const ring = this.scene.add.circle(this.x + this.facing * 8 * this.u, this.y - 26 * this.u, 8 * this.u, 0xffffff, 0).setStrokeStyle(1, 0xffffff, 1).setDepth(DEPTH.fx);
+    this.scene.tweens.add({ targets: ring, radius: 26 * this.u, alpha: 0, duration: 260, onComplete: () => ring.destroy() });
   }
 
   afterImage() {
@@ -270,7 +272,7 @@ export class Player {
 
   updateReaper() {
     if (!this.reaper) return;
-    this.reaper.setPosition(this.x + this.facing * 10 * this.k, this.y - 18 * this.k);
+    this.reaper.setPosition(this.x + this.facing * 10 * this.u, this.y - 18 * this.u);
     this.reaper.setAngle(this.facing * (25 + this.swingAngle));
     this.reaper.setVisible(this.cs.visible && !this.override);
   }

@@ -11,10 +11,11 @@ import { W, H, txt, panel } from '../core/gfx.js';
 import { objTexture } from '../core/sprites.js';
 import { CharSprite } from '../world/CharSprite.js';
 
-// bg_warehouse 기준: 바닥 y232, 컨베이어 윗면 y≈186, 트럭 짐칸 바닥 y≈205 (x 405~465)
-// 인물·상자 배율은 P-2 장면과 같은 1.55 (사람 키 약 170cm)
+// bg_warehouse 기준: 앞쪽 바닥 y250 (P-2 와 같음), 컨베이어 윗면 y≈186, 트럭 짐칸 바닥 y≈205 (x 405~465)
+// 인물 배율 1 (칸 128, 키 약 96px). 상자는 물건 칸(32) 기준이라 K 배
 const K = 1.55;
-const FLOOR = 232;
+const CHAR_K = 1.0;
+const FLOOR = 250;
 const BELT_Y = 186;          // 벨트 윗면 (도윤의 가슴 높이쯤)
 const BELT_END = 250;
 const ZONE = { x0: 206, x1: 244 };
@@ -59,8 +60,8 @@ export class UnloadScene extends Phaser.Scene {
       g.lineBetween(0, FLOOR + 0.5, W, FLOOR + 0.5);
       this.add.image(404, FLOOR, 'ph_truck').setOrigin(0.5, 1).setDepth(1);
       // 함께 일하는 노동자 (extra_actions 1줄 젊은 노동자, 2줄 중년 여성 노동자)
-      new CharSprite(this, 120, FLOOR, 'extra_worker_older', { depth: 1, scale: K }).setAlpha(0.7).play('lift');
-      new CharSprite(this, 300, FLOOR, 'extra_worker_young', { depth: 1, scale: K }).setAlpha(0.7).play('carry');
+      new CharSprite(this, 120, FLOOR, 'extra_worker_older', { depth: 1, scale: CHAR_K }).setAlpha(0.7).play('lift');
+      new CharSprite(this, 300, FLOOR, 'extra_worker_young', { depth: 1, scale: CHAR_K }).setAlpha(0.7).play('carry');
     }
     // 컨베이어 다리
     const legs = this.add.graphics();
@@ -82,7 +83,7 @@ export class UnloadScene extends Phaser.Scene {
     this.belt = this.add.graphics().setDepth(2);
     this.zoneG = this.add.graphics().setDepth(3);
     this.truckBoxes = this.add.graphics().setDepth(2);
-    this.doyun = new CharSprite(this, 272, FLOOR, 'doyun', { depth: 5, scale: K });
+    this.doyun = new CharSprite(this, 272, FLOOR, 'doyun', { depth: 5, scale: CHAR_K });
     // 창고 조명에 맞춘 색 (P-2 와 같은 값)
     this.doyun.setLight(0xdcfbff, 0.72);
     this.doyun.face(-1);

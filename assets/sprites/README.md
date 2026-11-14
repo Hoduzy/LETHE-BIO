@@ -6,7 +6,8 @@
 - 배경색 **#FF00FF(마젠타)** 는 불러올 때 투명으로 바뀝니다 (`harin_photo` 는 사진이라 그대로).
 - 시트는 칸 크기대로 잘립니다. 가로 한 줄이 기본이고, 여러 줄 시트(`npc_actions` 5줄, `extra_actions` 6줄, `obj_prologue` 격자)는 왼쪽→오른쪽, 위→아래 순서로 칸 번호를 셉니다.
 - 칸/프레임 번호는 **1부터** 셉니다 (프롬프트의 Frame 번호와 같음).
-- **발 위치:** 인물·적은 칸 맨 아래 줄이 발입니다. 기준점은 칸 아래 가운데이고, 그 점이 바닥선(y=216)에 놓입니다.
+- **칸 크기:** 인물·마네킹은 128×128 (키 약 96px), 공백은 64×64 (크기 약 32px). 프롬프트 문서의 64칸으로 뽑아도 정리 스크립트가 원본에서 다시 줄여 이 크기로 만듭니다. 인물은 배경과 같은 픽셀 크기로 그리는 것이 기준이라 장면 배율(charScale)은 대부분 1 근처입니다.
+- **발 위치:** 인물·적은 칸 맨 아래 줄이 발입니다. 기준점은 칸 아래 가운데이고, 그 점이 장면의 바닥선(floorY, 또는 인물이 선 lane 의 y)에 놓입니다.
 - 파일이 없으면 임시 도형으로 그리고, 동작은 임시 도형을 살짝 기울이거나 눕히는 정도로 대신합니다.
 - 배경 PNG가 있으면 배경 속 가구(이불·커튼·냉장고·책상·선반·계산대·엘리베이터·사물함·창문 등)는 따로 그리지 않습니다. 살펴보기나 출구로 쓰는 가구는 보이지 않는 영역으로 남습니다. 위치는 `?edit=1` 편집 모드로 맞춥니다.
 
@@ -19,36 +20,36 @@ python3 tools/process_sprites.py              # 전부
 python3 tools/process_sprites.py diver_run    # 일부만
 ```
 
-을 실행하면 아래 크기로 정리됩니다: 마젠타(가장자리 번짐 포함) 투명 처리 → 그림 덩어리를 찾아 칸 단위로 잘라 냄 → nearest 축소 → 인물·적은 발을 칸 맨 아래 줄에, 몸 중심을 칸 가운데에 → 32색 이하. (Pillow, numpy 필요)
+을 실행하면 아래 크기로 정리됩니다: 마젠타(가장자리 번짐 포함) 투명 처리 → 그림 덩어리를 찾아 칸 단위로 잘라 냄 → 인물·적은 칸마다 따로 평균 색으로 축소(물건·UI 는 nearest) → 발을 칸 맨 아래 줄에, 몸통 중심을 첫 프레임과 같은 칸 가운데에 → 32색 이하. (Pillow, numpy 필요)
 
 ## 애니메이션 시트
 
 | 파일 | 칸 크기 | 칸 수 | 동작 (프레임 범위) |
 |---|---|---|---|
-| `doyun_idle_breath.png` | 64×64 | 4 | idle(1), breath(1~4 반복) |
-| `doyun_walk.png` | 64×64 | 7 | idle(1), walk(2~7 반복) |
-| `doyun_sleep_wake.png` | 64×64 | 6 | idle(1), lie_sleep(2), lie_awake(3), wake(4~6), sit_up(5) |
-| `doyun_carry_box.png` | 64×64 | 6 | idle(1), grab(2~3), carry(4~6 반복) |
-| `doyun_phone.png` | 64×64 | 6 | idle(1), take(2), look(3), call(4), call_fist(5), lower(6) |
-| `doyun_sit_eat.png` | 64×64 | 6 | idle(1), sit(2), eat(3~5 반복), stare(6) |
-| `doyun_sign.png` | 64×64 | 5 | idle(1), sit_chair(2), sign_ready(3), sign_hesitate(4), sign_done(5) |
-| `doyun_capsule.png` | 64×64 | 5 | idle(1), lie_nervous(2), lie_closed(3), gasp(4), sit_breathe(5) |
-| `diver_run.png` | 64×64 | 8 | idle(1), run(2~8 반복) |
-| `diver_jump.png` | 64×64 | 6 | idle(1), crouch(2), rise(3), peak(4), fall(5), land(6) |
-| `diver_dash.png` | 64×64 | 5 | idle(1), dash(2~4), brake(5) |
-| `diver_attack.png` | 64×64 | 10 | idle(1), attack1(2~4), attack2(5~7), attack3(8~10) |
-| `diver_parry.png` | 64×64 | 5 | idle(1), parry(2~5) |
-| `diver_hurt.png` | 64×64 | 4 | idle(1), hurt(2~4) |
-| `diver_harvest.png` | 64×64 | 6 | idle(1), reach(2), pull(3~5 반복), hold(6) |
-| `mother_actions.png` | 64×64 | 10 | idle(1), sleep(2), sit_rub(3), cook(4~6 반복), sit_watch(7), touch_face(8), phone(9), teary(10) |
-| `mingyu_actions.png` | 64×64 | 8 | idle(1), talk(2~3 반복), arrange(4~6 반복), whisper(7), shrug(8) |
-| `jaehee_actions.png` | 64×64 | 10 | idle(1), drink(2~3 반복), toss(4), crush(5), photo(6), lie(7), sit_up(8), wave(9), empty_hand(10) |
-| `yoon_actions.png` | 64×64 | 8 | idle(1), handshake(2), sit(3), pour(4), open_case(5), slide_doc(6), tablet(7), glasses(8) |
-| `npc_actions.png` | 64×64 | 20 (5줄×4칸) | foreman_idle(1), foreman_point(2), foreman_arms(3), foreman_tsk(4), staff_idle(5), staff_look(6), staff_tap(7), staff_smile(8), reception_idle(9), reception_bow(10), reception_gesture(11), reception_smile(12), woman_idle(13), woman_walk(13~16 반복), man_idle(17), man_walk(17~20 반복) |
-| `extra_actions.png` | 64×64 | 24 (6줄×4칸) | young_idle(1), young_carry(2~4 반복), older_idle(5), older_lift(6~8 반복), office_idle(9), office_walk(9~12 반복), elder_idle(13), elder_walk(13~16 반복), customer_idle(17), customer_reach(18), customer_hold(19), customer_leave(20), drunk_idle(21), drunk_sway(21~24 반복), drunk_stumble(22~23) |
-| `char_extra_ref.png` | 64×64 | 6 | young(1), older(2), office(3), elder(4), customer(5), drunk(6) |
-| `enemy_void_small.png` | 32×32 | 12 | idle(1), ripple(2~4 반복), emerge(5~7), slide(8~9 반복), hit(10), vanish(11~12) |
-| `enemy_mannequin.png` | 64×64 | 9 | idle(1), sway(1~2 반복), windup(3~4), strike(5), parried(6), fall(7~8), down(9) |
+| `doyun_idle_breath.png` | 128×128 | 4 | idle(1), breath(1~4 반복) |
+| `doyun_walk.png` | 128×128 | 7 | idle(1), walk(2~7 반복) |
+| `doyun_sleep_wake.png` | 128×128 | 6 | idle(1), lie_sleep(2), lie_awake(3), wake(4~6), sit_up(5) |
+| `doyun_carry_box.png` | 128×128 | 6 | idle(1), grab(2~3), carry(4~6 반복) |
+| `doyun_phone.png` | 128×128 | 6 | idle(1), take(2), look(3), call(4), call_fist(5), lower(6) |
+| `doyun_sit_eat.png` | 128×128 | 6 | idle(1), sit(2), eat(3~5 반복), stare(6) |
+| `doyun_sign.png` | 128×128 | 5 | idle(1), sit_chair(2), sign_ready(3), sign_hesitate(4), sign_done(5) |
+| `doyun_capsule.png` | 128×128 | 5 | idle(1), lie_nervous(2), lie_closed(3), gasp(4), sit_breathe(5) |
+| `diver_run.png` | 128×128 | 8 | idle(1), run(2~8 반복) |
+| `diver_jump.png` | 128×128 | 6 | idle(1), crouch(2), rise(3), peak(4), fall(5), land(6) |
+| `diver_dash.png` | 128×128 | 5 | idle(1), dash(2~4), brake(5) |
+| `diver_attack.png` | 128×128 | 10 | idle(1), attack1(2~4), attack2(5~7), attack3(8~10) |
+| `diver_parry.png` | 128×128 | 5 | idle(1), parry(2~5) |
+| `diver_hurt.png` | 128×128 | 4 | idle(1), hurt(2~4) |
+| `diver_harvest.png` | 128×128 | 6 | idle(1), reach(2), pull(3~5 반복), hold(6) |
+| `mother_actions.png` | 128×128 | 10 | idle(1), sleep(2), sit_rub(3), cook(4~6 반복), sit_watch(7), touch_face(8), phone(9), teary(10) |
+| `mingyu_actions.png` | 128×128 | 8 | idle(1), talk(2~3 반복), arrange(4~6 반복), whisper(7), shrug(8) |
+| `jaehee_actions.png` | 128×128 | 10 | idle(1), drink(2~3 반복), toss(4), crush(5), photo(6), lie(7), sit_up(8), wave(9), empty_hand(10) |
+| `yoon_actions.png` | 128×128 | 8 | idle(1), handshake(2), sit(3), pour(4), open_case(5), slide_doc(6), tablet(7), glasses(8) |
+| `npc_actions.png` | 128×128 | 20 (5줄×4칸) | foreman_idle(1), foreman_point(2), foreman_arms(3), foreman_tsk(4), staff_idle(5), staff_look(6), staff_tap(7), staff_smile(8), reception_idle(9), reception_bow(10), reception_gesture(11), reception_smile(12), woman_idle(13), woman_walk(13~16 반복), man_idle(17), man_walk(17~20 반복) |
+| `extra_actions.png` | 128×128 | 24 (6줄×4칸) | young_idle(1), young_carry(2~4 반복), older_idle(5), older_lift(6~8 반복), office_idle(9), office_walk(9~12 반복), elder_idle(13), elder_walk(13~16 반복), customer_idle(17), customer_reach(18), customer_hold(19), customer_leave(20), drunk_idle(21), drunk_sway(21~24 반복), drunk_stumble(22~23) |
+| `char_extra_ref.png` | 128×128 | 6 | young(1), older(2), office(3), elder(4), customer(5), drunk(6) |
+| `enemy_void_small.png` | 64×64 | 12 | idle(1), ripple(2~4 반복), emerge(5~7), slide(8~9 반복), hit(10), vanish(11~12) |
+| `enemy_mannequin.png` | 128×128 | 9 | idle(1), sway(1~2 반복), windup(3~4), strike(5), parried(6), fall(7~8), down(9) |
 | `obj_prologue.png` | 32×32 | 22 (격자) | drip(2~4), ripple(5~7) |
 | `obj_crystal_amber.png` | 32×32 | 6 | glow(1~6 반복) |
 | `obj_crystal_gray.png` | 32×32 | 8 | float(1~3 반복), pulled(4~6), empty(7~8) |

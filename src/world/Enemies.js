@@ -21,7 +21,8 @@ export class VoidEnemy {
     this.flash = 0;
     this.knockT = 0;
     this.k = this.cs.k;
-    this.speed = (opts.speed || 20) * this.k;
+    this.u = this.cs.u;
+    this.speed = (opts.speed || 20) * this.u;
     this.real = this.cs.has('emerge');
     this.emerging = true;
     if (this.real) {
@@ -57,7 +58,7 @@ export class VoidEnemy {
       return;
     }
     const dx = player.x - this.x;
-    const moving = Math.abs(dx) < 220 * this.k && Math.abs(dx) > 22 * this.k && !this.emerging;
+    const moving = Math.abs(dx) < 220 * this.u && Math.abs(dx) > 22 * this.u && !this.emerging;
     this.body.setVelocityX(moving ? Math.sign(dx) * this.speed : 0);
     if (moving) this.cs.face(Math.sign(dx));
     if (this.real && !this.emerging && this.flash <= 0) {
@@ -72,7 +73,7 @@ export class VoidEnemy {
     Audio.sfx('hit');
     this.flash = 90;
     this.knockT = 150;
-    this.body.setVelocityX(dir * (step === 3 ? 220 : 100) * this.k);
+    this.body.setVelocityX(dir * (step === 3 ? 220 : 100) * this.u);
     if (this.real) this.cs.play('hit');
     else this.cs.flash(90);
     if (this.hp <= 0) this.die();
@@ -92,7 +93,7 @@ export class VoidEnemy {
     }
     // 흩어진다 (임시 도형)
     for (let i = 0; i < 16; i++) {
-      const p = this.scene.add.rectangle(s.x + (Math.random() - 0.5) * 18 * this.k, s.y - (8 + Math.random() * 10) * this.k, 2 * this.k, 2 * this.k, 0x000000).setDepth(DEPTH.fx);
+      const p = this.scene.add.rectangle(s.x + (Math.random() - 0.5) * 18 * this.u, s.y - (8 + Math.random() * 10) * this.u, 2 * this.u, 2 * this.u, 0x000000).setDepth(DEPTH.fx);
       this.scene.tweens.add({
         targets: p,
         x: p.x + (Math.random() - 0.5) * 60,
@@ -123,13 +124,14 @@ export class Mannequin {
     this.body.setImmovable(true);
     this.real = this.cs.has('windup');
     this.k = this.cs.k;
+    this.u = this.cs.u;
     this.state = 'idle';
     this.timer = 900;
     this.facing = -1;
     this.cs.face(-1);
     if (!this.real) {
       // 임시 도형: 휘두르는 팔
-      this.arm = scene.add.rectangle(x, y - 36 * this.k, 3 * this.k, 22 * this.k, 0x6f6f6f).setOrigin(0.5, 0).setDepth(DEPTH.enemy + 1);
+      this.arm = scene.add.rectangle(x, y - 36 * this.u, 3 * this.u, 22 * this.u, 0x6f6f6f).setOrigin(0.5, 0).setDepth(DEPTH.enemy + 1);
     }
     this.armAngle = 10;
     this.missCount = 0;
@@ -144,7 +146,7 @@ export class Mannequin {
     this.facing = dx < 0 ? -1 : 1;
     this.cs.face(this.facing);
     this.timer -= dt;
-    const near = Math.abs(dx) < NEAR * this.k;
+    const near = Math.abs(dx) < NEAR * this.u;
 
     switch (this.state) {
       case 'idle':
@@ -169,7 +171,7 @@ export class Mannequin {
         this.armAngle = this.facing * -70;
         if (!this.struck) {
           this.struck = true;
-          if (Math.abs(dx) < STRIKE * this.k) {
+          if (Math.abs(dx) < STRIKE * this.u) {
             if (player.parryTimer > 0) {
               this.parried(player);
               return;
@@ -199,7 +201,7 @@ export class Mannequin {
         break;
     }
     if (this.arm) {
-      this.arm.setPosition(this.x + this.facing * 7 * this.k, this.y - 38 * this.k);
+      this.arm.setPosition(this.x + this.facing * 7 * this.u, this.y - 38 * this.u);
       this.arm.setAngle(this.armAngle);
     }
   }
@@ -220,8 +222,8 @@ export class Mannequin {
     this.cs.restoreTint();
     this.body.enable = false;
     this.cs.detached = true;
-    const flash = this.scene.add.circle(player.x + player.facing * 16 * this.k, player.y - 28 * this.k, 5 * this.k, 0xffffff, 1).setDepth(DEPTH.fx);
-    this.scene.tweens.add({ targets: flash, radius: 34 * this.k, alpha: 0, duration: 300, onComplete: () => flash.destroy() });
+    const flash = this.scene.add.circle(player.x + player.facing * 16 * this.u, player.y - 28 * this.u, 5 * this.u, 0xffffff, 1).setDepth(DEPTH.fx);
+    this.scene.tweens.add({ targets: flash, radius: 34 * this.u, alpha: 0, duration: 300, onComplete: () => flash.destroy() });
     this.scene.cameras.main.shake(120, 0.006);
     if (this.real) {
       this.cs.play('parried').then(() => this.cs.play('fall')).then(() => this.cs.play('down'));
@@ -229,7 +231,7 @@ export class Mannequin {
     }
     // 뒤로 넘어진다 (임시 도형)
     const dir = player.x < this.x ? 1 : -1;
-    this.scene.tweens.add({ targets: this.sprite, angle: dir * 90, x: this.sprite.x + dir * 14 * this.k, duration: 420, ease: 'Quad.in' });
+    this.scene.tweens.add({ targets: this.sprite, angle: dir * 90, x: this.sprite.x + dir * 14 * this.u, duration: 420, ease: 'Quad.in' });
     if (this.arm) this.scene.tweens.add({ targets: this.arm, alpha: 0, duration: 200 });
   }
 }
