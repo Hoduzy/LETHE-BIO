@@ -14,6 +14,7 @@ import { Phone } from '../ui/Phone.js';
 import { Panels } from '../ui/Panels.js';
 import { Stage } from '../world/Stage.js';
 import { objTexture } from '../core/sprites.js';
+import { Editor } from '../editor/Editor.js';
 import { Player } from '../world/Player.js';
 import { VoidEnemy, Mannequin } from '../world/Enemies.js';
 
@@ -53,9 +54,9 @@ export class StoryScene extends Phaser.Scene {
     this.events.once('shutdown', () => { this.alive = false; });
     this.events.once('destroy', () => { this.alive = false; });
 
-    Save.saveProgress(this.sceneId, { chapter: (chapterOf(this.sceneId) || {}).id });
+    if (!G.edit) Save.saveProgress(this.sceneId, { chapter: (chapterOf(this.sceneId) || {}).id });
     Audio.restore();
-    Audio.setAmbience((def.stage && def.stage.ambience) || []);
+    Audio.setAmbience(G.edit ? [] : (def.stage && def.stage.ambience) || []);
 
     // 공간
     const st = def.stage || {};
@@ -86,6 +87,13 @@ export class StoryScene extends Phaser.Scene {
     if (def.startColor === 'white') this.fadeRect.setFillStyle(0xffffff, 1);
     if (!def.startBlack) {
       this.tweens.add({ targets: this.fadeRect, alpha: 0, duration: 700 });
+    }
+
+    // 위치 편집 모드: 스크립트(대사·전투)를 실행하지 않고 편집기만 띄운다
+    if (G.edit) {
+      this.fadeRect.setAlpha(0);
+      this.editor = new Editor(this);
+      return;
     }
 
     // 장면 제목 (잠깐)
@@ -968,6 +976,11 @@ export class StoryScene extends Phaser.Scene {
   // ------------------------------------------------------------------
   update(time, dt) {
     if (!this.def) return;
+    if (this.editor) {
+      this.stage.update(dt);
+      this.editor.update(dt);
+      return;
+    }
     if (Input.justPressed('menu') && this.mode !== 'paused') {
       Input.consume('menu');
       const overlays = ['Contract', 'Unload', 'Shelf'].filter((k) => this.scene.isActive(k));

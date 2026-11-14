@@ -50,27 +50,27 @@ export class DialogueBox {
     this.visible = false;
     this.resolve = null;
     const d = this.depth;
-    const uiReal = G.realSprites.has('ui_dialog');
-    const tex = uiReal ? scene.textures.get('ui_dialog') : null;
+    // UI 부품 그림 (파일이 없으면 코드로 그린다)
+    const R = (k) => G.realSprites.has(k);
     this.skin = {
-      box: tex && tex.has('box'),
-      name: tex && tex.has('name_tag'),
-      frame: tex && tex.has('portrait_frame'),
-      arrow: tex && tex.has('arrow_1') && tex.has('arrow_2')
+      box: R('ui_dialog_box'),
+      name: R('ui_nametag'),
+      frame: R('ui_portrait_frame'),
+      arrow: R('ui_next_arrow') && scene.textures.get('ui_next_arrow').has(1)
     };
 
     this.bg = scene.add.graphics().setScrollFactor(0).setDepth(d);
-    this.boxImg = this.skin.box ? scene.add.image(0, 0, 'ui_dialog', 'box').setOrigin(0).setScrollFactor(0).setDepth(d) : null;
+    this.boxImg = this.skin.box ? scene.add.image(0, 0, 'ui_dialog_box').setOrigin(0).setScrollFactor(0).setDepth(d) : null;
     this.portraitImg = scene.add.image(0, 0, '__DEFAULT').setOrigin(0).setScrollFactor(0).setDepth(d + 1);
     this.frameG = scene.add.graphics().setScrollFactor(0).setDepth(d + 2);
-    this.frameImg = this.skin.frame ? scene.add.image(0, 0, 'ui_dialog', 'portrait_frame').setOrigin(0).setScrollFactor(0).setDepth(d + 2) : null;
+    this.frameImg = this.skin.frame ? scene.add.image(0, 0, 'ui_portrait_frame').setOrigin(0).setScrollFactor(0).setDepth(d + 2) : null;
     this.nameBg = scene.add.graphics().setScrollFactor(0).setDepth(d + 3);
-    this.nameImg = this.skin.name ? scene.add.image(0, 0, 'ui_dialog', 'name_tag').setOrigin(0).setScrollFactor(0).setDepth(d + 3) : null;
+    this.nameImg = this.skin.name ? scene.add.image(0, 0, 'ui_nametag').setOrigin(0).setScrollFactor(0).setDepth(d + 3) : null;
     this.nameText = txt(scene, 0, 0, '', { depth: d + 4 });
     this.body = txt(scene, 0, 0, '', { depth: d + 4, lineSpacing: 5 });
     this.body.setPadding(0, 0, 6, 0);
     this.arrow = this.skin.arrow
-      ? scene.add.image(0, 0, 'ui_dialog', 'arrow_1').setOrigin(0).setScrollFactor(0).setDepth(d + 4)
+      ? scene.add.image(0, 0, 'ui_next_arrow', 0).setOrigin(0).setScrollFactor(0).setDepth(d + 4)
       : txt(scene, 0, 0, '▼', { depth: d + 4, color: '#c8ccd6', size: 12 });
     this.measure = scene.add.text(0, 0, '', { fontFamily: FONT, fontSize: '12px', lineSpacing: 5 }).setVisible(false);
     this.arrowT = 0;
@@ -261,7 +261,7 @@ export class DialogueBox {
       const on = Math.floor(this.arrowT / 400) % 2 === 0;
       if (this.skin.arrow) {
         this.arrow.setVisible(true);
-        this.arrow.setFrame(on ? 'arrow_1' : 'arrow_2');
+        this.arrow.setFrame(on ? 0 : 1);
       } else {
         this.arrow.setVisible(on);
       }

@@ -16,7 +16,7 @@ export class CharSprite {
     this.cell = [cw, ch];
     this.facesLeft = this.def.faces === 'left';
     this.anims = this.def.anims || {};
-    this.realAny = Object.values(this.anims).some(([k]) => this.realSheet(k));
+    this.realAny = Object.keys(this.anims).some((n) => !!this.resolve(n));
 
     const start = this.startTexture();
     this.sprite = scene.add.sprite(x, y, start.key, start.frame).setOrigin(0.5, 1).setDepth(opts.depth != null ? opts.depth : DEPTH.actor);
@@ -44,9 +44,18 @@ export class CharSprite {
     return !!animKey && G.realSprites.has(animKey.split('.')[0]);
   }
 
+  // 동작 이름 → 실제로 재생할 "시트.동작" (주 시트가 없으면 세 번째 칸의 기준 시트, 둘 다 없으면 null)
+  resolve(name) {
+    const a = this.anims[name];
+    if (!a) return null;
+    if (this.realSheet(a[0])) return a[0];
+    if (a[2] && this.realSheet(a[2])) return a[2];
+    return null;
+  }
+
   startTexture() {
-    const idle = this.anims.idle && this.anims.idle[0];
-    if (idle && this.realSheet(idle)) {
+    const idle = this.resolve('idle');
+    if (idle) {
       const sheet = idle.split('.')[0];
       const range = G.spriteData.sheets[sheet].anims[idle.split('.')[1]];
       return { key: sheet, frame: range[0] - 1 };
@@ -88,8 +97,8 @@ export class CharSprite {
   }
 
   has(name) {
-    const a = this.anims[name];
-    return !!a && this.scene.anims.exists(a[0]) && this.realSheet(a[0]);
+    const k = this.resolve(name);
+    return !!k && this.scene.anims.exists(k);
   }
 
   // 동작 재생. 반복 없는 동작은 끝날 때 resolve
@@ -97,8 +106,9 @@ export class CharSprite {
     const a = this.anims[name];
     if (!a) return Promise.resolve();
     this.current = name;
-    const [animKey, ph] = a;
-    if (this.scene.anims.exists(animKey) && this.realSheet(animKey)) {
+    const ph = a[1];
+    const animKey = this.resolve(name);
+    if (animKey && this.scene.anims.exists(animKey)) {
       this.clearPose();
       this.sprite.play(animKey, opts.restart ? false : true);
       const anim = this.scene.anims.get(animKey);

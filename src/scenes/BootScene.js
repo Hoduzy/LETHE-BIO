@@ -27,9 +27,11 @@ export class BootScene extends Phaser.Scene {
 
     const finish = () => {
       G.realSprites = processLoaded(this, G.spriteData);
+      window.__realSprites = G.realSprites;
       registerAnims(this, G.spriteData, G.realSprites);
       makePlaceholders(this, G.spriteData, G.realSprites);
       applyTouchSkin(this);
+      if (G.edit && !G.startScene) G.startScene = G.game.chapters[0].scenes[0];
       if (G.startScene) this.scene.start('Story', { sceneId: G.startScene });
       else this.scene.start('Menu');
     };

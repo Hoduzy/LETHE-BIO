@@ -32,8 +32,9 @@
     ],
     "actors": [
       {"id": "foreman", "char": "npc_foreman", "x": 170, "speaker": "반장", "facing": 1},
-      {"id": "worker1", "char": "extra_worker", "x": 40, "alpha": 0.7},
-      {"id": "worker2", "char": "extra_worker", "x": 90, "alpha": 0.7}
+      {"id": "worker1", "char": "extra_worker_young", "x": 40, "anim": "carry", "alpha": 0.8},
+      {"id": "worker2", "char": "extra_worker_older", "x": 96, "anim": "lift", "alpha": 0.8},
+      {"id": "worker3", "char": "extra_worker_young", "x": 452, "facing": -1, "anim": "idle", "alpha": 0.8}
     ]
   },
   "steps": [

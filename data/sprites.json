@@ -41,6 +41,24 @@
       }
     },
 
+    "extra_actions": {
+      "cell": [64, 64], "frames": 24, "columns": 4,
+      "_줄": "1줄 물류센터 젊은 노동자, 2줄 중년 여성 노동자, 3줄 회사원 행인, 4줄 할머니 행인, 5줄 편의점 손님, 6줄 취객 (각 4칸)",
+      "anims": {
+        "young_idle": [1, 1], "young_carry": [2, 4, 6, "loop"],
+        "older_idle": [5, 5], "older_lift": [6, 8, 4, "loop"],
+        "office_idle": [9, 9], "office_walk": [9, 12, 7, "loop"],
+        "elder_idle": [13, 13], "elder_walk": [13, 16, 4, "loop"],
+        "customer_idle": [17, 17], "customer_reach": [18, 18], "customer_hold": [19, 19], "customer_leave": [20, 20],
+        "drunk_idle": [21, 21], "drunk_sway": [21, 24, 3, "loop"], "drunk_stumble": [22, 23, 4]
+      }
+    },
+    "char_extra_ref": {
+      "cell": [64, 64], "frames": 6,
+      "_설명": "단역 기준 시트. extra_actions 가 없을 때 각 칸을 서 있는 그림으로 쓴다 (1 젊은 노동자, 2 중년 여성 노동자, 3 회사원 행인, 4 할머니 행인, 5 편의점 손님, 6 취객)",
+      "anims": { "young": [1, 1], "older": [2, 2], "office": [3, 3], "elder": [4, 4], "customer": [5, 5], "drunk": [6, 6] }
+    },
+
     "enemy_void_small": { "cell": [32, 32], "frames": 12, "anims": { "idle": [1, 1], "ripple": [2, 4, 6, "loop"], "emerge": [5, 7, 6], "slide": [8, 9, 6, "loop"], "hit": [10, 10], "vanish": [11, 12, 8] } },
     "enemy_mannequin":  { "cell": [64, 64], "frames": 9,  "faces": "left", "anims": { "idle": [1, 1], "sway": [1, 2, 2, "loop"], "windup": [3, 4, 4], "strike": [5, 5], "parried": [6, 6], "fall": [7, 8, 8], "down": [9, 9] } },
 
@@ -62,7 +80,12 @@
     "portrait_yoon":   { "cell": [96, 96], "frames": 5, "faces": { "1": "차분하고 정중한 미소", "2": "고개를 기울인 다정한 미소", "3": "안경을 고쳐 씀, 렌즈 반짝", "4": "눈을 가늘게 뜬 서늘한 미소", "5": "무표정" } },
     "portrait_npc":    { "cell": [96, 96], "frames": 3, "faces": { "1": "반장 (소리치며 찡그림)", "2": "교육 직원 (정중한 미소)", "3": "안내원 (밝은 응대 미소)" } },
 
-    "ui_hold_gauge": { "cell": [32, 32], "frames": 9 }
+    "ui_hold_gauge":   { "cell": [32, 32], "frames": 9 },
+    "ui_next_arrow":   { "cell": [8, 8],   "frames": 2, "_설명": "1 기본, 2 한 칸 아래·조금 어둡게" },
+    "ui_btn_attack":   { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
+    "ui_btn_dash":     { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
+    "ui_btn_parry":    { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
+    "ui_btn_interact": { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" }
   },
 
   "images": {
@@ -78,26 +101,13 @@
     "bg_dive_room":           { "size": [480, 270], "use": "P-9, P-11 교육실" },
     "bg_simulation":          { "size": [480, 270], "use": "P-10 시뮬레이션" },
     "ui_phone":               { "size": [140, 240], "use": "휴대폰 화면 틀" },
+    "ui_dialog_box":          { "size": [460, 70],  "use": "대화창" },
+    "ui_nametag":             { "size": [80, 16],   "use": "이름표 (이름이 길면 가로로 늘림)" },
+    "ui_portrait_frame":      { "size": [100, 100], "use": "초상화 테두리 (가운데 96x96 마젠타 → 투명)" },
+    "ui_joystick_base":       { "size": [72, 72],   "use": "이동 패드 바탕" },
+    "ui_joystick_knob":       { "size": [28, 28],   "use": "이동 패드 손잡이" },
+    "harin_photo":            { "size": [96, 64],   "use": "P-12 대상자 정보 사진, P-13 휴대폰 사진", "chroma": false },
     "title_logo":             { "size": [480, 270], "use": "마지막 타이틀 (글자는 코드로)" }
-  },
-
-  "ui_regions": {
-    "_설명": "칸 위치가 프롬프트에 정해지지 않은 UI 묶음 시트. [x, y, 너비, 높이] — 실제 PNG 배치에 맞게 이 숫자만 고치면 된다.",
-    "ui_dialog": {
-      "box":          [0, 0, 460, 70],
-      "name_tag":     [0, 70, 80, 16],
-      "arrow_1":      [80, 70, 8, 8],
-      "arrow_2":      [88, 70, 8, 8],
-      "portrait_frame": [0, 86, 100, 100]
-    },
-    "ui_touch_buttons": {
-      "attack":         [0, 0, 40, 40],   "attack_on":   [40, 0, 40, 40],
-      "dash":           [80, 0, 40, 40],  "dash_on":     [120, 0, 40, 40],
-      "parry":          [160, 0, 40, 40], "parry_on":    [200, 0, 40, 40],
-      "interact":       [240, 0, 40, 40], "interact_on": [280, 0, 40, 40],
-      "pad":            [320, 0, 72, 72],
-      "knob":           [392, 0, 28, 28]
-    }
   },
 
   "objects": {
@@ -126,7 +136,7 @@
   },
 
   "characters": {
-    "_설명": "인물. 키는 장면 JSON 의 actor sprite 이름. anims: 게임 동작 이름 → [시트.동작, 임시움직임]. 임시움직임: still bob lie sit crouch lean swing hurt bow shake raise",
+    "_설명": "인물. 키는 장면 JSON 의 actor char 이름. anims: 게임 동작 이름 → [시트.동작, 임시움직임, (선택) 시트가 없을 때 쓸 기준 시트 칸]. 임시움직임: still bob lie sit crouch lean swing hurt bow shake raise. 모든 인물·적은 칸 맨 아래 줄이 발 → 기준점은 칸 아래 가운데.",
     "doyun": {
       "note": "서도윤 (평상복)", "placeholder": { "w": 20, "h": 48, "color": "#3d6fe0" }, "body": [20, 46],
       "anims": {
@@ -186,10 +196,30 @@
       "note": "정장 차림 남자", "placeholder": { "w": 20, "h": 50, "color": "#3f4f70" }, "body": [20, 48],
       "anims": { "idle": ["npc_actions.man_idle", "still"], "walk": ["npc_actions.man_walk", "bob"] }
     },
-    "extra_worker":     { "note": "물류센터 노동자 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 20, "h": 48, "color": "#5f6670" }, "anims": {} },
-    "extra_pedestrian": { "note": "거리 행인 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 18, "h": 47, "color": "#55585e" }, "anims": {} },
-    "extra_customer":   { "note": "편의점 손님 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 20, "h": 48, "color": "#b07a50" }, "anims": {} },
-    "extra_drunk":      { "note": "취객 (프롬프트에 없음 — 임시 도형만)", "placeholder": { "w": 20, "h": 47, "color": "#a05050" }, "anims": {} },
+    "extra_worker_young": {
+      "note": "물류센터 젊은 노동자 (extra_actions 1줄)", "placeholder": { "w": 20, "h": 48, "color": "#6a6e74" }, "body": [20, 46],
+      "anims": { "idle": ["extra_actions.young_idle", "still", "char_extra_ref.young"], "carry": ["extra_actions.young_carry", "bob", "char_extra_ref.young"] }
+    },
+    "extra_worker_older": {
+      "note": "물류센터 중년 여성 노동자 (extra_actions 2줄)", "placeholder": { "w": 18, "h": 45, "color": "#3e4a62" }, "body": [18, 44],
+      "anims": { "idle": ["extra_actions.older_idle", "still", "char_extra_ref.older"], "lift": ["extra_actions.older_lift", "crouch", "char_extra_ref.older"] }
+    },
+    "extra_pedestrian_office": {
+      "note": "회사원 행인 (extra_actions 3줄)", "placeholder": { "w": 20, "h": 49, "color": "#b8a888" }, "body": [20, 47],
+      "anims": { "idle": ["extra_actions.office_idle", "still", "char_extra_ref.office"], "walk": ["extra_actions.office_walk", "bob", "char_extra_ref.office"] }
+    },
+    "extra_pedestrian_elder": {
+      "note": "할머니 행인 (extra_actions 4줄)", "placeholder": { "w": 22, "h": 42, "color": "#7a6a78" }, "body": [20, 40],
+      "anims": { "idle": ["extra_actions.elder_idle", "still", "char_extra_ref.elder"], "walk": ["extra_actions.elder_walk", "bob", "char_extra_ref.elder"] }
+    },
+    "extra_customer": {
+      "note": "편의점 손님 (extra_actions 5줄)", "placeholder": { "w": 20, "h": 48, "color": "#26282e" }, "body": [20, 46],
+      "anims": { "idle": ["extra_actions.customer_idle", "still", "char_extra_ref.customer"], "walk": ["extra_actions.customer_idle", "bob", "char_extra_ref.customer"], "reach": ["extra_actions.customer_reach", "lean", "char_extra_ref.customer"], "hold": ["extra_actions.customer_hold", "still", "char_extra_ref.customer"], "leave": ["extra_actions.customer_leave", "still", "char_extra_ref.customer"] }
+    },
+    "extra_drunk": {
+      "note": "취객 (extra_actions 6줄)", "placeholder": { "w": 20, "h": 48, "color": "#c8c4bc" }, "body": [20, 46],
+      "anims": { "idle": ["extra_actions.drunk_sway", "shake", "char_extra_ref.drunk"], "walk": ["extra_actions.drunk_sway", "bob", "char_extra_ref.drunk"], "stumble": ["extra_actions.drunk_stumble", "lean", "char_extra_ref.drunk"] }
+    },
 
     "void": {
       "note": "공백", "cell": [32, 32], "placeholder": { "shape": "blob", "w": 24, "h": 16, "color": "#000000" }, "body": [20, 14],
@@ -228,6 +258,6 @@
     "ph_bench":        { "w": 64, "h": 12, "color": "#8a7a62" },
     "ph_monitor":      { "w": 28, "h": 22, "color": "#1d242c", "outline": "#7a8590", "details": [[3, 3, 22, 14, "#2f4a5e"]] },
     "ph_sim_box":      { "w": 40, "h": 40, "color": "#b4b4b4", "outline": "#8f8f8f" },
-    "harin_photo":     { "shape": "photo", "w": 70, "h": 46, "color": "#dfe6ea", "_설명": "LT-0417 사진 — 프롬프트에 없음, 임시 그림" }
+    "ph_harin_photo":  { "shape": "photo", "w": 96, "h": 64, "color": "#dfe6ea", "_설명": "harin_photo.png 가 없을 때의 임시 사진" }
   }
 }

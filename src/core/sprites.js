@@ -1,6 +1,6 @@
 // 그래픽 불러오기 / 자르기 / 애니메이션 등록 / 임시 도형
 //
-// 1) data/sprites.json 의 sheets, images, ui_regions 에 있는 이름마다 assets/sprites/<이름>.png 를 시도한다.
+// 1) data/sprites.json 의 sheets, images 에 있는 이름마다 assets/sprites/<이름>.png 를 시도한다.
 // 2) 불러온 PNG 는 #FF00FF(마젠타) 배경을 투명으로 바꾼 뒤, 칸 크기대로 잘라 프레임(0부터)을 만든다.
 // 3) 시트의 anims 를 "<시트>.<동작>" 이름의 Phaser 애니메이션으로 등록한다. (JSON 은 1부터 센다)
 // 4) 파일이 없으면 인물/물건/가구는 임시 도형 텍스처로 대신한다.
@@ -15,12 +15,19 @@ export function fileKeys(json) {
   const keys = [];
   Object.keys(json.sheets || {}).forEach((k) => keys.push(k));
   Object.keys(json.images || {}).filter((k) => !k.startsWith('_')).forEach((k) => keys.push(k));
-  Object.keys(json.ui_regions || {}).filter((k) => !k.startsWith('_')).forEach((k) => keys.push(k));
   return keys;
 }
 
 export function queueLoads(scene, json) {
   fileKeys(json).forEach((k) => scene.load.image(RAW + k, SPRITE_DIR + k + '.png'));
+}
+
+function copyCanvas(img) {
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  c.getContext('2d').drawImage(img, 0, 0);
+  return c;
 }
 
 // 마젠타 배경 → 투명
@@ -52,7 +59,9 @@ export function processLoaded(scene, json) {
     const rawKey = RAW + key;
     if (!scene.textures.exists(rawKey)) return;
     const src = scene.textures.get(rawKey).getSourceImage();
-    const canvas = chromaKey(src);
+    const img = json.images && json.images[key];
+    // 사진처럼 마젠타를 쓰지 않는 그림은 chroma: false
+    const canvas = img && img.chroma === false ? copyCanvas(src) : chromaKey(src);
     scene.textures.remove(rawKey);
     const tex = scene.textures.addCanvas(key, canvas);
     real.add(key);
@@ -65,12 +74,6 @@ export function processLoaded(scene, json) {
         const cy = Math.floor(i / cols) * ch;
         if (cx + cw <= canvas.width && cy + ch <= canvas.height) tex.add(i, 0, cx, cy, cw, ch);
       }
-    }
-    const regions = json.ui_regions && json.ui_regions[key];
-    if (regions) {
-      Object.entries(regions).forEach(([name, r]) => {
-        if (Array.isArray(r) && r[0] + r[2] <= canvas.width && r[1] + r[3] <= canvas.height) tex.add(name, 0, r[0], r[1], r[2], r[3]);
-      });
     }
   });
   return real;
@@ -261,4 +264,9 @@ export function objTexture(name) {
 
 export function isReal(key) {
   return G.realSprites.has(key);
+}
+
+// 한 장짜리 그림: 파일이 있으면 그 키, 없으면 ph_<키> 임시 그림
+export function imageKey(name) {
+  return G.realSprites.has(name) ? name : 'ph_' + name;
 }

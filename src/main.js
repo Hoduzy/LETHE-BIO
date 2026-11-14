@@ -70,7 +70,13 @@ async function start() {
   game.events.on('poststep', () => Input.endFrame());
 
   Audio.installUnlock();
-  setupTouch();
+  if (G.edit) {
+    // 편집 모드: 터치 조작 패드 대신 화면을 직접 끈다
+    const t = document.getElementById('touch');
+    if (t) t.remove();
+  } else {
+    setupTouch();
+  }
 }
 
 start();

@@ -12,7 +12,9 @@ export const G = {
   auto: params.get('auto') === '1',
   fast: params.get('fast') === '1' || (params.get('auto') === '1' && params.get('fast') !== '0'),
   autoDelay: Number(params.get('autoDelay') || 60),
-  probeSprites: params.get('probe') !== '0'
+  probeSprites: params.get('probe') !== '0',
+  // ?edit=1 위치 편집 모드 (대사·전투·저장 멈춤)
+  edit: params.get('edit') === '1'
 };
 
 // 장면 순서 도우미

@@ -35,11 +35,15 @@
       {"id": "bus_stop", "ph": "ph_bus_stop", "x": 320}
     ],
     "actors": [
+      {"id": "office", "char": "extra_pedestrian_office", "x": 300, "facing": -1, "alpha": 0.9},
+      {"id": "elder", "char": "extra_pedestrian_elder", "x": 420, "facing": -1, "alpha": 0.9},
       {"id": "woman", "char": "npc_woman", "x": 520, "speaker": "여자", "facing": -1},
       {"id": "man", "char": "npc_man", "x": 548, "speaker": "남자", "facing": -1}
     ]
   },
   "steps": [
+    {"type": "actor", "id": "office", "action": "move", "x": -40, "speed": 55, "wait": false},
+    {"type": "actor", "id": "elder", "action": "move", "x": -40, "speed": 16, "wait": false},
     {"type": "narration", "text": "비가 그쳤다. 낡은 상가 거리. 도윤이 걸어간다."},
     {"type": "goal", "reach": 190},
     {"type": "narration", "text": "버스 정류장 옆 광고판. 하얀 화면에 하얀 글씨."},

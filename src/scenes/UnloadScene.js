@@ -53,7 +53,9 @@ export class UnloadScene extends Phaser.Scene {
       g.lineStyle(1, 0x3a3f47, 1);
       g.lineBetween(0, FLOOR + 0.5, W, FLOOR + 0.5);
       this.add.image(404, FLOOR, 'ph_truck').setOrigin(0.5, 1).setDepth(1);
-      this.add.image(120, FLOOR, 'ph_char_extra_worker').setOrigin(0.5, 1).setDepth(1).setAlpha(0.6);
+      // 함께 일하는 노동자 (extra_actions 1줄 젊은 노동자, 2줄 중년 여성 노동자)
+      new CharSprite(this, 120, FLOOR, 'extra_worker_older', { depth: 1 }).setAlpha(0.7).play('lift');
+      new CharSprite(this, 300, FLOOR, 'extra_worker_young', { depth: 1 }).setAlpha(0.7).play('carry');
     }
     // 컨베이어 다리
     const legs = this.add.graphics();

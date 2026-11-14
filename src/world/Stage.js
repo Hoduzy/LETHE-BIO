@@ -89,19 +89,21 @@ export class Stage {
     const s = this.scene;
     this.solidGroup = s.physics.add.staticGroup();
     const floors = this.def.floors || [[0, this.width]];
-    floors.forEach(([x0, x1]) => {
+    floors.forEach(([x0, x1], i) => {
       const r = s.add.rectangle(x0, this.floorY, x1 - x0, 40, 0x000000, 0).setOrigin(0);
+      r.__floorIndex = i;
       s.physics.add.existing(r, true);
       this.solidGroup.add(r);
     });
     // 장애물: 배경 그림 속 상자와 같은 자리. 배경 PNG 가 있으면 보이지 않는 충돌 상자만 둔다
-    (this.def.solids || []).forEach((so) => {
+    (this.def.solids || []).forEach((so, i) => {
       const spec = G.spriteData.placeholders[so.ph] || { w: so.w || 40, h: so.h || 40 };
       const w = so.w || spec.w;
       const h = so.h || spec.h;
       let obj;
       if (this.bgReal) obj = s.add.rectangle(so.x, so.y || this.floorY, w, h, 0x000000, 0).setOrigin(0.5, 1);
       else obj = s.add.image(so.x, so.y || this.floorY, so.ph).setOrigin(0.5, 1).setDepth(DEPTH.prop);
+      obj.__solidIndex = i;
       s.physics.add.existing(obj, true);
       this.solidGroup.add(obj);
     });

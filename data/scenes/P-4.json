@@ -67,8 +67,9 @@
     {"type": "sfx", "name": "door"},
     {"type": "actor", "id": "customer", "action": "show", "x": 160},
     {"type": "narration", "text": "손님이 들어온다. 둘의 대화가 끊긴다."},
-    {"type": "parallel", "steps": [{"type": "player", "action": "move", "x": 96, "face": 1}, {"type": "actor", "id": "mingyu", "action": "move", "x": 360, "speed": 50, "face": -1}, {"type": "actor", "id": "customer", "action": "move", "x": 128, "speed": 45, "face": -1}]},
+    {"type": "parallel", "steps": [{"type": "player", "action": "move", "x": 96, "face": 1}, {"type": "actor", "id": "mingyu", "action": "move", "x": 360, "speed": 50, "face": -1}, {"type": "sequence", "steps": [{"type": "actor", "id": "customer", "action": "move", "x": 250, "speed": 45, "anim": "reach"}, {"type": "wait", "ms": 500}, {"type": "actor", "id": "customer", "action": "anim", "name": "hold"}, {"type": "actor", "id": "customer", "action": "move", "x": 128, "speed": 45, "face": -1, "anim": "hold"}]}]},
     {"type": "narration", "text": "도윤은 계산을 하면서도 아까 그 말을 곱씹는다."},
+    {"type": "actor", "id": "customer", "action": "anim", "name": "leave"},
     {"type": "actor", "id": "customer", "action": "move", "x": 160, "speed": 50},
     {"type": "actor", "id": "customer", "action": "hide"},
     {"type": "sfx", "name": "door"},
@@ -82,10 +83,10 @@
     {"type": "phone", "action": "page", "title": "레테 바이오 다이버 상시 모집", "button": "지원하기", "lines": ["학력·경력 무관", "초봉 월 380만 원 + 성과급", "숙련도에 따라 최대 월 1,000만 원 이상", "정규직 / 4대 보험 / 사내 의료 지원", "\"당신의 하루가 누군가의 내일이 됩니다.\""], "examineButton": {"label": "지원 버튼", "lines": ["사내 의료 지원.", "…엄마."]}},
     {"type": "narration", "text": "도윤의 손가락이 지원 버튼 위에서 멈춘다."},
     {"type": "sfx", "name": "door"},
-    {"type": "actor", "id": "drunk", "action": "show", "x": 160},
+    {"type": "actor", "id": "drunk", "action": "show", "x": 160, "anim": "stumble"},
     {"type": "narration", "text": "편의점 문이 열리고 취객이 들어온다. 도윤이 휴대폰을 주머니에 넣는다."},
     {"type": "phone", "action": "close"},
-    {"type": "actor", "id": "drunk", "action": "move", "x": 260, "speed": 30},
+    {"type": "actor", "id": "drunk", "action": "move", "x": 260, "speed": 30, "anim": "idle"},
     {"type": "wait", "ms": 500},
     {"type": "fade", "to": "black", "ms": 1000}
   ]

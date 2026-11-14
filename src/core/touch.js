@@ -101,36 +101,47 @@ export function setupTouch() {
   });
 }
 
-// ui_touch_buttons.png 가 있으면 터치 버튼/패드를 그 그림으로 바꾼다
+// ui_btn_*.png (40x40 두 칸: 1 기본, 2 눌림), ui_joystick_base/knob.png 가 있으면 그 그림으로 바꾼다
 export function applyTouchSkin(scene) {
-  const key = 'ui_touch_buttons';
-  if (!scene.textures.exists(key) || !scene.textures.get(key).has('attack')) return;
-  const tex = scene.textures.get(key);
-  const src = tex.getSourceImage();
-  const crop = (name) => {
-    if (!tex.has(name)) return null;
-    const f = tex.get(name);
+  const root = document.getElementById('touch');
+  if (!root) return;
+  const crop = (key, frame) => {
+    if (!scene.textures.exists(key)) return null;
+    const tex = scene.textures.get(key);
+    if (frame != null && !tex.has(frame)) return null;
+    const f = frame != null ? tex.get(frame) : tex.get();
     const c = document.createElement('canvas');
     c.width = f.cutWidth;
     c.height = f.cutHeight;
-    c.getContext('2d').drawImage(src, f.cutX, f.cutY, f.cutWidth, f.cutHeight, 0, 0, f.cutWidth, f.cutHeight);
+    c.getContext('2d').drawImage(tex.getSourceImage(), f.cutX, f.cutY, f.cutWidth, f.cutHeight, 0, 0, f.cutWidth, f.cutHeight);
     return c.toDataURL();
   };
-  const root = document.getElementById('touch');
-  if (!root) return;
-  const style = document.createElement('style');
-  let css = '#touch.skinned .tbtn:not(.b-menu){font-size:0;border:none;background-color:transparent;background-size:100% 100%;image-rendering:pixelated;}';
+  const real = (k) => !!(window.__realSprites && window.__realSprites.has(k));
+  let css = '';
+  let any = false;
   ['attack', 'dash', 'parry', 'interact'].forEach((a) => {
-    const n = crop(a);
-    const on = crop(a + '_on');
-    if (n) css += `#touch.skinned .b-${a}{background-image:url(${n});}`;
-    if (on) css += `#touch.skinned .b-${a}.on{background-image:url(${on});}`;
+    const key = 'ui_btn_' + a;
+    if (!real(key)) return;
+    const n = crop(key, 0);
+    const on = crop(key, 1) || n;
+    if (!n) return;
+    any = true;
+    css += `#touch .b-${a}.skin{font-size:0;border:none;background:url(${n}) 0 0/100% 100%;image-rendering:pixelated;}`;
+    css += `#touch .b-${a}.skin.on{background-image:url(${on});}`;
+    root.querySelector('.b-' + a).classList.add('skin');
   });
-  const pad = crop('pad');
-  const knob = crop('knob');
-  if (pad) css += `#touch.skinned .pad-ring{border:none;background:url(${pad}) 0 0/100% 100%;image-rendering:pixelated;}`;
-  if (knob) css += `#touch.skinned .knob{border:none;background:url(${knob}) 0 0/100% 100%;image-rendering:pixelated;}`;
+  if (real('ui_joystick_base')) {
+    css += `#touch .pad-ring.skin{border:none;background:url(${crop('ui_joystick_base')}) 0 0/100% 100%;image-rendering:pixelated;}`;
+    root.querySelector('.pad-ring').classList.add('skin');
+    any = true;
+  }
+  if (real('ui_joystick_knob')) {
+    css += `#touch .knob.skin{border:none;background:url(${crop('ui_joystick_knob')}) 0 0/100% 100%;image-rendering:pixelated;}`;
+    root.querySelector('.knob').classList.add('skin');
+    any = true;
+  }
+  if (!any) return;
+  const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
-  root.classList.add('skinned');
 }

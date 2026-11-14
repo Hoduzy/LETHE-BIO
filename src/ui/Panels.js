@@ -8,7 +8,7 @@
 
 import { Audio } from '../core/audio.js';
 import { G } from '../core/state.js';
-import { objTexture } from '../core/sprites.js';
+import { objTexture, imageKey } from '../core/sprites.js';
 import { W, H, DEPTH, txt, panel } from '../core/gfx.js';
 
 export class Panels {
@@ -181,21 +181,20 @@ export class Panels {
     g.fillRect(x0, y0, pw, 18);
     this.addTo('profile', g);
     this.addTo('profile', txt(this.scene, x0 + 8, y0 + 3, def.title, { color: '#2c3440', depth: DEPTH.panel + 2 }));
-    // 사진
-    const photoX = x0 + pw - 84;
+    // 사진 (harin_photo.png 96x64, 없으면 임시 사진)
+    const photoX = x0 + pw - 104;
     const photoY = y0 + 26;
-    const photo = this.scene.add.image(photoX, photoY, def.photo || 'harin_photo').setOrigin(0).setDepth(DEPTH.panel + 2);
-    if (photo.width > 76) photo.setScale(76 / photo.width);
+    const photo = this.scene.add.image(photoX, photoY, imageKey(def.photo || 'harin_photo')).setOrigin(0).setDepth(DEPTH.panel + 2);
     this.addTo('profile', photo);
     this.photoRect = { x: photoX, y: photoY, w: photo.displayWidth, h: photo.displayHeight };
     this.photoFrame = this.scene.add.graphics().setDepth(DEPTH.panel + 3);
     this.addTo('profile', this.photoFrame);
     // 항목
-    let y = y0 + 24;
+    let y = y0 + 21;
     def.lines.forEach((ln) => {
-      const t = txt(this.scene, x0 + 10, y, ln, { color: '#2c3440', depth: DEPTH.panel + 2, wrap: pw - 110 });
+      const t = txt(this.scene, x0 + 10, y, ln, { color: '#2c3440', depth: DEPTH.panel + 2, wrap: pw - 122, lineSpacing: 1 });
       this.addTo('profile', t);
-      y += t.height + 3;
+      y += t.height + 2;
     });
   }
 
@@ -219,7 +218,7 @@ export class Panels {
     this.clearGroup('item');
     const dim = this.scene.add.rectangle(0, 0, W, H, 0x000000, 0.35).setOrigin(0).setDepth(DEPTH.panel);
     this.addTo('item', dim);
-    const t = obj ? objTexture(obj) : { key: sprite, frame: undefined };
+    const t = obj ? objTexture(obj) : { key: imageKey(sprite), frame: undefined, real: G.realSprites.has(sprite) };
     const im = this.scene.add.sprite(W / 2, 100, t.key, t.frame).setScale(scale).setDepth(DEPTH.panel + 2);
     if (t.anim && t.real) im.play(t.anim);
     this.addTo('item', im);
