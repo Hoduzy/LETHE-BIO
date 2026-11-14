@@ -139,6 +139,27 @@ export class DialogueBox {
     if (this.arrow.setPosition) this.arrow.setPosition(BOX_X + BOX_W - 14, this.box.y + BOX_H - 12);
   }
 
+  // 이름 글자의 실제 잉크 위치(위 여백 top, 높이 h): Phaser 가 그린 글자 캔버스에서 직접 잰다
+  nameMetrics() {
+    const t = this.nameText;
+    const c = t.canvas;
+    const w = c.width;
+    const h = c.height;
+    const d = t.context.getImageData(0, 0, w, h).data;
+    let top = h;
+    let bot = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (d[(y * w + x) * 4 + 3] > 100) {
+          if (y < top) top = y;
+          bot = y;
+          break;
+        }
+      }
+    }
+    return bot >= top ? { top, h: bot - top + 1 } : { top: 0, h: t.height };
+  }
+
   show(entry) {
     if (this.resolve) {
       const r = this.resolve;
@@ -206,8 +227,11 @@ export class DialogueBox {
     this.nameText.setFontStyle(style === 'thought' ? 'italic' : 'normal');
     this.nameBg.clear();
     if (name) {
-      const nw = Math.max(48, Math.ceil(this.nameText.width) + 16);
-      this.nameText.setPosition(this.nameX + 8, this.nameY + 2);
+      // 이름 길이에 맞춰 이름표 폭 (좌우 여백 6px), 글자는 이름표 안쪽(테두리 1px 제외) 한가운데
+      const tw = Math.ceil(this.nameText.width);
+      const th = this.nameMetrics();
+      const nw = tw + 12 + 2;
+      this.nameText.setPosition(Math.round(this.nameX + (nw - tw) / 2), Math.round(this.nameY + 1 + (NAME_H - 2 - th.h) / 2 - th.top));
       if (this.nameImg) {
         this.nameImg.setPosition(this.nameX, this.nameY);
         if (this.nameImg.type === 'NineSlice') this.nameImg.setSize(nw, NAME_H);

@@ -67,15 +67,16 @@ export class VoidEnemy {
     }
   }
 
-  hit(dir, step) {
+  hit(dir, step, dmg = 1) {
     if (this.dead || this.emerging) return false;
-    this.hp -= 1;
-    Audio.sfx('hit');
+    this.hp -= dmg;
     this.flash = 90;
-    this.knockT = 150;
-    this.body.setVelocityX(dir * (step === 3 ? 220 : 100) * this.u);
+    this.knockT = step === 3 ? 220 : 150;
+    // 맞은 방향으로 밀려남 (3타는 더 멀리)
+    this.body.setVelocityX(dir * (step === 3 ? 260 : 120) * this.u);
     if (this.real) this.cs.play('hit');
-    else this.cs.flash(90);
+    // 흰색으로 번쩍 (히트스톱이 끝날 무렵까지)
+    this.cs.flash(110);
     if (this.hp <= 0) this.die();
     return true;
   }
@@ -107,16 +108,24 @@ export class VoidEnemy {
   }
 }
 
-// 마네킹 인형 — 얼굴이 없다. 손을 휘두른다. 휘두르는 타이밍에 패링하면 뒤로 넘어진다.
+// 마네킹 인형 — 얼굴이 없다. 손을 휘두른다.
+//  - 공격 0.7초 전: 팔을 천천히 뒤로 젖히고, 머리 위 빨간 '!', 몸이 빨갛게 깜빡
+//  - 패링 판정 창(때리기 0.18초 전)이 열리면 몸에 하얀 테두리가 반짝 → 지금 누르면 된다
+//  - 패링 성공: 크게 튕겨 나가 1.2초 비틀거림 (그동안 받는 피해 2배). 평소에는 리퍼로 쳐도 꿈쩍 안 함
+//  - tutorial: 패링에 성공할 때까지 같은 박자로 계속 공격, 맞아도 도윤은 밀려나기만 함. 비틀거림이 끝나면 쓰러진다
 const NEAR = 80;      // 이 거리 안에 들어오면 공격 준비
 const STRIKE = 58;    // 휘두르기가 닿는 거리
-const WINDUP = 620;
+const WINDUP = 700;
+const WINDOW = 180;   // = Player MOVE.parryWindow
+const STAGGER = 1200;
 
 export class Mannequin {
-  constructor(scene, x, y) {
+  constructor(scene, x, y, opts = {}) {
     this.scene = scene;
     this.kind = 'mannequin';
     this.dead = false;
+    this.tutorial = !!opts.tutorial;
+    this.hp = opts.hp || 4;
     this.cs = new CharSprite(scene, x, y, 'mannequin', { physics: true, depth: DEPTH.enemy });
     this.sprite = this.cs.sprite;
     this.body = this.cs.body;
@@ -135,16 +144,56 @@ export class Mannequin {
     }
     this.armAngle = 10;
     this.missCount = 0;
+    // 머리 위 '!'
+    this.alert = scene.add.text(x, y, '!', { fontFamily: 'Galmuri14, Galmuri11, sans-serif', fontSize: '20px', color: '#ff2a2a', stroke: '#1a1a24', strokeThickness: 4 })
+      .setOrigin(0.5, 1).setDepth(DEPTH.fx + 1).setResolution(1).setVisible(false);
+    this.glow = null;
   }
 
   get x() { return this.cs.x; }
   get y() { return this.cs.y; }
 
+  // 머리 위 (칸이 아니라 그림 속 키 약 96px 기준)
+  headY() {
+    return this.y - 98 * this.cs.sk;
+  }
+
+  setAlert(on, white = false) {
+    this.alert.setVisible(on);
+    if (!on) return;
+    this.alert.setColor(white ? '#ffffff' : '#ff3b3b');
+    this.alert.setPosition(this.x, this.headY() - 2 + Math.sin(this.scene.time.now / 60) * 1);
+  }
+
+  // 하얀 테두리 (WebGL 이면 glow, 아니면 흰색으로 번쩍)
+  setOutline(on) {
+    const s = this.sprite;
+    if (s.preFX) {
+      if (on && !this.glow) {
+        // 바깥쪽 어두운 테두리 + 안쪽 하얀 빛 (하얀 배경에서도 보이게)
+        this.glowDark = s.preFX.addGlow(0x2a3550, 2, 0, false, 0.1, 4);
+        this.glow = s.preFX.addGlow(0xffffff, 5, 0, false, 0.1, 6);
+      }
+      if (!on && this.glow) {
+        s.preFX.remove(this.glow);
+        if (this.glowDark) s.preFX.remove(this.glowDark);
+        this.glow = null;
+        this.glowDark = null;
+      }
+    } else if (on) {
+      s.setTintFill(0xffffff);
+    } else {
+      this.cs.restoreTint();
+    }
+  }
+
   update(dt, player) {
     if (this.dead) return;
     const dx = player.x - this.x;
-    this.facing = dx < 0 ? -1 : 1;
-    this.cs.face(this.facing);
+    if (this.state !== 'stagger') {
+      this.facing = dx < 0 ? -1 : 1;
+      this.cs.face(this.facing);
+    }
     this.timer -= dt;
     const near = Math.abs(dx) < NEAR * this.u;
 
@@ -154,19 +203,41 @@ export class Mannequin {
         if (near && this.timer <= 0) {
           this.state = 'windup';
           this.timer = WINDUP;
-          if (this.real) this.cs.play('windup');
-          else this.sprite.setTint(0xd09090);
+          this.sparkled = false;
+          // 팔을 천천히 뒤로 (windup 2프레임을 0.7초에 걸쳐)
+          if (this.real) this.sprite.play({ key: this.cs.resolve('windup'), frameRate: 2 / (WINDUP / 1000) * 0.9 });
+          this.scene.events.emit('mannequin-windup', this);
         }
         break;
-      case 'windup':
-        this.armAngle = this.facing * (10 + 150 * (1 - this.timer / WINDUP));
+      case 'windup': {
+        const p = 1 - this.timer / WINDUP;
+        this.armAngle = this.facing * (10 + 150 * p);
+        const open = this.timer <= WINDOW;
+        // 빨갛게 깜빡 → 판정 창이 열리면 하얀 테두리
+        if (!open) {
+          const on = Math.floor(this.timer / 90) % 2 === 0;
+          if (on) this.sprite.setTint(0xff5a5a);
+          else this.cs.restoreTint();
+        } else {
+          this.cs.restoreTint();
+        }
+        this.setOutline(open);
+        this.setAlert(true, open);
+        // 판정 창이 열리는 순간: 테두리 진 하얀 반짝임 (하얀 배경에서도 보이게)
+        if (open && !this.sparkled) {
+          this.sparkled = true;
+          this.sparkle();
+        }
         if (this.timer <= 0) {
           this.state = 'strike';
           this.timer = 140;
           this.struck = false;
+          this.setOutline(false);
+          this.setAlert(false);
           if (this.real) this.cs.play('strike');
         }
         break;
+      }
       case 'strike':
         this.armAngle = this.facing * -70;
         if (!this.struck) {
@@ -185,7 +256,8 @@ export class Mannequin {
         }
         if (this.timer <= 0) {
           this.state = 'recover';
-          this.timer = 900;
+          // 튜토리얼은 같은 박자로 계속
+          this.timer = this.tutorial ? 700 : 900;
           this.cs.restoreTint();
           if (this.real) this.cs.play('idle');
         }
@@ -197,6 +269,23 @@ export class Mannequin {
           this.timer = 300;
         }
         break;
+      case 'stagger': {
+        // 비틀거림: 좌우로 흔들리며 미끄러지다 멈춘다
+        const t = 1 - this.timer / STAGGER;
+        this.sprite.setAngle(Math.sin(this.timer / 55) * 9 * (1 - t) + this.staggerDir * 6);
+        this.body.setVelocityX(this.body.velocity.x * 0.9);
+        if (this.timer <= 0) {
+          this.sprite.setAngle(0);
+          this.body.setVelocityX(0);
+          if (this.tutorial) this.collapse(-this.staggerDir);
+          else {
+            this.state = 'recover';
+            this.timer = 600;
+            if (this.real) this.cs.play('idle');
+          }
+        }
+        break;
+      }
       default:
         break;
     }
@@ -206,31 +295,82 @@ export class Mannequin {
     }
   }
 
-  hit() {
-    // 리퍼로 쳐도 꿈쩍하지 않는다
+  sparkle() {
+    const sc = this.scene;
+    const b = this.sprite.getBounds();
+    const cx = b.centerX;
+    const cy = b.top + b.height * 0.35;
+    const u = this.u;
+    const g = sc.add.graphics().setDepth(DEPTH.fx + 2);
+    const star = (len, w, color) => {
+      g.fillStyle(color, 1);
+      g.fillRect(cx - len, cy - w / 2, len * 2, w);
+      g.fillRect(cx - w / 2, cy - len, w, len * 2);
+    };
+    star(16 * u + 2, 5, 0x2a3550);
+    star(16 * u, 3, 0xffffff);
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(cx, cy, 4 * u);
+    g.lineStyle(2, 0x2a3550, 1);
+    g.strokeCircle(cx, cy, 4 * u + 1);
+    sc.tweens.add({ targets: g, alpha: 0, duration: 260, ease: 'Quad.in', onComplete: () => g.destroy() });
+    // 몸 테두리도 진하게: 하얀 glow 바깥에 어두운 선
+    // 칸 전체가 아니라 몸 크기 정도의 타원
+    const bw = 30 * u;
+    const bh = (b.bottom - this.headY()) + 6;
+    const by = this.headY() - 4 + bh / 2;
+    const ring = sc.add.graphics().setDepth(DEPTH.enemy - 1);
+    ring.lineStyle(3, 0x2a3550, 0.9);
+    ring.strokeEllipse(cx, by, bw + 6, bh + 6);
+    ring.lineStyle(2, 0xffffff, 1);
+    ring.strokeEllipse(cx, by, bw + 2, bh + 2);
+    sc.tweens.add({ targets: ring, alpha: 0, duration: WINDOW, onComplete: () => ring.destroy() });
+  }
+
+  // 리퍼로 맞았을 때: 비틀거리는 동안만 피해 (2배)
+  hit(dir, step, dmg = 1) {
     if (this.dead) return false;
-    Audio.sfx('thud');
-    this.cs.flash(60);
+    this.cs.flash(110);
+    if (this.state !== 'stagger') {
+      Audio.sfx('thud');
+      return 'blocked';
+    }
+    this.hp -= dmg * 2;
+    this.body.setVelocityX(dir * (step === 3 ? 200 : 90) * this.u);
+    if (this.hp <= 0) this.collapse(dir);
     return true;
   }
 
   parried(player) {
     if (this.dead) return;
+    player.parrySucceeded();
+    this.state = 'stagger';
+    this.timer = STAGGER;
+    this.setOutline(false);
+    this.setAlert(false);
+    this.cs.restoreTint();
+    const dir = player.x < this.x ? 1 : -1;
+    this.staggerDir = dir;
+    // 크게 튕겨 나감
+    this.body.setVelocityX(dir * 420 * this.u);
+    if (this.real) this.cs.play('parried');
+    this.scene.events.emit('parry-success', { player, enemy: this });
+  }
+
+  collapse(dir) {
+    if (this.dead) return;
     this.dead = true;
     this.state = 'down';
-    Audio.sfx('parry');
-    this.cs.restoreTint();
+    this.setAlert(false);
+    this.setOutline(false);
     this.body.enable = false;
     this.cs.detached = true;
-    const flash = this.scene.add.circle(player.x + player.facing * 16 * this.u, player.y - 28 * this.u, 5 * this.u, 0xffffff, 1).setDepth(DEPTH.fx);
-    this.scene.tweens.add({ targets: flash, radius: 34 * this.u, alpha: 0, duration: 300, onComplete: () => flash.destroy() });
-    this.scene.cameras.main.shake(120, 0.006);
+    this.sprite.setAngle(0);
     if (this.real) {
-      this.cs.play('parried').then(() => this.cs.play('fall')).then(() => this.cs.play('down'));
+      this.cs.play('fall').then(() => this.cs.play('down'));
       return;
     }
     // 뒤로 넘어진다 (임시 도형)
-    const dir = player.x < this.x ? 1 : -1;
     this.scene.tweens.add({ targets: this.sprite, angle: dir * 90, x: this.sprite.x + dir * 14 * this.u, duration: 420, ease: 'Quad.in' });
     if (this.arm) this.scene.tweens.add({ targets: this.arm, alpha: 0, duration: 200 });
   }

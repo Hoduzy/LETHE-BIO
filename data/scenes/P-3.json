@@ -9,6 +9,7 @@
     "charScale": 1.0,
     "charTint": "#eaefff",
     "charBrightness": 0.73,
+    "lanes": {"back": {"y": 233, "scale": 0.9, "dim": 0.8}},
     "bgColor": "#000000",
     "ambience": ["street"],
     "abilities": ["move"],
@@ -33,6 +34,7 @@
     "effects": [
       {"name": "puddles", "xs": [60, 200, 330, 440], "phOnly": true}
     ],
+    "walkers": {"every": [2200, 4800], "max": 4, "lanes": ["back", "back", "floor"], "types": [{"char": "extra_pedestrian_office", "speed": [42, 56]}, {"char": "extra_pedestrian_elder", "speed": [14, 20]}, {"chars": ["npc_woman", "npc_man"], "gap": 26, "speed": [32, 42]}]},
     "props": [
       {"id": "billboard", "ph": "ph_billboard", "x": 270, "y": 190, "w": 46, "h": 76, "label": "광고판", "range": 50, "examine": {"lines": ["레테 바이오. 뉴스에서 자주 나오는 회사.", "혼수상태인 사람들 병원비를 대신 내준다고 했다.", "좋은 회사인가 보다."]}},
       {"id": "bus_stop", "ph": "ph_bus_stop", "x": 390}

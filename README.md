@@ -150,6 +150,12 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
     "laneLinks": [ { "x": 126, "a": "counter_inside", "b": "floor" } ],
     // 앞 가림막: 배경을 poly 모양대로 오린 조각(assets/sprites/fg/)을 인물 위에 그림 → 안쪽 줄 인물의 허리 아래가 가려짐
     "occluders": [ { "id": "counter", "poly": [[0,176],[112,176],[117,182],[117,247],[0,247]], "png": "fg/bg_convenience_store__counter__7a7e89.png" } ],
+    // 컨베이어: obj_conveyor 조각을 왼쪽 끝 + 가운데 pieces 개 + 오른쪽 끝으로 이어 붙임. 벨트 프레임은 상자 속도에 맞춰 넘어감
+    "conveyors": [ { "id": "belt", "x": 45, "y": 163, "pieces": 6, "scale": 0.6, "speed": 46, "boxes": { "every": [1500, 2600], "max": 4 } } ],
+    // 실외 행인: 양 끝에서 나와 반대편으로. lanes 의 뒤쪽 줄은 조금 작게(dim 으로 어둡게)
+    "walkers": { "every": [2200, 4800], "max": 4, "lanes": ["back", "floor"], "types": [ { "char": "extra_pedestrian_office", "speed": [42, 56] }, { "chars": ["npc_woman", "npc_man"], "gap": 26 } ] },
+    // 튜토리얼 안내 상자 (step 의 "guide" 로 띄움): n, title, text, icons(pad, pad_up, attack, dash, parry, interact), keys, more(3번 실패 시), target, until
+    "guides": { "move": { "n": 1, "title": "이동", "text": "…", "icons": ["pad"], "keys": ["→"], "target": { "x": 150 }, "until": { "x": 140 } } },
     "ambience": ["rain", "drip"],          // rain drip conveyor fridge street hum
     "abilities": ["move"],                 // 다이브: move jump dash attack parry
     "player": { "x": 80, "anim": "lie_sleep" },            // 시작 자세
@@ -181,9 +187,9 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
 | `explore` / `goal` | [조작 튜토리얼: 이동] | 자유 이동. `exit`, `require`, `only`, `reach`, `tutorial` |
 | `tutorial`, `tutorialHide` | [튜토리얼: …] | 안내 배너 |
 | `phone` | [문자] [검색] [입금] [송금] 전화 | `action`: sms, incoming, missed, ringAgain, answer, hangup, bank, search, page, close |
-| `minigame` | [미니게임: …] | `game`: `unload`(상하차, `target`) / `shelf`(진열 정리) |
+| `minigame` | [미니게임: …] | `game`: `unload`(상하차: 벨트 끝에서 들고 트럭 짐칸 앞에서 넣기, `target`) / `shelf`(진열 정리) |
 | `contract` | [살펴보기: 계약서], [조작: 서명] | `mode`: `read`(조항 살펴보기) / `sign`(길게 눌러 서명) |
-| `spawn`, `clear` | [튜토리얼: 공격/패링] | 적 생성, 모두 쓰러뜨릴 때까지 전투 |
+| `spawn`, `clear` | [튜토리얼: 공격/패링] | 적 생성, 모두 쓰러뜨릴 때까지 전투. 마네킹에 `"tutorial": true` 면 패링할 때까지 같은 박자로 계속 공격. `goal`·`clear`·`harvest` 에 `"guide"` 로 안내 상자 |
 | `harvest` | [수확 — 길게 누르기 / N초] | `duration`(ms), `decay`(손 뗐을 때 줄어드는 속도) |
 | `collapse` | 공간이 무너진다 | 소리 없이 위에서부터 붕괴 |
 | `settlement` | [정산] / [정산 화면] | 박스 그대로, `"---"` 는 구분선 |
@@ -193,6 +199,7 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
 | `title` | [타이틀] | `endChapter: true` 면 장 완료 저장 |
 | `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, anim(이름으로 동작 재생), toss, stand, lie. 의자에 앉기: `{"action":"move","x":143,"anim":"sit_chair","lift":4}` (`lift` = 좌판 높이에 맞춰 그림을 올리는 px, 일어날 때 `lift: 0`). 줄 바꾸기: move 에 `"lane"` 을 주면 통로까지 걸어가 줄을 바꾼 뒤 이동, `{"action":"lane","lane":"floor"}` 는 그 자리에서 |
 | `teleport` | | 플레이어 순간이동 (시뮬레이션 공간이 다시 이어지는 연출) |
+| `conveyor` | 벨트가 멈춘다 | `action`: `stop` / `start` (벨트 그림·상자·롤러 소리가 같이 멈춤) |
 | `fade`, `wait`, `sfx`, `ambience`, `silence`, `shake` | 연출 | |
 | `parallel`, `sequence` | | 동시에 / 차례로 실행 |
 

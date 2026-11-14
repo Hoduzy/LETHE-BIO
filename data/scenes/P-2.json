@@ -9,12 +9,9 @@
     "charScale": 1.0,
     "charTint": "#dcfbff",
     "charBrightness": 0.64,
-    "lanes": {"behind_conveyor": {"y": 202, "scale": 0.8, "x0": 0, "x1": 330}},
+    "lanes": {"behind_conveyor": {"y": 198, "scale": 0.76, "x0": 0, "x1": 340, "depth": -15}},
     "laneLinks": [
       {"x": 345, "a": "behind_conveyor", "b": "floor"}
-    ],
-    "occluders": [
-      {"id": "conveyor", "poly": [[0, 184], [335, 184], [335, 214], [0, 214]], "png": "fg/bg_warehouse__conveyor__efe7df.png"}
     ],
     "bgColor": "#000000",
     "ambience": ["conveyor"],
@@ -35,8 +32,11 @@
     "effects": [
       {"name": "flicker", "alpha": 0.28}
     ],
+    "conveyors": [
+      {"id": "belt", "x": 45, "y": 163, "pieces": 6, "scale": 0.6, "speed": 46, "boxes": {"every": [1500, 2600], "max": 4}}
+    ],
     "props": [
-      {"id": "conveyor", "ph": "ph_conveyor", "x": 120, "y": 176},
+      {"id": "conveyor", "ph": "ph_conveyor", "x": 200, "y": 210, "w": 312, "h": 47},
       {"id": "truck", "ph": "ph_truck", "x": 412},
       {"id": "box_stack", "ph": "ph_box_stack", "x": 300}
     ],
@@ -50,7 +50,7 @@
   "steps": [
     {"type": "narration", "text": "거대한 창고. 컨베이어 벨트가 끝없이 돌아간다. 형광등이 깜빡인다."},
     {"type": "narration", "text": "도윤이 상자를 들어 트럭에 싣는다."},
-    {"type": "minigame", "game": "unload", "target": 30, "title": "[미니게임: 상하차]", "lines": ["상자가 노란 칸에 오면 Z / 공격 / 화면 터치"]},
+    {"type": "minigame", "game": "unload", "target": 30, "title": "[미니게임: 상하차]", "lines": ["벨트 끝에서 상호작용(Space): 들기", "트럭 짐칸 앞에서 상호작용: 넣기"]},
     {"type": "say", "speaker": "반장", "text": "서도윤! 손 느려졌다? 어제 몇 시에 잤어?", "anim": "point"},
     {"type": "say", "speaker": "도윤", "text": "두 시요.", "face": 1},
     {"type": "say", "speaker": "반장", "text": "편의점 또 했냐. 야, 몸 망가져. 그러다 너도 쓰러진다.", "anim": "arms"},

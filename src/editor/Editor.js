@@ -312,6 +312,23 @@ export class Editor {
       });
       this.stepCount = n;
     }
+    // 컨베이어: 끌면 위치, 귀퉁이를 끌면 길이(가운데 조각 수)
+    (st.conveyors || []).forEach((cd) => {
+      const c = s.stage.conveyors[cd.id || 'conveyor'];
+      if (!c) return;
+      H_.push({
+        label: `컨베이어 ${cd.id || ''} (가운데 ${cd.pieces}칸)`,
+        color: COLORS.solid,
+        resizable: true,
+        rect: () => ({ x: cd.x, y: cd.y, w: (cd.pieces + 2) * c.tileW, h: c.bottomY - c.y0 }),
+        apply: (r, resized) => {
+          cd.x = r0(r.x);
+          if (resized) cd.pieces = Math.max(1, Math.round(r.w / c.tileW) - 2);
+          else cd.y = r0(r.y);
+        },
+        rebuild: true
+      });
+    });
     // 앞 가림막: 꼭짓점마다 작은 손잡이 (끌면 그 모양대로 다시 오린다)
     (st.occluders || []).forEach((oc) => {
       (oc.poly || []).forEach((v, i) => {

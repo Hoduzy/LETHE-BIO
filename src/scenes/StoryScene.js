@@ -12,6 +12,7 @@ import { DialogueBox } from '../ui/DialogueBox.js';
 import { HoldPress } from '../ui/HoldPress.js';
 import { Phone } from '../ui/Phone.js';
 import { Panels } from '../ui/Panels.js';
+import { Guide } from '../ui/Guide.js';
 import { Stage, occluderPng } from '../world/Stage.js';
 import { UNIT } from '../world/CharSprite.js';
 import { objTexture } from '../core/sprites.js';
@@ -72,6 +73,7 @@ export class StoryScene extends Phaser.Scene {
     if (!G.edit) Save.saveProgress(this.sceneId, { chapter: (chapterOf(this.sceneId) || {}).id });
     Audio.restore();
     Audio.setAmbience(G.edit ? [] : (def.stage && def.stage.ambience) || []);
+    Audio.setConveyorRunning(true);
 
     // 공간
     const st = def.stage || {};
@@ -123,6 +125,23 @@ export class StoryScene extends Phaser.Scene {
 
     // 공격 판정
     this.events.on('player-attack', (a) => this.onPlayerAttack(a));
+    this.events.on('parry-success', (a) => this.onParrySuccess(a));
+    // 튜토리얼 안내 상자 (stage.guides 가 있는 장면)
+    this.guide = st.guides ? new Guide(this, st.guides) : null;
+    const guideFail = (names) => () => { if (this.guide && names.includes(this.guide.cur)) this.guide.fail(); };
+    this.events.on('parry-missed', guideFail(['parry']));
+    this.events.on('parry-early', guideFail(['parry']));
+    this.events.on('attack-miss', guideFail(['attack']));
+    this.events.on('pit-fall', guideFail(['dash', 'jump']));
+    this.events.on('harvest-release', guideFail(['harvest']));
+    this.events.on('box-blocked', guideFail(['jump']));
+    this.hitstopT = 0;
+    this.timeFactor = 1;
+    this.events.once('shutdown', () => {
+      clearTimeout(this.slowTimer);
+      this.resetTimeScale();
+      this.anims.resumeAll();
+    });
     this.events.on('parry-missed', (n) => {
       if (n >= 2 && this.def.parryHint) this.panels.banner(this.def.parryHint.title, this.def.parryHint.lines);
     });
@@ -166,7 +185,8 @@ export class StoryScene extends Phaser.Scene {
     const t = Math.min(1, dt / 250); // 약 0.25초에 걸쳐 바뀜
     this.lightTargets.forEach((cs) => {
       if (!cs.sprite.active) return;
-      const want = this.lightAt(cs.x);
+      const want = Object.assign({}, this.lightAt(cs.x));
+      if (cs.lightMul != null && cs.lightMul !== 1) want.b *= cs.lightMul;
       const n = cs.lightNow || want;
       const cur = { r: n.r + (want.r - n.r) * t, g: n.g + (want.g - n.g) * t, bl: n.bl + (want.bl - n.bl) * t, b: n.b + (want.b - n.b) * t };
       cs.lightNow = cur;
@@ -817,7 +837,30 @@ export class StoryScene extends Phaser.Scene {
 
   step_minigame(s) {
     const key = { unload: 'Unload', shelf: 'Shelf' }[s.game];
-    return this.launchOverlay(key, { cfg: s });
+    // 상하차: 이 장면의 컨베이어 위치를 그대로 쓴다 (편집 모드에서 맞춘 값)
+    const cfg = Object.assign({}, s);
+    if (s.game === 'unload' && this.def.stage.conveyors) cfg.conveyor = cfg.conveyor || this.def.stage.conveyors[0];
+    if (s.game === 'unload') Object.values(this.stage.conveyors).forEach((c) => c.parts.concat(c.boxes).forEach((o) => o.setVisible(false)));
+    return this.launchOverlay(key, { cfg }).then(() => {
+      if (s.game === 'unload') Object.values(this.stage.conveyors).forEach((c) => c.parts.concat(c.boxes).forEach((o) => { o.setVisible(true); if (o.syncShadow) o.syncShadow(); }));
+    });
+  }
+
+  // 컨베이어 멈추기 / 다시 돌리기: { type: 'conveyor', id, action: 'stop' | 'start' }
+  step_conveyor(s) {
+    const list = s.id ? [this.stage.conveyors[s.id]] : Object.values(this.stage.conveyors);
+    list.forEach((c) => c && (s.action === 'stop' ? c.stop() : c.start()));
+    Audio.setConveyorRunning(s.action !== 'stop');
+    return Promise.resolve();
+  }
+
+  // 컨베이어 소리: 도윤이 멀어질수록 작게
+  updateConveyorSound() {
+    const cs = Object.values(this.stage.conveyors || {});
+    if (!cs.length || !this.player) return;
+    const x = this.player.x;
+    const d = Math.min(...cs.map((c) => (x < c.x0 ? c.x0 - x : x > c.x1 ? x - c.x1 : 0)));
+    Audio.setAmbLevel('conveyor', Phaser.Math.Clamp(1 - d / 260, 0.25, 1));
   }
 
   async step_contract(s) {
@@ -948,15 +991,17 @@ export class StoryScene extends Phaser.Scene {
   // ------------------------------------------------------------------
   // 시뮬레이션 다이브: 목표 지점, 적, 수확, 붕괴
   // ------------------------------------------------------------------
-  step_goal(s) {
-    return this.step_explore(Object.assign({}, s, { reach: s.reach }));
+  async step_goal(s) {
+    if (s.guide && this.guide) this.guide.start(s.guide);
+    await this.step_explore(Object.assign({}, s, { reach: s.reach }));
+    if (s.guide && this.guide && this.guide.cur) this.guide.success();
   }
 
   step_spawn(s) {
     (s.enemies || []).forEach((e) => {
       const y = this.stage.floorY;
       let en;
-      if (e.kind === 'mannequin') en = new Mannequin(this, e.x, y);
+      if (e.kind === 'mannequin') en = new Mannequin(this, e.x, y, e);
       else en = new VoidEnemy(this, e.x, y, e);
       this.physics.add.collider(en.cs.zone, this.stage.solidGroup);
       this.physics.add.collider(this.player.cs.zone, en.cs.zone);
@@ -966,16 +1011,20 @@ export class StoryScene extends Phaser.Scene {
   }
 
   async step_clear(s) {
+    if (s.guide && this.guide) this.guide.start(s.guide);
     this.mode = 'play';
     this.exploreCfg = { combat: true };
     if (s.tutorial) this.panels.banner(s.tutorial.title, s.tutorial.lines);
     if (G.auto) {
       this.enemies.filter((e) => !e.dead).forEach((e) => {
-        if (e.kind === 'mannequin') e.parried(this.player);
-        else e.die();
+        if (e.kind === 'mannequin') {
+          e.parried(this.player);
+          e.collapse(1);
+        } else e.die();
       });
     }
     await this.waitUntil(() => this.enemies.every((e) => e.dead));
+    if (s.guide && this.guide && this.guide.cur) this.guide.success();
     await this.wait(600);
     this.exploreCfg = null;
     this.mode = 'cutscene';
@@ -983,15 +1032,113 @@ export class StoryScene extends Phaser.Scene {
     this.panels.hideBanner();
   }
 
+  // 공격이 맞으면: 히트스톱, 흰 번쩍임(적), 밀려남, 파편, 화면 흔들림, 타격음. 빗나가면 휘두르는 소리만(Player)
   onPlayerAttack({ hitbox, step, dir }) {
+    let hits = 0;
+    let solid = 0;
+    const heavy = step === 3;
     this.enemies.forEach((e) => {
       if (e.dead) return;
       const b = e.sprite.getBounds();
-      if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, b)) e.hit(dir, step);
+      if (!Phaser.Geom.Intersects.RectangleToRectangle(hitbox, b)) return;
+      const r = e.hit(dir, step, heavy ? 2 : 1);
+      if (!r) return;
+      if (r === 'blocked') solid++;
+      else hits++;
+      // 맞은 자리: 공격 범위와 적 그림이 겹치는 곳 가운데
+      const ix = Phaser.Math.Clamp(dir > 0 ? b.left + 4 : b.right - 4, hitbox.left, hitbox.right);
+      const iy = Phaser.Math.Clamp(hitbox.centerY, b.top + 4, b.bottom - 4);
+      this.hitSparks(ix, iy, dir, heavy, r === 'blocked');
     });
+    if (!hits && !solid) {
+      this.events.emit('attack-miss');
+      return;
+    }
+    if (hits) Audio.sfx(heavy ? 'hitHeavy' : 'hit');
+    this.hitStop(heavy ? 80 : 65);
+    this.cameras.main.shake(heavy ? 150 : 80, heavy ? 0.009 : 0.0035);
+  }
+
+  // 화면 전체를 잠깐 멈춤 (맞는 순간의 묵직함)
+  hitStop(ms) {
+    if (G.auto) return;
+    if (this.hitstopT > 0) {
+      this.hitstopT = Math.max(this.hitstopT, ms);
+      return;
+    }
+    this.hitstopT = ms;
+    this.physics.world.pause();
+    this.anims.pauseAll();
+    this.tweens.pauseAll();
+  }
+
+  endHitStop() {
+    this.hitstopT = 0;
+    this.physics.world.resume();
+    this.anims.resumeAll();
+    this.tweens.resumeAll();
+  }
+
+  // 짧은 파편: 하얀 조각 + 검은 조각(공백), 맞은 방향으로 튄다
+  hitSparks(x, y, dir, heavy, blocked) {
+    const u = this.unit;
+    const n = heavy ? 12 : 7;
+    for (let i = 0; i < n; i++) {
+      const c = blocked ? 0xd8d8d8 : (i % 3 === 0 ? 0x111111 : 0xffffff);
+      const sz = (heavy ? 2 : 1.5) * u * (0.6 + Math.random() * 0.8);
+      const p = this.add.rectangle(x, y, sz, sz, c).setDepth(DEPTH.fx + 1);
+      const ang = (dir > 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 1.6;
+      const dist = (10 + Math.random() * (heavy ? 28 : 16)) * u;
+      this.tweens.add({ targets: p, x: x + Math.cos(ang) * dist, y: y + Math.sin(ang) * dist - 4 * u, alpha: 0, duration: 180 + Math.random() * 140, ease: 'Quad.out', onComplete: () => p.destroy() });
+    }
+    // 맞은 자리 번쩍
+    const f = this.add.circle(x, y, (heavy ? 7 : 4) * u, 0xffffff, 0.9).setDepth(DEPTH.fx + 1);
+    this.tweens.add({ targets: f, scale: heavy ? 2.2 : 1.6, alpha: 0, duration: 120, onComplete: () => f.destroy() });
+  }
+
+  // 패링 성공: 0.3초 슬로모션, 금속음, 리퍼 끝 큰 섬광, 화면 가장자리 하얗게
+  onParrySuccess({ player }) {
+    Audio.sfx('parryClang');
+    const tip = player.reaperTip;
+    const u = this.unit;
+    const flash = this.add.circle(tip.x, tip.y, 6 * u, 0xffffff, 1).setDepth(DEPTH.fx + 2);
+    this.tweens.add({ targets: flash, radius: 40 * u, alpha: 0, duration: 380, ease: 'Quad.out', onComplete: () => flash.destroy() });
+    const star = this.add.graphics().setDepth(DEPTH.fx + 2);
+    star.fillStyle(0xffffff, 1);
+    star.fillRect(tip.x - 28 * u, tip.y - 1, 56 * u, 2);
+    star.fillRect(tip.x - 1, tip.y - 20 * u, 2, 40 * u);
+    this.tweens.add({ targets: star, alpha: 0, duration: 300, onComplete: () => star.destroy() });
+    // 화면 가장자리
+    const edge = this.add.graphics().setScrollFactor(0).setDepth(DEPTH.banner - 1);
+    edge.lineStyle(14, 0xffffff, 0.85);
+    edge.strokeRect(0, 0, W, H);
+    edge.lineStyle(6, 0xffffff, 0.5);
+    edge.strokeRect(10, 10, W - 20, H - 20);
+    this.tweens.add({ targets: edge, alpha: 0, duration: 260, onComplete: () => edge.destroy() });
+    this.cameras.main.shake(140, 0.006);
+    this.slowMo(300, 0.25);
+  }
+
+  // 슬로모션: 물리·애니메이션·트윈·인물 업데이트를 factor 배 속도로 (실제 시간 ms 동안)
+  slowMo(ms, factor) {
+    if (G.auto) return;
+    this.timeFactor = factor;
+    this.physics.world.timeScale = 1 / factor;
+    this.tweens.timeScale = factor;
+    this.anims.globalTimeScale = factor;
+    clearTimeout(this.slowTimer);
+    this.slowTimer = setTimeout(() => this.resetTimeScale(), ms);
+  }
+
+  resetTimeScale() {
+    this.timeFactor = 1;
+    if (this.physics && this.physics.world) this.physics.world.timeScale = 1;
+    if (this.tweens) this.tweens.timeScale = 1;
+    if (this.anims) this.anims.globalTimeScale = 1;
   }
 
   async step_harvest(s) {
+    if (s.guide && this.guide) this.guide.start(s.guide);
     const target = this.stage.get(s.target);
     const o = target.obj;
     if (s.tutorial) this.panels.banner(s.tutorial.title, s.tutorial.lines);
@@ -1009,6 +1156,7 @@ export class StoryScene extends Phaser.Scene {
           this.time.delayedCall(250, () => { if (this.harvest && this.harvest.hp.holding) this.player.setOverride('harvest_pull'); });
         } else if (!this.harvest || !this.harvest.hp.done) {
           this.player.setOverride(null);
+          this.events.emit('harvest-release');
         }
         if (held && !this.harvestSilenced) {
           // 수확하는 순간: 모든 소리를 끊고 정적
@@ -1022,6 +1170,7 @@ export class StoryScene extends Phaser.Scene {
     this.harvest = { hp, target };
     if (G.auto) this.player.setX(o.x - 20 * this.unit);
     await hp.run();
+    if (s.guide && this.guide && this.guide.cur) this.guide.success();
     this.harvest = null;
     this.player.frozen = false;
     this.exploreCfg = null;
@@ -1145,12 +1294,37 @@ export class StoryScene extends Phaser.Scene {
       return;
     }
 
+    // 히트스톱 중에는 아무것도 움직이지 않는다
+    if (this.hitstopT > 0) {
+      this.hitstopT -= dt;
+      // 멈춘 동안 누른 공격도 놓치지 않게 (입력 버퍼)
+      if (Input.justPressed('attack') && this.player.abilities.has('attack')) this.player.attackBuffered = 200;
+      if (this.hitstopT <= 0) this.endHitStop();
+      else return;
+    }
+    const gdt = dt * (this.timeFactor || 1);
     const playing = this.mode === 'play' && !this.harvest;
-    this.player.update(dt, playing || (this.mode === 'play' && this.harvest && !this.harvest.hp.holding));
+    this.player.update(gdt, playing || (this.mode === 'play' && this.harvest && !this.harvest.hp.holding));
     if (playing) this.keepInLane();
     this.stage.update(dt);
+    this.updateConveyorSound();
+    if (this.guide) {
+      this.guide.update(dt);
+      // 점프 단계: 상자에 막혀 0.6초 이상 밀고만 있으면 실패 한 번
+      const b = this.player.body;
+      if (this.guide.cur === 'jump' && playing && b.blocked.right && this.player.grounded && Input.isDown('right')) {
+        this.blockedT = (this.blockedT || 0) + dt;
+        if (this.blockedT > 600 && !this.blockedCounted) {
+          this.blockedCounted = true;
+          this.events.emit('box-blocked');
+        }
+      } else if (!b.blocked.right) {
+        this.blockedT = 0;
+        this.blockedCounted = false;
+      }
+    }
     this.updateLighting(dt);
-    if (this.mode === 'play') this.enemies.forEach((e) => e.update(dt, this.player));
+    if (this.mode === 'play') this.enemies.forEach((e) => e.update(gdt, this.player));
     this.dialogue.update(dt);
     // 대사창이 위에 뜨면 휴대폰을 살짝 내려 내용이 가려지지 않게
     if (this.phone.visible) this.phone.setLowered(this.dialogue.visible);
@@ -1164,6 +1338,7 @@ export class StoryScene extends Phaser.Scene {
       const pit = (this.def.stage.respawn || []).filter((x) => x <= this.player.x).pop();
       const x = pit != null ? pit : this.lastSafeX - 20 * this.player.facing;
       this.player.body.reset(x, this.stage.floorY - this.player.cs.bh / 2 - 6);
+      this.events.emit('pit-fall');
       this.cameras.main.flash(200, 255, 255, 255);
     }
 

@@ -17,7 +17,11 @@ export const MOVE = {
   dashMs: 200,
   dashCooldown: 450,
   reach: 40,        // 1·2타 공격 범위
-  reach3: 48        // 3타 공격 범위
+  reach3: 48,       // 3타 공격 범위
+  attackBuffer: 200, // 공격 입력을 미리 넘겨 두는 시간 (연타가 끊기지 않게)
+  parryWindow: 180,  // 패링: 누른 뒤 이 시간 안에 공격이 닿으면 성공 (= 공격이 닿기 직전 0.18초)
+  parryFailLock: 400, // 너무 일찍 눌러 실패하면 다시 못 누르는 시간
+  counterWindow: 500  // 패링 성공 직후 이 시간 안에 공격하면 반격(3연타 마지막 타격)
 };
 
 export class Player {
@@ -46,6 +50,9 @@ export class Player {
     this.comboTimer = 0;
     this.parryTimer = 0;
     this.parryCooldown = 0;
+    this.parryArmed = false;
+    this.attackBuffered = 0;
+    this.counterT = 0;
     this.stun = 0;
     this.actionLock = 0; // 이 시간 동안 다른 애니메이션으로 바꾸지 않음
     this.landT = 0;
@@ -132,7 +139,11 @@ export class Player {
     this.dashCooldown = Math.max(0, this.dashCooldown - dt);
     this.attackLock = Math.max(0, this.attackLock - dt);
     this.comboTimer = Math.max(0, this.comboTimer - dt);
+    // 패링 창이 끝날 때까지 공격이 안 닿았다 = 너무 일찍 누름 → 잠깐 다시 못 누름
+    if (this.parryArmed && this.parryTimer > 0 && this.parryTimer - dt <= 0) this.parryFailed();
     this.parryTimer = Math.max(0, this.parryTimer - dt);
+    this.attackBuffered = Math.max(0, this.attackBuffered - dt);
+    this.counterT = Math.max(0, this.counterT - dt);
     this.parryCooldown = Math.max(0, this.parryCooldown - dt);
     this.stun = Math.max(0, this.stun - dt);
     this.actionLock = Math.max(0, this.actionLock - dt);
@@ -187,16 +198,25 @@ export class Player {
         b.setAllowGravity(false);
         Audio.sfx('dash');
       }
-      if (this.abilities.has('attack') && Input.justPressed('attack') && this.attackLock <= 0) {
-        this.comboStep = this.comboTimer > 0 && this.comboStep < 3 ? this.comboStep + 1 : 1;
+      if (this.abilities.has('attack') && Input.justPressed('attack')) this.attackBuffered = MOVE.attackBuffer;
+      if (this.abilities.has('attack') && this.attackBuffered > 0 && this.attackLock <= 0) {
+        this.attackBuffered = 0;
+        if (this.counterT > 0) {
+          // 반격: 패링 직후라 바로 3연타 마지막 타격
+          this.counterT = 0;
+          this.comboStep = 3;
+        } else {
+          this.comboStep = this.comboTimer > 0 && this.comboStep < 3 ? this.comboStep + 1 : 1;
+        }
         this.comboTimer = 560;
         this.attackLock = this.comboStep === 3 ? 340 : 200;
         this.actionLock = this.attackLock;
         this.swing(this.comboStep);
       }
       if (this.abilities.has('parry') && Input.justPressed('parry') && this.parryCooldown <= 0) {
-        this.parryTimer = 260;
-        this.parryCooldown = 420;
+        this.parryTimer = MOVE.parryWindow;
+        this.parryArmed = true;
+        this.parryCooldown = MOVE.parryWindow;
         this.actionLock = 300;
         this.cs.current = null;
         this.cs.play('parry');
@@ -225,8 +245,29 @@ export class Player {
     this.updateReaper();
   }
 
+  // 패링 성공 (마네킹이 호출)
+  parrySucceeded() {
+    this.parryArmed = false;
+    this.parryTimer = 0;
+    this.parryCooldown = 0;
+    this.counterT = MOVE.counterWindow;
+  }
+
+  // 너무 일찍 눌러 아무것도 막지 못함
+  parryFailed() {
+    this.parryArmed = false;
+    this.parryCooldown = MOVE.parryFailLock;
+    Audio.sfx('parryFail');
+    this.scene.events.emit('parry-early');
+  }
+
+  // 리퍼 끝 위치 (패링 섬광 등)
+  get reaperTip() {
+    return { x: this.x + this.facing * 26 * this.u, y: this.y - 30 * this.u };
+  }
+
   swing(step) {
-    Audio.sfx('swing');
+    Audio.sfx(step === 3 ? 'swingHeavy' : 'swing');
     this.cs.current = null;
     this.cs.play('attack' + step);
     if (this.reaper) {
@@ -242,19 +283,48 @@ export class Player {
     }
     const reach = (step === 3 ? MOVE.reach3 : MOVE.reach) * this.u;
     const hitbox = new Phaser.Geom.Rectangle(this.facing > 0 ? this.x : this.x - reach, this.y - 46 * this.u, reach, 48 * this.u);
-    if (!this.cs.has('attack' + step)) {
-      // 임시 궤적
-      const g = this.fx;
-      g.clear();
-      g.lineStyle(step === 3 ? 2 : 1, 0xffffff, 0.8);
-      g.beginPath();
-      const a0 = this.facing > 0 ? -1.2 : Math.PI + 1.2;
-      const a1 = this.facing > 0 ? 1.0 : Math.PI - 1.0;
-      g.arc(this.x, this.y - 24 * this.u, reach - 6 * this.u, Math.min(a0, a1), Math.max(a0, a1), false);
-      g.strokePath();
-      this.scene.time.delayedCall(90, () => g.clear());
-    }
+    this.swingTrail(step, reach);
     this.scene.events.emit('player-attack', { hitbox, step, dir: this.facing });
+  }
+
+  // 리퍼 궤적: 반원 모양 잔상을 2~3프레임. 3연타 마지막은 더 크고 두껍게
+  swingTrail(step, reach) {
+    const sc = this.scene;
+    const u = this.u;
+    const heavy = step === 3;
+    const cx = this.x + this.facing * 4 * u;
+    const cy = this.y - 26 * u;
+    const r = reach + (heavy ? 6 : 0) * u;
+    const f = this.facing;
+    // 2타는 아래→위, 1·3타는 위→아래
+    const up = step === 2;
+    const a0 = -1.5;
+    const a1 = 1.25;
+    const frames = heavy ? 3 : 2;
+    for (let k = 0; k < frames; k++) {
+      sc.time.delayedCall(k * 33, () => {
+        const g = sc.add.graphics().setDepth(DEPTH.fx);
+        const t = (k + 1) / frames;
+        const start = up ? a1 - (a1 - a0) * t : a0;
+        const end = up ? a1 : a0 + (a1 - a0) * t;
+        const thick = (heavy ? 7 : 4) * u * (1 - k * 0.2);
+        // 바깥 밝은 띠 + 안쪽 옅은 띠
+        [[thick, 0xffffff, 0.85], [thick * 2.2, 0xcfe0ff, 0.25]].forEach(([w, c, a]) => {
+          g.lineStyle(w, c, a);
+          g.beginPath();
+          const pts = 14;
+          for (let i = 0; i <= pts; i++) {
+            const ang = start + (end - start) * (i / pts);
+            const px = cx + f * Math.cos(ang) * r;
+            const py = cy + Math.sin(ang) * r;
+            if (i === 0) g.moveTo(px, py);
+            else g.lineTo(px, py);
+          }
+          g.strokePath();
+        });
+        sc.tweens.add({ targets: g, alpha: 0, duration: 90, onComplete: () => g.destroy() });
+      });
+    }
   }
 
   parryFlash() {

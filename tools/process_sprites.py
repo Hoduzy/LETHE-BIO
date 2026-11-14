@@ -57,9 +57,16 @@ REPORT = {'frames': [], 'overflow': [], 'notes': []}
 # ---------------------------------------------------------------------------
 # 마젠타 판별
 # ---------------------------------------------------------------------------
-def magenta_mask(a):
+# 그림 안에 보라색이 있는 시트 (김밥 포장 띠): 거의 순수한 마젠타만 배경으로
+STRICT_CHROMA = {'obj_kimbap'}
+
+
+def magenta_mask(a, strict=False):
     r, g, b = a[..., 0].astype(int), a[..., 1].astype(int), a[..., 2].astype(int)
-    core = (r - g > 70) & (b - g > 70) & (r > 120) & (b > 120)
+    if strict:
+        core = (r > 205) & (b > 205) & (g < 90)
+    else:
+        core = (r - g > 70) & (b - g > 70) & (r > 120) & (b > 120)
     # 가장자리 번짐: 배경과 닿아 있는 분홍·보라 기운 픽셀을 두 번 더 깎는다
     fringe = (r - g > 35) & (b - g > 35) & (r > 70) & (b > 60)
     m = core.copy()
@@ -81,7 +88,7 @@ def load_rgba(name, chroma=True):
     im = Image.open(os.path.join(ORIG, name + '.png')).convert('RGBA')
     a = np.array(im)
     if chroma:
-        bg = magenta_mask(a)
+        bg = magenta_mask(a, strict=name in STRICT_CHROMA)
         if name in SEE_THROUGH:
             r, g, b = a[..., 0].astype(int), a[..., 1].astype(int), a[..., 2].astype(int)
             bg |= (r - g > 25) & (b - g > 25)
@@ -670,7 +677,116 @@ def clear_outside(img, light=110):
     return Image.fromarray(a, 'RGBA')
 
 
+# ---------------------------------------------------------------------------
+# 물류센터·편의점 물건 (평균 색 축소)
+# ---------------------------------------------------------------------------
+UNIFORM_ITEMS = {'obj_parcels': 6, 'obj_kimbap': 5}
+
+
+def process_items(name, sheet):
+    """가로 한 줄 물건: 모두 같은 배율(가장 큰 것이 칸에서 2px 여유), 바닥 정렬·가운데"""
+    a = load_rgba(name)
+    cw, ch = sheet['cell']
+    n = sheet['frames']
+    segs = split(a[..., 3], 1, n, name)
+    if segs is None:
+        return None
+    items = []
+    for x0, x1 in segs:
+        p = a[:, x0:x1]
+        items.append(crop(p, bbox(p[..., 3])))
+    biggest = max(max(it.shape[0] / ch, it.shape[1] / cw) for it in items)
+    s = (min(cw, ch) - 2) / (biggest * min(cw, ch))
+    out = np.zeros((ch, cw * n, 4), np.uint8)
+    for i, it in enumerate(items):
+        small = clean_specks(scale_area(it, s))
+        ys, xs = np.where(small[..., 3] > 0)
+        cell = np.zeros((ch, cw, 4), np.uint8)
+        place(cell, small, cw // 2 - (xs.min() + xs.max()) // 2, ch - 1 - ys.max(), f'{name} {i + 1}번 칸')
+        out[:, i * cw:(i + 1) * cw] = cell
+    return Image.fromarray(out, 'RGBA')
+
+
+def process_conveyor(name, sheet):
+    """컨베이어: 2줄 × 6칸. 1줄(벨트 윗부분)은 칸 아래에, 2줄(다리·틀)은 칸 위에 붙인다.
+    원본 조각이 칸보다 세로로 길어서, 벨트 줄 높이(48)에 맞춘 같은 배율로 줄이고 칸 왼쪽에 붙인다.
+    실제 조각 폭은 data/sprites.json 의 tileW 에 적어 두고, 게임이 그 폭으로 이어 붙인다.
+    가운데(2~5칸)는 이음매가 맞도록 모두 같은 폭으로."""
+    a = load_rgba(name)
+    cw, ch = sheet['cell']
+    rows = split(a[..., 3], 0, 2, f'{name} 줄')
+    if rows is None:
+        return None
+    bands = []
+    for y0, y1 in rows:
+        band = a[y0:y1]
+        segs = split(band[..., 3], 1, 6, f'{name} 줄')
+        bands.append([band[:, x0:x1] for x0, x1 in segs])
+    top_h = max(p.shape[0] for p in bands[0])
+    s = ch / top_h
+    def content_w(p):
+        b = bbox(p[..., 3])
+        return b[2] - b[0]
+    mid_w = round(np.median([content_w(p) for p in bands[0][1:5]]) * s)
+    widths = []
+    out = np.zeros((ch * 2, cw * 6, 4), np.uint8)
+    for r, pieces in enumerate(bands):
+        for c, p in enumerate(pieces):
+            b = bbox(p[..., 3])
+            # 세로는 줄 전체 높이 기준(조각마다 위아래 위치 유지), 가로는 내용 폭
+            p = p[:, b[0]:b[2]]
+            w = mid_w if 1 <= c <= 4 else round(p.shape[1] * s)
+            h = round(p.shape[0] * s)
+            small = clean_specks(_resize_area(p, w, h))
+            cell = np.zeros((ch, cw, 4), np.uint8)
+            sh = small.shape[0]
+            y = ch - sh if r == 0 else 0
+            place(cell, small[:, :cw], 0, y, f'{name} {r + 1}줄 {c + 1}칸')
+            out[r * ch:(r + 1) * ch, c * cw:(c + 1) * cw] = cell
+            if r == 0:
+                widths.append(min(cw, w))
+    REPORT['notes'].append(f'{name}: 조각 폭 {widths} (tileW)')
+    return Image.fromarray(out, 'RGBA')
+
+
+def _resize_area(a, w, h):
+    """scale_area 와 같은 방법(알파 곱해 평균)으로 정확히 w x h 로"""
+    f = a.astype(np.float32)
+    al = f[..., 3:4] / 255.0
+    pre = np.concatenate([f[..., :3] * al, f[..., 3:4]], axis=2)
+    out = np.zeros((h, w, 4), np.float32)
+    for c in range(4):
+        out[..., c] = np.array(Image.fromarray(pre[..., c], 'F').resize((w, h), Image.BOX))
+    alpha = out[..., 3]
+    keep = alpha >= 110
+    rgb = np.where(alpha[..., None] > 0, out[..., :3] / np.maximum(alpha[..., None] / 255.0, 1e-6), 0)
+    res = np.zeros((h, w, 4), np.uint8)
+    res[..., :3] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)
+    res[..., 3] = np.where(keep, 255, 0)
+    res[~keep] = 0
+    return res
+
+
+def process_single(name, sheet):
+    """한 장 그림(트럭 짐칸): 칸에 맞게 같은 배율로, 바닥 정렬·가운데"""
+    a = load_rgba(name)
+    cw, ch = sheet['cell']
+    p = crop(a, bbox(a[..., 3]))
+    s = min(cw / p.shape[1], ch / p.shape[0])
+    small = clean_specks(scale_area(p, s))
+    ys, xs = np.where(small[..., 3] > 0)
+    cell = np.zeros((ch, cw, 4), np.uint8)
+    place(cell, small, cw // 2 - (xs.min() + xs.max()) // 2, ch - 1 - ys.max(), name)
+    return Image.fromarray(cell, 'RGBA')
+
+
 def kind(name):
+    if name in UNIFORM_ITEMS:
+        return 'items'
+    if name == 'obj_conveyor':
+        return 'conveyor'
+    if name == 'obj_truck_inside':
+        return 'single'
     if name in IMAGES:
         return 'image'
     if name == 'obj_prologue':
@@ -701,7 +817,8 @@ def main():
         k = kind(name)
         sheet = SHEETS.get(name)
         fn = {'char': process_char, 'obj': process_obj_row, 'grid': process_obj_grid,
-              'portrait': process_portrait, 'ui': process_ui_row, 'collapse': process_collapse}.get(k)
+              'portrait': process_portrait, 'ui': process_ui_row, 'collapse': process_collapse,
+              'items': process_items, 'conveyor': process_conveyor, 'single': process_single}.get(k)
         img = process_image(name, IMAGES[name]) if k == 'image' else fn(name, sheet)
         if img is None:
             REPORT['notes'].append(f'{name}: 처리 못 함 (원본 유지)')

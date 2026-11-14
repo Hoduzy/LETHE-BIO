@@ -1,27 +1,26 @@
 // [미니게임: 상하차]
-// 컨베이어에서 내려오는 상자를 타이밍에 맞춰 트럭으로 옮긴다.
-// 실패해도 페널티는 없다. 그냥 반복된다. 상자는 끝없이 온다.
-// 정해진 개수(기본 30개)를 옮기면 자동으로 끝난다.
-// 배경: bg_warehouse.png, 도윤: doyun_carry_box.png (들기 2~3, 옮기기 4~6), 상자: obj_prologue 8번 칸
+// 컨베이어 벨트 끝에 멈춘 상자를 들고(상호작용), 트럭 짐칸 입구(아래 금속 턱) 앞에서 상호작용하면 짐칸에 넣는다.
+// 실패도 페널티도 없다. 상자는 끝없이 온다. 정해진 개수(기본 30개)를 넣으면 끝난다.
+// 배경: bg_warehouse, 컨베이어: obj_conveyor (P-2 장면과 같은 위치), 상자: obj_parcels 6종류,
+// 짐칸: obj_truck_inside, 도윤: doyun_carry_box (그림 속 상자 자리에 고른 상자를 겹쳐 손과 같이 움직임)
 
 import { G } from '../core/state.js';
 import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
 import { W, H, txt, panel } from '../core/gfx.js';
-import { objTexture } from '../core/sprites.js';
 import { CharSprite } from '../world/CharSprite.js';
+import { Conveyor, makeParcel, parcelSize, pickParcel } from '../world/Conveyor.js';
 
-// bg_warehouse 기준: 앞쪽 바닥 y250 (P-2 와 같음), 컨베이어 윗면 y≈186, 트럭 짐칸 바닥 y≈205 (x 405~465)
-// 인물 배율 1 (칸 128, 키 약 96px). 상자는 물건 칸(32) 기준이라 K 배
-const K = 1.55;
+const FLOOR = 250;           // P-2 앞쪽 바닥 줄
 const CHAR_K = 1.0;
-const FLOOR = 250;
-const BELT_Y = 186;          // 벨트 윗면 (도윤의 가슴 높이쯤)
-const BELT_END = 250;
-const ZONE = { x0: 206, x1: 244 };
-const TRUCK_X0 = 412;        // 트럭 짐칸 안쪽 시작
-const TRUCK_Y = 205;         // 짐칸 바닥
-const PILE_COLS = 4;
+const WALK = 150;            // 걷기 px/s
+const X_MIN = 170;
+const X_MAX = 462;
+// P-2 장면에 컨베이어 정의가 없을 때 쓰는 값 (배경 컨베이어 위에 덮이는 자리)
+const DEFAULT_CONVEYOR = { id: 'belt', x: 45, y: 163, pieces: 6, scale: 0.6, speed: 46 };
+// 트럭 짐칸 그림(160x128) 안의 자리 (그림 기준 px)
+const TRUCK = { x: 325, w: 160, h: 128, open: [46, 18, 121, 97], lip: [45, 115, 122, 122] };
+const BOX_BASE = 0.42;       // 짐칸 안 상자 기본 배율 (안쪽이라 조금 작게)
 
 export class UnloadScene extends Phaser.Scene {
   constructor() {
@@ -35,38 +34,53 @@ export class UnloadScene extends Phaser.Scene {
 
   create() {
     this.target = this.cfg.target || 30;
+    this.closed = false;
     this.count = 0;
-    this.boxes = [];
     this.finished = false;
-    this.spawnT = 600;
-    this.beltOffset = 0;
+    this.holding = null;
+    this.busy = false;
+    this.loaded = [];
+    this.spawnT = 200;
 
     if (G.realSprites.has('bg_warehouse')) {
       this.add.image(0, 0, 'bg_warehouse').setOrigin(0);
-      this.add.rectangle(0, 0, W, H, 0x000000, 0.25).setOrigin(0);
+      this.add.rectangle(0, 0, W, H, 0x000000, 0.2).setOrigin(0).setDepth(1);
     } else {
       const g = this.add.graphics();
       g.fillStyle(0x1b1e24, 1);
       g.fillRect(0, 0, W, H);
-      g.fillStyle(0x23272e, 1);
-      g.fillRect(0, 0, W, 40);
-      [60, 180, 300, 420].forEach((x) => {
-        g.fillStyle(0xdfe8e0, 1);
-        g.fillRect(x - 24, 14, 48, 3);
-      });
       g.fillStyle(0x15171b, 1);
       g.fillRect(0, FLOOR, W, H - FLOOR);
-      g.lineStyle(1, 0x3a3f47, 1);
-      g.lineBetween(0, FLOOR + 0.5, W, FLOOR + 0.5);
-      this.add.image(404, FLOOR, 'ph_truck').setOrigin(0.5, 1).setDepth(1);
-      // 함께 일하는 노동자 (extra_actions 1줄 젊은 노동자, 2줄 중년 여성 노동자)
-      new CharSprite(this, 120, FLOOR, 'extra_worker_older', { depth: 1, scale: CHAR_K }).setAlpha(0.7).play('lift');
-      new CharSprite(this, 300, FLOOR, 'extra_worker_young', { depth: 1, scale: CHAR_K }).setAlpha(0.7).play('carry');
     }
-    // 컨베이어 다리
-    const legs = this.add.graphics();
-    legs.fillStyle(0x2c3138, 1);
-    if (!G.realSprites.has('bg_warehouse')) [30, 110, 190].forEach((x) => legs.fillRect(x, BELT_Y + 12, 5, FLOOR - BELT_Y - 12));
+
+    // 트럭 짐칸
+    this.truckY = FLOOR + 2 - TRUCK.h;
+    if (G.realSprites.has('obj_truck_inside')) {
+      this.add.image(TRUCK.x, this.truckY, 'obj_truck_inside', 0).setOrigin(0).setDepth(17);
+    } else {
+      const g = this.add.graphics().setDepth(17);
+      g.fillStyle(0x777b80, 1);
+      g.fillRect(TRUCK.x, this.truckY + 10, TRUCK.w - 10, TRUCK.h - 20);
+      g.fillStyle(0x23262b, 1);
+      g.fillRect(TRUCK.x + TRUCK.open[0], this.truckY + TRUCK.open[1], TRUCK.open[2] - TRUCK.open[0], TRUCK.open[3] - TRUCK.open[1]);
+    }
+    const o = TRUCK.open;
+    this.hold = { x0: TRUCK.x + o[0], x1: TRUCK.x + o[2], top: this.truckY + o[1], floor: this.truckY + o[3] };
+    this.lipX = TRUCK.x + (TRUCK.lip[0] + TRUCK.lip[2]) / 2;
+
+    // 컨베이어 (P-2 장면에서 맞춘 자리)
+    this.belt = new Conveyor(this, Object.assign({}, DEFAULT_CONVEYOR, this.cfg.conveyor || {}, { boxes: null }));
+    this.pickX = this.belt.endX + 6;
+
+    // 도윤
+    this.doyun = new CharSprite(this, 300, FLOOR, 'doyun', { depth: 30, scale: CHAR_K });
+    this.doyun.face(-1);
+    this.doyun.setLight(0xdcfbff, 0.72);
+    this.carry = (G.spriteData.characters.doyun || {}).carryBox || {};
+
+    // 표시: 들 곳 / 넣을 곳
+    this.marks = this.add.graphics().setDepth(40);
+    this.markT = 0;
 
     this.flicker = this.add.rectangle(0, 0, W, H, 0x000000, 0).setOrigin(0).setDepth(50);
     this.time.addEvent({
@@ -80,155 +94,268 @@ export class UnloadScene extends Phaser.Scene {
       }
     });
 
-    this.belt = this.add.graphics().setDepth(2);
-    this.zoneG = this.add.graphics().setDepth(3);
-    this.truckBoxes = this.add.graphics().setDepth(2);
-    this.doyun = new CharSprite(this, 272, FLOOR, 'doyun', { depth: 5, scale: CHAR_K });
-    // 창고 조명에 맞춘 색 (P-2 와 같은 값)
-    this.doyun.setLight(0xdcfbff, 0.72);
-    this.doyun.face(-1);
-
-    this.counter = txt(this, W - 10, 26, '', { origin: [1, 0], color: '#ffffff' }).setDepth(61);
-    const bannerLines = this.cfg.lines || ['상자가 노란 칸에 오면 Z / 공격 / 화면 터치'];
+    this.counter = txt(this, W - 10, 52, '', { origin: [1, 0], color: '#ffffff' }).setDepth(61);
+    const bannerLines = this.cfg.lines || ['벨트 끝에서 상호작용: 들기', '짐칸 앞에서 상호작용: 넣기'];
     const title = this.cfg.title || '[미니게임: 상하차]';
-    const t1 = txt(this, W / 2, 232, title, { origin: [0.5, 0], color: '#f0dc8c' }).setDepth(61);
-    const t2 = txt(this, W / 2, 248, bannerLines.join('   '), { origin: [0.5, 0], color: '#e8e8e8' }).setDepth(61);
+    // 안내는 위쪽에 (아래에 두면 짐칸 입구 턱을 가린다)
+    const t1 = txt(this, W / 2, 12, title, { origin: [0.5, 0], color: '#f0dc8c' }).setDepth(61);
+    const t2 = txt(this, W / 2, 28, bannerLines.join('   '), { origin: [0.5, 0], color: '#e8e8e8' }).setDepth(61);
     const bw = Math.max(t1.width, t2.width) + 20;
-    panel(this, Math.round(W / 2 - bw / 2), 228, Math.round(bw), 38, { border: 0xb8a35a, alpha: 0.85 }).setDepth(60);
+    panel(this, Math.round(W / 2 - bw / 2), 8, Math.round(bw), 38, { border: 0xb8a35a, alpha: 0.85 }).setDepth(60);
     this.updateCounter();
-    this.input.on('pointerdown', () => this.tryGrab());
+    // 화면을 탭해도 상호작용
+    this.input.on('pointerdown', (p) => {
+      if (p.y > 50) this.act();
+    });
+    Audio.setConveyorRunning(true);
   }
 
   updateCounter() {
     this.counter.setText(`상자 ${this.count} / ${this.target}`);
   }
 
-  spawnBox() {
-    const t = objTexture('parcel');
-    const b = this.add.image(-16, BELT_Y, t.key, t.frame).setOrigin(0.5, 1).setDepth(4).setScale(K).setTint(0xb8c8c8);
-    b.state = 'belt';
-    this.boxes.push(b);
+  nearBelt() {
+    return Math.abs(this.doyun.x - this.pickX) < 30;
   }
 
-  inZone(b) {
-    return b.state === 'belt' && b.x >= ZONE.x0 && b.x <= ZONE.x1;
+  nearTruck() {
+    return Math.abs(this.doyun.x - this.lipX) < 34;
   }
 
-  tryGrab() {
-    if (this.finished && this.count >= this.target) return;
-    const box = this.boxes.find((b) => this.inZone(b));
+  // 상호작용: 벨트 끝이면 들기, 짐칸 앞이면 넣기
+  act() {
+    if (this.busy || this.finished) return;
+    if (!this.holding && this.nearBelt()) this.grab();
+    else if (this.holding && this.nearTruck()) this.put();
+  }
+
+  grab() {
+    const box = this.belt.front();
+    if (!box) return;
+    this.belt.take(box);
+    this.busy = true;
     const d = this.doyun;
-    if (!box) {
-      // 헛손질 — 페널티 없음
-      d.play('grab').then(() => d.play('idle'));
-      return;
-    }
-    box.state = 'carry';
-    Audio.sfx('pick');
-    d.face(-1);
-    d.play('grab').then(() => {
-      d.face(1);
-      d.play('carry');
-      this.time.delayedCall(260, () => { d.play('idle'); d.face(-1); });
-    });
-    const slot = this.count;
-    const tx = TRUCK_X0 + (slot % PILE_COLS) * 14;
-    const ty = TRUCK_Y - Math.floor((slot % 32) / PILE_COLS) * 11;
+    d.face(1);
+    Audio.sfx('boxPick');
+    // 손에 맞는 크기로 다시 그린다 (그림 속 상자 폭에 맞춤)
+    const type = box.parcelType;
+    const sz = parcelSize(this, type);
+    const held = makeParcel(this, type, box.x, box.y, 21 / sz.w, 31);
+    held.shadowOn = false;
+    held.syncShadow();
+    held.setAngle(box.angle);
+    box.destroy();
+    this.holding = held;
+    // 벨트 끝 상자는 가슴 높이라 쪼그려 드는 동작(grab) 대신 바로 안아 든다
+    d.play('carry');
+    d.current = 'carry_hold';
+    if (d.sprite.anims) d.sprite.anims.pause();
+    this.time.delayedCall(G.auto ? 20 : 160, () => { this.busy = false; });
+  }
+
+  put() {
+    const box = this.holding;
+    this.holding = null;
+    this.busy = true;
+    const d = this.doyun;
+    d.face(1);
+    const slot = this.loaded.length;
+    this.loaded.push(box);
+    box.setDepth(18);
+    box.shadowOn = true;
+    const lay = this.layout(this.loaded.length);
+    const L = lay[slot];
+    // 들고 있던 크기 → 짐칸 안 크기로 바꾸면서 던져 넣는다
     const sx = box.x;
     const sy = box.y;
+    const w0 = box.firstScale || (box.firstScale = box.parcelW / parcelSize(this, box.parcelType).w);
     this.tweens.addCounter({
       from: 0,
       to: 1,
-      duration: 420,
+      duration: G.auto ? 60 : 380,
+      ease: 'Sine.inOut',
       onUpdate: (tw) => {
         const p = tw.getValue();
-        box.x = sx + (tx - sx) * p;
-        box.y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 50;
-        // 트럭 안쪽으로 들어갈수록 작게 (원근)
-        box.setScale(K + (1 - K) * p);
+        box.x = sx + (L.x - sx) * p;
+        box.y = sy + (L.y - sy) * p - Math.sin(p * Math.PI) * 26;
+        this.setBoxWorldScale(box, w0 + (L.s - w0) * p);
+        box.angle = box.angle * (1 - p);
+        box.shadowY = L.y;
+        box.syncShadow();
       },
       onComplete: () => {
-        Audio.sfx('thud');
-        box.destroy();
-        this.boxes = this.boxes.filter((x) => x !== box);
+        Audio.sfx('boxPut');
+        this.relayout(lay);
         this.count++;
         this.updateCounter();
-        this.drawTruck();
+        this.busy = false;
         if (this.count >= this.target && !this.finished) {
           this.finished = true;
           this.time.delayedCall(900, () => this.finish());
         }
       }
     });
+    d.play('idle');
   }
 
-  drawTruck() {
-    // 실린 상자: 상자 그림(obj_prologue 8번 칸)을 쌓는다
-    const t = objTexture('parcel');
-    this.truckPile = this.truckPile || [];
-    while (this.truckPile.length < Math.min(this.count, 32)) {
-      const i = this.truckPile.length;
-      const x = TRUCK_X0 + (i % PILE_COLS) * 14;
-      const y = TRUCK_Y - Math.floor(i / PILE_COLS) * 11;
-      this.truckPile.push(this.add.image(x, y, t.key, t.frame).setOrigin(0.5, 1).setDepth(2).setTint(0xb8c8c8));
+  // 짐칸 바닥부터 차곡차곡. 다 안 들어가면 상자를 조금씩 작게 해서 짐칸 안에 맞춘다
+  layout(n) {
+    const hold = this.hold;
+    const wAvail = hold.x1 - hold.x0;
+    const hAvail = hold.floor - hold.top;
+    let s = BOX_BASE;
+    for (let tries = 0; tries < 30; tries++) {
+      const out = [];
+      let x = hold.x0;
+      let y = hold.floor;
+      let rowH = 0;
+      let row = 0;
+      let ok = true;
+      for (let i = 0; i < n; i++) {
+        const sz = parcelSize(this, this.loaded[i].parcelType);
+        const w = sz.w * s;
+        const h = sz.h * s;
+        if (x + w > hold.x1 + 0.5) {
+          row++;
+          // 줄마다 조금 엇갈리게
+          x = hold.x0 + (row % 2 ? 3 : 0);
+          y -= rowH;
+          rowH = 0;
+        }
+        if (y - h < hold.top) {
+          ok = false;
+          break;
+        }
+        out.push({ x: x + w / 2, y, s });
+        x += w;
+        rowH = Math.max(rowH, h * 0.92);
+      }
+      if (ok) return out;
+      s *= 0.92;
+      void wAvail;
+      void hAvail;
     }
+    return this.loaded.map(() => ({ x: hold.x0 + 10, y: hold.floor, s }));
+  }
+
+  relayout(lay) {
+    this.loaded.forEach((b, i) => {
+      const L = lay[i];
+      if (!L) return;
+      const target = L.s;
+      this.tweens.add({
+        targets: b,
+        x: L.x,
+        y: L.y,
+        duration: G.auto ? 30 : 220,
+        onUpdate: () => { b.shadowY = b.y; b.syncShadow(); }
+      });
+      this.setBoxWorldScale(b, target);
+    });
+  }
+
+  // makeParcel 은 처음 배율로 줄인 그림을 쓰므로, 원하는 배율 = (처음 배율) × setScale
+  setBoxWorldScale(b, s) {
+    const first = b.firstScale || (b.firstScale = b.parcelW / parcelSize(this, b.parcelType).w);
+    b.setScale(s / first);
+    b.shadow.setScale(s / first, 1);
+  }
+
+  // 그림 속 상자 자리(칸 번호별)에 들고 있는 상자를 붙인다
+  attachHeld() {
+    const box = this.holding;
+    if (!box) return;
+    const d = this.doyun;
+    const fr = d.sprite.frame && d.sprite.texture.key === 'doyun_carry_box' ? Number(d.sprite.frame.name) + 1 : 4;
+    const a = this.carry[String(fr)] || this.carry['4'] || [10, -42, 20];
+    const k = d.sk;
+    box.x = Math.round(d.sprite.x + d.facing * a[0] * k);
+    box.y = Math.round(d.sprite.y + a[1] * k);
+    box.angle = 0;
+    box.syncShadow();
   }
 
   finish() {
+    if (this.closed) return;
+    this.closed = true;
     Input.consumeAdvance();
+    if (this.belt) this.belt.destroy();
     this.scene.stop();
     if (this.onDone) this.onDone();
   }
 
   update(time, dt) {
     G.controls = true;
-    const speed = 70 + Math.min(this.count, 30) * 0.7;
-    this.beltOffset = (this.beltOffset + (speed * dt) / 1000) % 12;
-    const g = this.belt;
-    g.clear();
-    g.fillStyle(0x3c4148, 1);
-    g.fillRect(0, BELT_Y, BELT_END, 8);
-    g.lineStyle(1, 0x22262b, 1);
-    for (let x = -12 + this.beltOffset; x < BELT_END; x += 12) g.lineBetween(x, BELT_Y + 1, x, BELT_Y + 7);
-    this.zoneG.clear();
-    const lit = this.boxes.some((b) => this.inZone(b));
-    this.zoneG.lineStyle(1, lit ? 0xffe066 : 0x9a8a40, 1);
-    this.zoneG.strokeRect(ZONE.x0 - 16.5, BELT_Y - 34.5, ZONE.x1 - ZONE.x0 + 32, 44);
-
-    // 상자는 끝없이 온다
+    if (this.closed) return;
+    this.belt.update(dt);
+    // 상자는 끝없이 온다 (벨트 위 대기 5개까지)
     this.spawnT -= dt;
     if (this.spawnT <= 0) {
-      this.spawnBox();
-      this.spawnT = 950 + Math.random() * 650;
+      this.spawnT = G.auto ? 120 : 1100 + Math.random() * 900;
+      if (this.belt.boxes.length < 5) this.belt.spawn(pickParcel());
     }
-    this.boxes.forEach((b) => {
-      if (b.state !== 'belt') return;
-      b.x += (speed * dt) / 1000;
-      if (b.x > BELT_END + 6) {
-        // 놓친 상자: 바닥으로 떨어진다 (페널티 없음)
-        b.state = 'fall';
-        Audio.sfx('miss');
-        this.tweens.add({
-          targets: b,
-          x: b.x + 18,
-          y: FLOOR - 2,
-          angle: 40,
-          duration: 360,
-          ease: 'Quad.in',
-          onComplete: () => this.tweens.add({ targets: b, alpha: 0, duration: 600, onComplete: () => b.destroy() })
-        });
+
+    // 도윤 이동
+    const d = this.doyun;
+    let vx = 0;
+    if (!this.busy && !this.finished) {
+      if (Input.isDown('left')) vx -= 1;
+      if (Input.isDown('right')) vx += 1;
+    }
+    if (G.auto && !this.busy && !this.finished) vx = this.autoDir();
+    if (vx) {
+      d.face(vx);
+      d.setPosition(Phaser.Math.Clamp(d.x + vx * WALK * dt / 1000 * (G.auto ? 3 : 1), X_MIN, X_MAX), FLOOR);
+    }
+    if (!this.busy) {
+      const want = this.holding ? (vx ? 'carry' : 'carry_hold') : (vx ? 'walk' : 'idle');
+      if (want === 'carry_hold') {
+        if (d.current !== 'carry_hold') {
+          d.play('carry');
+          d.current = 'carry_hold';
+          if (d.sprite.anims) d.sprite.anims.pause();
+        }
+      } else if (d.current !== want) {
+        d.play(want);
       }
-    });
-    this.boxes = this.boxes.filter((b) => b.active);
+    }
+    this.attachHeld();
+
+    // 컨베이어 소리: 벨트에서 멀어지면 작게
+    const dist = Math.max(0, d.x - this.belt.x1);
+    Audio.setAmbLevel('conveyor', Phaser.Math.Clamp(1 - dist / 200, 0.35, 1));
+
+    // 들 곳 / 넣을 곳 표시 (지금 할 일만 반짝)
+    this.markT += dt;
+    const g = this.marks;
+    g.clear();
+    const blink = 0.55 + Math.sin(this.markT / 160) * 0.35;
+    if (!this.holding && this.belt.front()) {
+      const f = this.belt.front();
+      g.lineStyle(1, 0xffe066, blink);
+      g.strokeRect(f.x - f.parcelW / 2 - 3.5, f.y - 30.5, f.parcelW + 7, 33);
+      if (this.nearBelt()) this.arrowAt(g, f.x, f.y - 36, blink);
+    } else if (this.holding) {
+      g.lineStyle(1, 0xffe066, blink);
+      g.strokeRect(TRUCK.x + TRUCK.lip[0] + 0.5, this.truckY + TRUCK.lip[1] - 2.5, TRUCK.lip[2] - TRUCK.lip[0], 10);
+      this.arrowAt(g, this.lipX, this.hold.top + 6, blink);
+    }
 
     if (Input.justPressed('attack') || Input.justPressed('interact')) {
       Input.consumeAdvance();
-      this.tryGrab();
+      this.act();
     }
-    if (G.auto && this.boxes.some((b) => b.state === 'belt' && b.x >= ZONE.x0 + 8 && b.x <= ZONE.x1)) this.tryGrab();
-    if (G.auto && G.fast) {
-      this.spawnT = Math.min(this.spawnT, 50);
-      this.boxes.forEach((b) => { if (b.state === 'belt' && b.x < ZONE.x0) b.x = ZONE.x0 + 9; });
-    }
+    if (G.auto) this.act();
+  }
+
+  arrowAt(g, x, y, a) {
+    g.fillStyle(0xffe066, a);
+    g.fillTriangle(x - 5, y - 6, x + 5, y - 6, x, y);
+  }
+
+  autoDir() {
+    const goal = this.holding ? this.lipX : this.pickX;
+    if (!this.holding && !this.belt.front()) return 0;
+    return Math.abs(this.doyun.x - goal) < 6 ? 0 : Math.sign(goal - this.doyun.x);
   }
 }

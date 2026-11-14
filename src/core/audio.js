@@ -338,9 +338,42 @@ class AudioEngine {
       n.start(t, Math.random());
       n.stop(t + dur + 0.02);
     };
+    // 바람 소리: 띠 통과 잡음의 중심 주파수를 위로 쓸어 올림
+    const whoosh = (dur, vol, f1, f2) => {
+      const n = ctx.createBufferSource();
+      n.buffer = this.noiseBuffer;
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.Q.value = 1.4;
+      f.frequency.setValueAtTime(f1, t);
+      f.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      n.connect(f);
+      f.connect(g);
+      g.connect(this.sfxBus);
+      n.start(t, Math.random());
+      n.stop(t + dur + 0.02);
+    };
     switch (name) {
-      case 'swing': noise(0.09, 0.25, 1800, 0.8); break;
-      case 'hit': tone('square', 220, 90, 0.08, 0.2, 1200); noise(0.06, 0.3, 600); break;
+      case 'swing': whoosh(0.11, 0.28, 900, 3200); break;
+      case 'swingHeavy': whoosh(0.16, 0.36, 600, 2600); break;
+      // 둔탁한 타격음: 낮은 쿵 + 짧은 퍽
+      case 'hit': tone('sine', 150, 55, 0.12, 0.5); noise(0.07, 0.45, 700, 0.9); tone('square', 260, 120, 0.05, 0.08, 900); break;
+      // 3연타 마지막: 더 무겁게
+      case 'hitHeavy': tone('sine', 110, 38, 0.22, 0.7); noise(0.12, 0.55, 420, 0.8); noise(0.05, 0.3, 2200, 1.5); tone('square', 180, 70, 0.1, 0.12, 700); break;
+      // 패링 성공: 날카로운 금속음 (어긋난 배음이 길게 울림)
+      case 'parryClang': [1870, 2630, 3410, 4980].forEach((fq, i) => tone('sine', fq, fq * 0.995, 0.6 - i * 0.1, 0.14 - i * 0.02)); noise(0.04, 0.4, 5000, 1.2); tone('triangle', 900, 700, 0.08, 0.15); break;
+      // 패링 실패(너무 일찍): 짧고 둔한 소리
+      case 'parryFail': tone('triangle', 160, 110, 0.09, 0.22, 600); noise(0.05, 0.15, 300); break;
+      // 종이 상자: 들기(가벼운 바스락+퍽), 놓기(둔탁한 쿵)
+      case 'boxPick': noise(0.06, 0.25, 1400, 0.7); tone('sine', 180, 120, 0.06, 0.2); break;
+      case 'boxPut': tone('sine', 120, 55, 0.16, 0.55); noise(0.1, 0.35, 380, 0.7); noise(0.05, 0.12, 1800, 1); break;
+      // 튜토리얼 단계 성공
+      case 'success': tone('triangle', 660, null, 0.09, 0.14); setTimeout(() => this.sfx('success2'), 90); break;
+      case 'success2': tone('triangle', 990, null, 0.16, 0.14); break;
       case 'dash': noise(0.15, 0.2, 900, 0.6); break;
       case 'jump': tone('triangle', 260, 420, 0.08, 0.15); break;
       case 'parry': tone('square', 1200, 900, 0.18, 0.18, 4000); tone('sine', 2400, 2000, 0.25, 0.12); break;
@@ -460,44 +493,73 @@ class AudioEngine {
         break;
       }
       case 'conveyor': {
-        const rumble = loopNoise(this.brownBuffer, 'lowpass', 260);
+        // 컨베이어: 낮게 웅웅거리는 모터 + 일정한 간격으로 덜컥거리는 롤러.
+        // 멈추면(setConveyorRunning(false)) 롤러 소리는 끊기고 모터만 잦아든다. 크기는 setAmbLevel 로 (거리)
+        const motorBus = ctx.createGain();
+        motorBus.gain.value = 1;
+        motorBus.connect(out);
+        const rumble = loopNoise(this.brownBuffer, 'lowpass', 220);
         const rg = ctx.createGain();
-        rg.gain.value = 0.9;
+        rg.gain.value = 0.8;
         rumble.connect(rg);
-        rg.connect(out);
-        const motor = ctx.createOscillator();
-        motor.type = 'sawtooth';
-        motor.frequency.value = 58;
-        const mf = ctx.createBiquadFilter();
-        mf.type = 'lowpass';
-        mf.frequency.value = 160;
-        const mg = ctx.createGain();
-        mg.gain.value = 0.25;
-        motor.connect(mf);
-        mf.connect(mg);
-        mg.connect(out);
-        motor.start(t);
-        nodes.push(motor);
-        // 롤러 덜컹
+        rg.connect(motorBus);
+        [55, 110.5].forEach((fq, i) => {
+          const motor = ctx.createOscillator();
+          motor.type = i ? 'triangle' : 'sawtooth';
+          motor.frequency.value = fq;
+          const mf = ctx.createBiquadFilter();
+          mf.type = 'lowpass';
+          mf.frequency.value = 180;
+          const mg = ctx.createGain();
+          mg.gain.value = i ? 0.08 : 0.22;
+          // 살짝 떨리는 웅웅거림
+          const lfo = ctx.createOscillator();
+          lfo.frequency.value = 3.3 + i;
+          const lg = ctx.createGain();
+          lg.gain.value = 0.04;
+          lfo.connect(lg);
+          lg.connect(mg.gain);
+          lfo.start(t);
+          nodes.push(lfo);
+          motor.connect(mf);
+          mf.connect(mg);
+          mg.connect(motorBus);
+          motor.start(t);
+          nodes.push(motor);
+        });
+        // 롤러 덜컥: 낮은 쿵 + 금속 덜그럭, 두 번에 한 번 약하게
         let k = 0;
         timers.push(setInterval(() => {
-          if (!this.ready || this.silenced) return;
+          if (!this.ready || this.silenced || this.conveyorStopped) return;
           const tt = ctx.currentTime + 0.01;
+          const strong = (k++ % 2) === 0;
           const n = ctx.createBufferSource();
           n.buffer = this.noiseBuffer;
           const f = ctx.createBiquadFilter();
           f.type = 'bandpass';
-          f.frequency.value = (k++ % 2) ? 240 : 320;
-          f.Q.value = 2;
+          f.frequency.value = strong ? 420 : 620;
+          f.Q.value = 3;
           const g = ctx.createGain();
-          g.gain.setValueAtTime(0.35, tt);
-          g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.07);
+          g.gain.setValueAtTime(strong ? 0.4 : 0.22, tt);
+          g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.06);
           n.connect(f);
           f.connect(g);
           g.connect(out);
           n.start(tt, Math.random());
-          n.stop(tt + 0.1);
-        }, 450));
+          n.stop(tt + 0.08);
+          const o = ctx.createOscillator();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(strong ? 95 : 120, tt);
+          o.frequency.exponentialRampToValueAtTime(50, tt + 0.08);
+          const og = ctx.createGain();
+          og.gain.setValueAtTime(strong ? 0.35 : 0.15, tt);
+          og.gain.exponentialRampToValueAtTime(0.0001, tt + 0.1);
+          o.connect(og);
+          og.connect(out);
+          o.start(tt);
+          o.stop(tt + 0.12);
+        }, 380));
+        this.conveyorMotor = motorBus;
         level = 0.4;
         break;
       }
@@ -559,7 +621,25 @@ class AudioEngine {
         break;
     }
     out.gain.linearRampToValueAtTime(level, t + 1.2);
-    this.ambienceNodes[name] = { out, nodes, timers };
+    this.ambienceNodes[name] = { out, nodes, timers, level, mult: 1 };
+  }
+
+  // 배경 소리 하나의 크기 배율 (0~1). 예: 도윤이 컨베이어에서 멀어지면 작게
+  setAmbLevel(name, mult) {
+    const a = this.ambienceNodes[name];
+    if (!a || !this.ctx || Math.abs(a.mult - mult) < 0.01) return;
+    a.mult = mult;
+    const t = this.ctx.currentTime;
+    a.out.gain.cancelScheduledValues(t);
+    a.out.gain.setTargetAtTime(Math.max(0.0001, a.level * mult), t, 0.15);
+  }
+
+  // 컨베이어가 멈추면 롤러 소리를 끊고 모터를 잦아들게
+  setConveyorRunning(on) {
+    this.conveyorStopped = !on;
+    if (!this.ctx || !this.conveyorMotor) return;
+    const t = this.ctx.currentTime;
+    this.conveyorMotor.gain.setTargetAtTime(on ? 1 : 0.15, t, on ? 0.2 : 0.5);
   }
 
   stopAmb(name, fast = false) {

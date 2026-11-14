@@ -9,10 +9,14 @@
 //  - occluders: 앞 가림막. 배경에서 다각형(poly) 모양대로 오린 조각을 인물 위에 그린다
 //    png 가 있고 이름 속 해시가 poly 와 맞으면 그 PNG(assets/sprites/fg/), 아니면 실행 중에 배경을 오려 만든다
 //  - pitArt: 배경의 구덩이 그림 일부를 늘려서 더 넓은 구덩이로 그린다
+//  - walkers: 실외 행인. 화면 양 끝에서 나와 반대편으로 걸어 나가고 몇 초마다 새로 나온다 (부딪힘 없음)
+//    { every: [ms, ms], max, lanes: ["floor", "back"], types: [{ char | chars: [..], gap, speed: [min, max] }] }
+//    lane 에 dim(0~1) 을 주면 그 줄 인물을 그만큼 어둡게
 
 import { G } from '../core/state.js';
 import { objTexture } from '../core/sprites.js';
 import { CharSprite, UNIT } from './CharSprite.js';
+import { Conveyor } from './Conveyor.js';
 import { W, H, DEPTH, txt } from '../core/gfx.js';
 
 function col(hex) {
@@ -59,6 +63,9 @@ export class Stage {
     this.buildProps();
     this.buildActors();
     this.buildEffects();
+    this.buildConveyors();
+    this.walkers = [];
+    this.walkerT = 600;
     this.buildOccluders();
     if (def.tint) {
       this.tint = scene.add.rectangle(0, 0, W, H, col(def.tint.color), def.tint.alpha)
@@ -583,6 +590,73 @@ export class Stage {
 
   update(dt) {
     (this.updaters || []).forEach((f) => f(dt));
+    Object.values(this.conveyors || {}).forEach((c) => c.update(dt));
+    this.updateWalkers(dt);
+  }
+
+  // ---------- 행인 ----------
+  updateWalkers(dt) {
+    const wd = this.def.walkers;
+    if (!wd || G.edit) return;
+    this.walkerT -= dt;
+    if (this.walkerT > 0) return;
+    const [a, b] = wd.every || [2500, 5000];
+    this.walkerT = a + Math.random() * (b - a);
+    if (this.walkers.length >= (wd.max || 4)) return;
+    // 대본 속 인물이 화면에 나와 있으면 같은 인물(예: 대화하는 커플)은 행인으로 내지 않는다
+    const busy = new Set(Object.values(this.actors).filter((e) => e.cs.visible && e.cs.x > -20 && e.cs.x < this.width + 20).map((e) => e.def.char));
+    const types = (wd.types || []).filter((t) => !(t.chars || [t.char]).some((c) => busy.has(c)));
+    if (!types.length) return;
+    const t = types[Math.floor(Math.random() * types.length)];
+    const laneName = (wd.lanes || ['floor'])[Math.floor(Math.random() * (wd.lanes || ['floor']).length)];
+    this.spawnWalker(t, laneName);
+  }
+
+  spawnWalker(t, laneName) {
+    const s = this.scene;
+    const ln = this.lane(laneName);
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const [v0, v1] = t.speed || [35, 50];
+    const speed = (v0 + Math.random() * (v1 - v0)) * (s.unit || 2);
+    const chars = t.chars || [t.char];
+    const gap = (t.gap || 24) * (s.charScale || 1);
+    const fromX = dir > 0 ? -40 : this.width + 40;
+    const toX = dir > 0 ? this.width + 40 + gap * chars.length : -40 - gap * chars.length;
+    const group = { list: [] };
+    chars.forEach((c, i) => {
+      // 둘이면 나란히 (뒤 사람이 gap 만큼 뒤에서)
+      const x = fromX - dir * gap * i;
+      const cs = new CharSprite(s, x, ln.y, c, { depth: DEPTH.actor - 2 });
+      cs.laneName = ln.name;
+      cs.setDepth(cs.baseDepth + ln.depth);
+      if (ln.scale !== 1) cs.setLaneScale(ln.scale);
+      cs.lightMul = ln.dim != null ? ln.dim : 1;
+      cs.face(dir);
+      cs.play('walk');
+      const dur = (Math.abs(toX - x) / speed) * 1000;
+      s.tweens.add({
+        targets: { v: x },
+        v: toX - dir * gap * i,
+        duration: dur,
+        onUpdate: (tw, o) => cs.setPosition(o.v, ln.y),
+        onComplete: () => {
+          cs.destroy();
+          group.list = group.list.filter((q) => q !== cs);
+          if (!group.list.length) this.walkers = this.walkers.filter((w) => w !== group);
+        }
+      });
+      group.list.push(cs);
+    });
+    this.walkers.push(group);
+  }
+
+  // ---------- 컨베이어 ----------
+  buildConveyors() {
+    this.conveyors = {};
+    (this.def.conveyors || []).forEach((cd) => {
+      const c = new Conveyor(this.scene, cd);
+      this.conveyors[c.id] = c;
+    });
   }
 
   // 수확 직후 / 정적 연출 시 모든 반복 연출 정지

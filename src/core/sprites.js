@@ -73,6 +73,8 @@ export function processLoaded(scene, json) {
         const cx = (i % cols) * cw;
         const cy = Math.floor(i / cols) * ch;
         if (cx + cw <= canvas.width && cy + ch <= canvas.height) tex.add(i, 0, cx, cy, cw, ch);
+        // 칸 왼쪽에 붙은 실제 조각 폭(tileW)만큼 자른 프레임 't<번호>' (컨베이어 이어 붙이기용)
+        if (sheet.tileW) tex.add('t' + i, 0, cx, cy, sheet.tileW[i % cols], ch);
       }
     }
   });
