@@ -13,14 +13,19 @@ import { Audio } from '../core/audio.js';
 import { G } from '../core/state.js';
 import { DEPTH, FONT, txt, isSilentChar } from '../core/gfx.js';
 
-const BOX_W = 460;
-const BOX_H = 70;
-const PORTRAIT = 100; // 초상화 틀 (그림 96x96)
+// 배치 (480x270 화면 기준): 대화창은 좌우 여백 8, 높이 76.
+// 초상화 테두리는 대화창 안쪽 왼쪽에 대화창 높이와 같은 정사각형, 이름표는 위쪽 테두리에 걸쳐 초상화 오른쪽 위
+const BOX_X = 8;
+const BOX_W = 480 - 16;
+const BOX_H = 76;
+const NAME_H = 16;
 const LINES_PER_PAGE = 3;
 const LAYOUT = {
-  top: { boxY: 14, portraitY: 6, nameY: 2 },
-  bottom: { boxY: 192, portraitY: 166, nameY: 180 }
+  top: { boxY: 10 },
+  bottom: { boxY: 270 - BOX_H - 6 }
 };
+// 나인 슬라이스 모서리 크기 (그림 원본 기준)
+const SLICE = { ui_dialog_box: 6, ui_portrait_frame: 6, ui_nametag: 4 };
 
 function hexToInt(hex) {
   return Phaser.Display.Color.HexStringToColor(hex || '#888888').color;
@@ -60,12 +65,22 @@ export class DialogueBox {
     };
 
     this.bg = scene.add.graphics().setScrollFactor(0).setDepth(d);
-    this.boxImg = this.skin.box ? scene.add.image(0, 0, 'ui_dialog_box').setOrigin(0).setScrollFactor(0).setDepth(d) : null;
-    this.portraitImg = scene.add.image(0, 0, '__DEFAULT').setOrigin(0).setScrollFactor(0).setDepth(d + 1);
+    const nine = (key, depth) => {
+      // 모서리는 그대로 두고 가운데만 늘린다 (WebGL). 캔버스 렌더러면 그냥 늘린 그림
+      const c = SLICE[key];
+      const tex = scene.textures.get(key);
+      const src = tex.getSourceImage();
+      let o;
+      if (scene.sys.renderer.type === Phaser.WEBGL && scene.add.nineslice) o = scene.add.nineslice(0, 0, key, undefined, src.width, src.height, c, c, c, c);
+      else o = scene.add.image(0, 0, key);
+      return o.setOrigin(0).setScrollFactor(0).setDepth(depth);
+    };
+    this.boxImg = this.skin.box ? nine('ui_dialog_box', d) : null;
+    this.portraitImg = scene.add.image(0, 0, '__DEFAULT').setOrigin(0.5).setScrollFactor(0).setDepth(d + 1);
     this.frameG = scene.add.graphics().setScrollFactor(0).setDepth(d + 2);
-    this.frameImg = this.skin.frame ? scene.add.image(0, 0, 'ui_portrait_frame').setOrigin(0).setScrollFactor(0).setDepth(d + 2) : null;
+    this.frameImg = this.skin.frame ? nine('ui_portrait_frame', d + 2) : null;
     this.nameBg = scene.add.graphics().setScrollFactor(0).setDepth(d + 3);
-    this.nameImg = this.skin.name ? scene.add.image(0, 0, 'ui_nametag').setOrigin(0).setScrollFactor(0).setDepth(d + 3) : null;
+    this.nameImg = this.skin.name ? nine('ui_nametag', d + 3) : null;
     this.nameText = txt(scene, 0, 0, '', { depth: d + 4 });
     this.body = txt(scene, 0, 0, '', { depth: d + 4, lineSpacing: 3 });
     this.body.setPadding(0, 0, 6, 0);
@@ -113,16 +128,15 @@ export class DialogueBox {
 
   layout(pos, withPortrait) {
     const L = LAYOUT[pos] || LAYOUT.top;
-    const boxX = 10;
-    this.box = { x: boxX, y: L.boxY, w: BOX_W, h: BOX_H };
-    this.portraitPos = { x: 4, y: L.portraitY };
-    this.textX = withPortrait ? boxX + PORTRAIT + 6 : boxX + 12;
-    this.textW = boxX + BOX_W - 12 - this.textX;
-    this.nameX = withPortrait ? this.textX - 4 : boxX + 6;
-    this.nameY = L.nameY;
-    this.body.setPosition(this.textX, this.box.y + 8);
+    this.box = { x: BOX_X, y: L.boxY, w: BOX_W, h: BOX_H };
+    this.portraitPos = { x: BOX_X, y: L.boxY, size: BOX_H };
+    this.textX = withPortrait ? BOX_X + BOX_H + 8 : BOX_X + 10;
+    this.textW = BOX_X + BOX_W - 10 - this.textX;
+    this.nameX = withPortrait ? BOX_X + BOX_H + 2 : BOX_X + 6;
+    this.nameY = L.boxY - NAME_H / 2;
+    this.body.setPosition(this.textX, this.box.y + 12);
     this.measure.setWordWrapWidth(this.textW, true);
-    if (this.arrow.setPosition) this.arrow.setPosition(boxX + BOX_W - 16, this.box.y + BOX_H - 15);
+    if (this.arrow.setPosition) this.arrow.setPosition(BOX_X + BOX_W - 14, this.box.y + BOX_H - 12);
   }
 
   show(entry) {
@@ -147,6 +161,8 @@ export class DialogueBox {
     this.bg.clear();
     if (this.boxImg) {
       this.boxImg.setPosition(B.x, B.y);
+      if (this.boxImg.setSize && this.boxImg.type === 'NineSlice') this.boxImg.setSize(B.w, B.h);
+      else this.boxImg.setDisplaySize(B.w, B.h);
       this.boxImg.setTint(style === 'examine' ? 0xfff0c0 : style === 'thought' ? 0xc8d4f0 : 0xffffff);
     } else {
       this.bg.fillStyle(style === 'narration' ? 0x07080b : 0x0c0f16, style === 'narration' ? 0.86 : 0.9);
@@ -159,17 +175,25 @@ export class DialogueBox {
       }
     }
 
-    // 초상화
+    // 초상화: 대화창 높이에 맞춘 정사각형 테두리 안에, 그림은 그 안쪽에 맞춰 줄임
     this.frameG.clear();
     if (portrait) {
       const P = this.portraitPos;
-      this.portraitImg.setTexture(portrait.key, portrait.frame).setPosition(P.x + 2, P.y + 2);
+      const inner = P.size - 8;
+      this.portraitImg.setTexture(portrait.key, portrait.frame);
+      const fw = this.portraitImg.frame.width;
+      this.portraitImg.setScale(inner / fw).setPosition(P.x + P.size / 2, P.y + P.size / 2);
       this.portraitImg.setAlpha(style === 'thought' ? 0.7 : 1);
       if (this.frameImg) {
         this.frameImg.setPosition(P.x, P.y);
+        if (this.frameImg.type === 'NineSlice') this.frameImg.setSize(P.size, P.size);
+        else this.frameImg.setDisplaySize(P.size, P.size);
       } else {
+        this.frameG.fillStyle(0x0c0f16, 1);
+        this.frameG.fillRect(P.x, P.y, P.size, P.size);
         this.frameG.lineStyle(1, border, 1);
-        this.frameG.strokeRect(P.x + 0.5, P.y + 0.5, PORTRAIT - 1, PORTRAIT - 1);
+        this.frameG.strokeRect(P.x + 0.5, P.y + 0.5, P.size - 1, P.size - 1);
+        this.frameG.setDepth(this.depth + 0.5);
       }
     }
 
@@ -182,15 +206,17 @@ export class DialogueBox {
     this.nameText.setFontStyle(style === 'thought' ? 'italic' : 'normal');
     this.nameBg.clear();
     if (name) {
-      const nw = Math.max(80, Math.ceil(this.nameText.width) + 14);
-      this.nameText.setPosition(this.nameX + 7, this.nameY + 2);
+      const nw = Math.max(48, Math.ceil(this.nameText.width) + 16);
+      this.nameText.setPosition(this.nameX + 8, this.nameY + 2);
       if (this.nameImg) {
-        this.nameImg.setPosition(this.nameX, this.nameY).setDisplaySize(nw, 16);
+        this.nameImg.setPosition(this.nameX, this.nameY);
+        if (this.nameImg.type === 'NineSlice') this.nameImg.setSize(nw, NAME_H);
+        else this.nameImg.setDisplaySize(nw, NAME_H);
       } else {
         this.nameBg.fillStyle(0x0c0f16, 0.95);
-        this.nameBg.fillRect(this.nameX, this.nameY, nw, 16);
+        this.nameBg.fillRect(this.nameX, this.nameY, nw, NAME_H);
         this.nameBg.lineStyle(1, border, 1);
-        this.nameBg.strokeRect(this.nameX + 0.5, this.nameY + 0.5, nw - 1, 15);
+        this.nameBg.strokeRect(this.nameX + 0.5, this.nameY + 0.5, nw - 1, NAME_H - 1);
       }
     }
 

@@ -151,6 +151,7 @@ export class ShelfScene extends Phaser.Scene {
   }
 
   update() {
+    G.controls = true;
     if (this.locked) return;
     if (G.auto) {
       // 테스트용 자동 정렬

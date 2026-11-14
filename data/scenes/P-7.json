@@ -5,11 +5,14 @@
   "stage": {
     "bg": "bg_interview_room",
     "width": 480,
-    "floorY": 216,
+    "floorY": 223,
+    "charScale": 2.6,
+    "charTint": "#f8f9ff",
+    "charBrightness": 0.97,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
-    "player": {"x": 30, "facing": 1},
+    "player": {"x": 44, "facing": 1},
     "backdrop": [
       {"rect": [0, 0, 480, 216], "color": "#f1f3f5"},
       {"rect": [0, 216, 480, 54], "color": "#e3e6e9"},
@@ -23,21 +26,20 @@
       {"id": "desk", "ph": "ph_office_desk", "x": 240},
       {"id": "chair1", "ph": "ph_chair", "x": 130},
       {"id": "chair2", "ph": "ph_chair", "x": 348},
-      {"id": "cup", "obj": "water_cup", "x": 205, "y": 174, "visible": false, "depth": 12},
-      {"id": "case", "obj": "sample_case", "x": 262, "y": 174, "visible": false, "depth": 12},
-      {"id": "contract", "obj": "contract_doc", "x": 232, "y": 174, "visible": false, "depth": 12}
+      {"id": "cup", "obj": "water_cup", "x": 205, "y": 168, "visible": false, "depth": 12, "scale": 1, "keep": true},
+      {"id": "case", "obj": "sample_case", "x": 262, "y": 168, "visible": false, "depth": 12, "scale": 1, "keep": true},
+      {"id": "contract", "obj": "contract_doc", "x": 232, "y": 168, "visible": false, "depth": 12, "scale": 1, "keep": true}
     ],
     "actors": [
-      {"id": "yoon", "char": "yoon", "x": 348, "speaker": "윤 실장", "facing": -1}
+      {"id": "yoon", "char": "yoon", "x": 300, "speaker": "윤 실장", "facing": -1}
     ]
   },
   "steps": [
     {"type": "actor", "id": "yoon", "action": "anim", "name": "handshake"},
     {"type": "narration", "text": "하얀 방. 창밖으로 도시가 내려다보인다. 윤 실장이 일어나 손을 내민다."},
-    {"type": "player", "action": "move", "x": 132, "face": 1},
+    {"type": "player", "action": "move", "x": 250, "face": 1},
     {"type": "say", "speaker": "윤 실장", "text": "서도윤 씨. 반가워요. 윤서진입니다. 앉으세요.", "face": 1},
-    {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
-    {"type": "player", "action": "anim", "name": "sit_chair"},
+    {"type": "parallel", "steps": [{"type": "player", "action": "move", "x": 143, "face": 1, "anim": "sit_chair", "lift": 4, "speed": 50}, {"type": "actor", "id": "yoon", "action": "move", "x": 337, "face": -1, "anim": "sit", "lift": 4, "speed": 40}]},
     {"type": "say", "speaker": "윤 실장", "text": "커피 드릴까요? 녹차? 아, 그냥 물이 낫겠다. 긴장되시죠.", "face": 2},
     {"type": "actor", "id": "yoon", "action": "anim", "name": "pour"},
     {"type": "prop", "id": "cup", "action": "show"},
@@ -92,7 +94,7 @@
     {"type": "say", "speaker": "윤 실장", "text": "다른 질문은요?", "face": 1},
     {"type": "contract", "mode": "sign", "clauses": [{"id": "3", "text": "제3조(근무) 다이버는 회사가 배정한 대상자의 의식에 접속하여 기억 결정을 수확한다."}, {"id": "7", "text": "제7조(비밀 유지) 다이버는 대상자에게 수확 행위 및 대상자의 의학적 상태를 고지하여서는 아니 된다."}, {"id": "11", "text": "제11조(의료 지원) 회사는 다이버 및 직계 가족에게 제휴 의료기관 이용 시 본인 부담금을 지원한다. 단, 본 계약이 해지될 경우 지원은 즉시 종료되며, 기 지원분은 제14조에 따라 정산한다."}, {"id": "14", "text": "제14조(중도 해지) 다이버의 귀책 사유로 계약이 해지될 경우, 다이버는 입사 축하금, 의료 지원금 및 교육 비용 전액을 반환하여야 한다."}, {"id": "19", "text": "제19조(건강 관리) 장기 근속 다이버에게 일부 정서적 변화가 나타날 수 있으며, 회사는 이에 대해 정기 상담을 제공한다."}, {"id": "22", "text": "제22조(졸업) 다이버가 직무 수행 중 의식 저하에 이를 경우, 회사는 「수면위탁법」에 따른 상생 위탁 절차를 안내한다.", "examine": {"label": "제22조", "lines": ["졸업.", "무슨 뜻인지 모르겠다."]}}], "title": "[조작: 서명 — 화면을 길게 눌러 서명한다]", "lines": ["화면 길게 누르기 / Space 길게"], "duration": 2000, "decay": 0.35, "intro": [{"focus": "11", "text": "도윤이 계약서를 본다. 제11조를 다시 본다. '전액'."}, {"focus": "sign", "text": "그리고 서명란을 본다."}]},
     {"type": "prop", "id": "contract", "action": "hide"},
-    {"type": "actor", "id": "yoon", "action": "anim", "name": "handshake"},
+    {"type": "parallel", "steps": [{"type": "actor", "id": "yoon", "action": "move", "x": 300, "face": -1, "anim": "handshake", "lift": 0, "speed": 40}, {"type": "player", "action": "move", "x": 250, "face": 1, "lift": 0, "speed": 50}]},
     {"type": "say", "speaker": "윤 실장", "text": "(서류를 받아 들고, 진심으로 기뻐하며) 환영해요, 도윤 씨. 잘하실 거예요.", "face": 1},
     {"type": "wait", "ms": 600},
     {"type": "fade", "to": "black", "ms": 1000}

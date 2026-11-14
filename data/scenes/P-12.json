@@ -5,11 +5,14 @@
   "stage": {
     "bg": "bg_interview_room",
     "width": 480,
-    "floorY": 216,
+    "floorY": 223,
+    "charScale": 2.6,
+    "charTint": "#f8f9ff",
+    "charBrightness": 0.97,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
-    "player": {"x": 132, "facing": 1},
+    "player": {"x": 44, "facing": 1},
     "backdrop": [
       {"rect": [0, 0, 480, 216], "color": "#f1f3f5"},
       {"rect": [0, 216, 480, 54], "color": "#e3e6e9"},
@@ -25,12 +28,12 @@
       {"id": "chair2", "ph": "ph_chair", "x": 348}
     ],
     "actors": [
-      {"id": "yoon", "char": "yoon", "x": 348, "speaker": "윤 실장", "facing": -1}
+      {"id": "yoon", "char": "yoon", "x": 300, "speaker": "윤 실장", "facing": -1}
     ]
   },
   "steps": [
-    {"type": "player", "action": "anim", "name": "sit_chair"},
-    {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
+    {"type": "player", "action": "move", "x": 250, "face": 1},
+    {"type": "parallel", "steps": [{"type": "player", "action": "move", "x": 143, "face": 1, "anim": "sit_chair", "lift": 4, "speed": 50}, {"type": "actor", "id": "yoon", "action": "move", "x": 337, "face": -1, "anim": "sit", "lift": 4, "speed": 40}]},
     {"type": "say", "speaker": "윤 실장", "text": "수고하셨어요. 시뮬레이션 점수가 아주 좋아요. 반응 속도가 상위 10%예요.", "face": 1},
     {"type": "say", "speaker": "윤 실장", "text": "그래서 바로 실전 배정 들어가도 될 것 같아요. 원래는 일주일 더 교육하는데, 도윤 씨는 금요일까지 급하시잖아요.", "face": 2},
     {"type": "say", "speaker": "윤 실장", "text": "(태블릿을 넘겨준다) 첫 대상자예요.", "face": 1, "anim": "tablet"},
@@ -40,8 +43,7 @@
     {"type": "profile", "hide": true},
     {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
     {"type": "say", "speaker": "윤 실장", "text": "내일 아침 9시. 첫 다이브예요.", "face": 1},
-    {"type": "actor", "id": "yoon", "action": "move", "x": 300, "speed": 30, "face": -1, "anim": "handshake"},
-    {"type": "player", "action": "anim", "name": null},
+    {"type": "parallel", "steps": [{"type": "actor", "id": "yoon", "action": "move", "x": 300, "speed": 30, "face": -1, "anim": "handshake", "lift": 0}, {"type": "player", "action": "move", "x": 250, "face": 1, "lift": 0, "speed": 50}]},
     {"type": "narration", "text": "윤 실장이 일어나 다시 손을 내민다."},
     {"type": "say", "speaker": "윤 실장", "text": "그리고 도윤 씨. 입사 축하금은 방금 입금했어요.", "face": 4},
     {"type": "phone", "action": "bank", "kind": "입금", "title": "레테바이오(주) 3,000,000원", "lines": ["메모: 입사를 축하합니다"], "keep": true},

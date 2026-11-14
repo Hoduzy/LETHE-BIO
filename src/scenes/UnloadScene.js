@@ -11,11 +11,16 @@ import { W, H, txt, panel } from '../core/gfx.js';
 import { objTexture } from '../core/sprites.js';
 import { CharSprite } from '../world/CharSprite.js';
 
-const FLOOR = 216;
-const BELT_Y = 176;          // 벨트 윗면 (48px 도윤의 가슴 높이쯤)
+// bg_warehouse 기준: 바닥 y232, 컨베이어 윗면 y≈186, 트럭 짐칸 바닥 y≈205 (x 405~465)
+// 인물·상자 배율은 P-2 장면과 같은 1.55 (사람 키 약 170cm)
+const K = 1.55;
+const FLOOR = 232;
+const BELT_Y = 186;          // 벨트 윗면 (도윤의 가슴 높이쯤)
 const BELT_END = 250;
 const ZONE = { x0: 206, x1: 244 };
-const TRUCK_X0 = 352;        // 트럭 짐칸 안쪽 시작
+const TRUCK_X0 = 412;        // 트럭 짐칸 안쪽 시작
+const TRUCK_Y = 205;         // 짐칸 바닥
+const PILE_COLS = 4;
 
 export class UnloadScene extends Phaser.Scene {
   constructor() {
@@ -54,13 +59,13 @@ export class UnloadScene extends Phaser.Scene {
       g.lineBetween(0, FLOOR + 0.5, W, FLOOR + 0.5);
       this.add.image(404, FLOOR, 'ph_truck').setOrigin(0.5, 1).setDepth(1);
       // 함께 일하는 노동자 (extra_actions 1줄 젊은 노동자, 2줄 중년 여성 노동자)
-      new CharSprite(this, 120, FLOOR, 'extra_worker_older', { depth: 1 }).setAlpha(0.7).play('lift');
-      new CharSprite(this, 300, FLOOR, 'extra_worker_young', { depth: 1 }).setAlpha(0.7).play('carry');
+      new CharSprite(this, 120, FLOOR, 'extra_worker_older', { depth: 1, scale: K }).setAlpha(0.7).play('lift');
+      new CharSprite(this, 300, FLOOR, 'extra_worker_young', { depth: 1, scale: K }).setAlpha(0.7).play('carry');
     }
     // 컨베이어 다리
     const legs = this.add.graphics();
     legs.fillStyle(0x2c3138, 1);
-    [30, 110, 190].forEach((x) => legs.fillRect(x, BELT_Y + 12, 5, FLOOR - BELT_Y - 12));
+    if (!G.realSprites.has('bg_warehouse')) [30, 110, 190].forEach((x) => legs.fillRect(x, BELT_Y + 12, 5, FLOOR - BELT_Y - 12));
 
     this.flicker = this.add.rectangle(0, 0, W, H, 0x000000, 0).setOrigin(0).setDepth(50);
     this.time.addEvent({
@@ -77,7 +82,9 @@ export class UnloadScene extends Phaser.Scene {
     this.belt = this.add.graphics().setDepth(2);
     this.zoneG = this.add.graphics().setDepth(3);
     this.truckBoxes = this.add.graphics().setDepth(2);
-    this.doyun = new CharSprite(this, 270, FLOOR, 'doyun', { depth: 5 });
+    this.doyun = new CharSprite(this, 272, FLOOR, 'doyun', { depth: 5, scale: K });
+    // 창고 조명에 맞춘 색 (P-2 와 같은 값)
+    this.doyun.setLight(0xdcfbff, 0.72);
     this.doyun.face(-1);
 
     this.counter = txt(this, W - 10, 26, '', { origin: [1, 0], color: '#ffffff' }).setDepth(61);
@@ -97,7 +104,7 @@ export class UnloadScene extends Phaser.Scene {
 
   spawnBox() {
     const t = objTexture('parcel');
-    const b = this.add.image(-16, BELT_Y, t.key, t.frame).setOrigin(0.5, 1).setDepth(4);
+    const b = this.add.image(-16, BELT_Y, t.key, t.frame).setOrigin(0.5, 1).setDepth(4).setScale(K).setTint(0xb8c8c8);
     b.state = 'belt';
     this.boxes.push(b);
   }
@@ -124,8 +131,8 @@ export class UnloadScene extends Phaser.Scene {
       this.time.delayedCall(260, () => { d.play('idle'); d.face(-1); });
     });
     const slot = this.count;
-    const tx = TRUCK_X0 + (slot % 6) * 18;
-    const ty = FLOOR - 6 - Math.floor((slot % 30) / 6) * 16;
+    const tx = TRUCK_X0 + (slot % PILE_COLS) * 14;
+    const ty = TRUCK_Y - Math.floor((slot % 32) / PILE_COLS) * 11;
     const sx = box.x;
     const sy = box.y;
     this.tweens.addCounter({
@@ -135,7 +142,9 @@ export class UnloadScene extends Phaser.Scene {
       onUpdate: (tw) => {
         const p = tw.getValue();
         box.x = sx + (tx - sx) * p;
-        box.y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 44;
+        box.y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 50;
+        // 트럭 안쪽으로 들어갈수록 작게 (원근)
+        box.setScale(K + (1 - K) * p);
       },
       onComplete: () => {
         Audio.sfx('thud');
@@ -156,11 +165,11 @@ export class UnloadScene extends Phaser.Scene {
     // 실린 상자: 상자 그림(obj_prologue 8번 칸)을 쌓는다
     const t = objTexture('parcel');
     this.truckPile = this.truckPile || [];
-    while (this.truckPile.length < Math.min(this.count, 30)) {
+    while (this.truckPile.length < Math.min(this.count, 32)) {
       const i = this.truckPile.length;
-      const x = TRUCK_X0 + (i % 6) * 18;
-      const y = FLOOR - 6 - Math.floor(i / 6) * 16;
-      this.truckPile.push(this.add.image(x, y, t.key, t.frame).setOrigin(0.5, 1).setDepth(2));
+      const x = TRUCK_X0 + (i % PILE_COLS) * 14;
+      const y = TRUCK_Y - Math.floor(i / PILE_COLS) * 11;
+      this.truckPile.push(this.add.image(x, y, t.key, t.frame).setOrigin(0.5, 1).setDepth(2).setTint(0xb8c8c8));
     }
   }
 
@@ -171,18 +180,19 @@ export class UnloadScene extends Phaser.Scene {
   }
 
   update(time, dt) {
+    G.controls = true;
     const speed = 70 + Math.min(this.count, 30) * 0.7;
     this.beltOffset = (this.beltOffset + (speed * dt) / 1000) % 12;
     const g = this.belt;
     g.clear();
     g.fillStyle(0x3c4148, 1);
-    g.fillRect(0, BELT_Y, BELT_END, 12);
+    g.fillRect(0, BELT_Y, BELT_END, 8);
     g.lineStyle(1, 0x22262b, 1);
-    for (let x = -12 + this.beltOffset; x < BELT_END; x += 12) g.lineBetween(x, BELT_Y + 1, x, BELT_Y + 11);
+    for (let x = -12 + this.beltOffset; x < BELT_END; x += 12) g.lineBetween(x, BELT_Y + 1, x, BELT_Y + 7);
     this.zoneG.clear();
     const lit = this.boxes.some((b) => this.inZone(b));
     this.zoneG.lineStyle(1, lit ? 0xffe066 : 0x9a8a40, 1);
-    this.zoneG.strokeRect(ZONE.x0 - 14.5, BELT_Y - 30.5, ZONE.x1 - ZONE.x0 + 28, 42);
+    this.zoneG.strokeRect(ZONE.x0 - 16.5, BELT_Y - 34.5, ZONE.x1 - ZONE.x0 + 32, 44);
 
     // 상자는 끝없이 온다
     this.spawnT -= dt;
@@ -200,7 +210,7 @@ export class UnloadScene extends Phaser.Scene {
         this.tweens.add({
           targets: b,
           x: b.x + 18,
-          y: FLOOR,
+          y: FLOOR - 2,
           angle: 40,
           duration: 360,
           ease: 'Quad.in',

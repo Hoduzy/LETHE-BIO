@@ -5,11 +5,15 @@
   "stage": {
     "bg": "bg_convenience_store",
     "width": 480,
-    "floorY": 216,
+    "floorY": 236,
+    "charScale": 2.1,
+    "charTint": "#dcebff",
+    "charBrightness": 0.7,
     "bgColor": "#000000",
     "ambience": ["fridge"],
     "abilities": ["move"],
     "player": {"x": 160, "facing": -1},
+    "foreground": [[0, 178, 122, 70]],
     "backdrop": [
       {"rect": [0, 0, 480, 216], "color": "#d9dee2"},
       {"rect": [0, 0, 480, 20], "color": "#c4cacf"},
@@ -30,7 +34,7 @@
       {"id": "store_fridge2", "ph": "ph_store_fridge", "x": 466}
     ],
     "actors": [
-      {"id": "mingyu", "char": "mingyu", "x": 46, "speaker": "민규", "facing": 1},
+      {"id": "mingyu", "char": "mingyu", "x": 46, "y": 214, "speaker": "민규", "facing": 1},
       {"id": "customer", "char": "extra_customer", "x": 160, "visible": false},
       {"id": "drunk", "char": "extra_drunk", "x": 160, "visible": false}
     ]

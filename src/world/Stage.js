@@ -50,6 +50,11 @@ export class Stage {
     if (this.bgReal) {
       // 배경은 480x270 한 장. 장면 폭은 480 으로 맞춘다 (반복하지 않음)
       s.add.image(0, 0, def.bg).setOrigin(0).setDepth(DEPTH.backdrop);
+      // foreground: 배경의 일부(계산대 등)를 인물 위에 한 번 더 그려서, 인물이 그 뒤에 선 것처럼
+      (def.foreground || []).forEach((r) => {
+        const [x, y, w, h] = r.rect || r;
+        s.add.image(0, 0, def.bg).setOrigin(0).setCrop(x, y, w, h).setDepth(r.depth != null ? r.depth : DEPTH.actor + 2);
+      });
       return;
     }
     const g = s.add.graphics().setDepth(DEPTH.backdrop);
@@ -103,7 +108,13 @@ export class Stage {
       let obj;
       // visible: true 면 배경 그림이 있어도 상자를 그린다 (배경에 없는 장애물)
       if (this.bgReal && !so.visible) obj = s.add.rectangle(so.x, so.y || this.floorY, w, h, 0x000000, 0).setOrigin(0.5, 1);
-      else obj = s.add.image(so.x, so.y || this.floorY, so.ph).setOrigin(0.5, 1).setDepth(DEPTH.prop).setDisplaySize(w, h);
+      else if (this.bgReal) {
+        // 배경 그림의 하얀 상자와 같은 느낌으로 (회색 임시 도형 대신)
+        const y0 = so.y || this.floorY;
+        obj = s.add.rectangle(so.x, y0, w, h, 0xeef0f4, 1).setOrigin(0.5, 1).setStrokeStyle(1, 0xb4bac6).setDepth(DEPTH.prop);
+        s.add.rectangle(so.x, y0 - h, w - 2, Math.max(3, Math.round(h * 0.16)), 0xfafbfd, 1).setOrigin(0.5, 0).setDepth(DEPTH.prop + 0.1);
+        s.add.rectangle(so.x + w / 2 - 1, y0, Math.max(3, Math.round(w * 0.22)), h - 1, 0xdde0e7, 1).setOrigin(1, 1).setDepth(DEPTH.prop + 0.1);
+      } else obj = s.add.image(so.x, so.y || this.floorY, so.ph).setOrigin(0.5, 1).setDepth(DEPTH.prop).setDisplaySize(w, h);
       obj.__solidIndex = i;
       s.physics.add.existing(obj, true);
       this.solidGroup.add(obj);
@@ -117,11 +128,19 @@ export class Stage {
     const s = this.scene;
     const y = p.y != null ? p.y : this.floorY;
     let img;
-    if (p.obj) {
+    if (p.obj && this.bgReal && !p.keep) {
+      // 배경 그림에 이미 그려진 물건: 그리지 않고 살펴보기 영역만 남긴다
+      const t = objTexture(p.obj);
+      const fr = s.textures.getFrame(t.key, t.frame);
+      const k = s.charScale || 1;
+      img = s.add.image(p.x, y, 'px').setOrigin(0.5, 1).setDisplaySize(p.w || (fr ? fr.width * k : 24), p.h || (fr ? fr.height * k : 24)).setAlpha(0);
+      img.bgHidden = true;
+    } else if (p.obj) {
       const t = objTexture(p.obj);
       img = s.add.sprite(p.x, y, t.key, t.real && p.frame ? p.frame - 1 : t.frame).setOrigin(0.5, 1);
       if (t.real && t.anim && s.anims.exists(t.anim) && p.animate !== false) img.play(t.anim);
-      if (p.scale) img.setScale(p.scale);
+      // 손에 드는 물건은 인물과 같은 배율 (따로 정하면 그 값)
+      img.setScale(p.scale != null ? p.scale : (s.charScale || 1));
     } else if (p.ph) {
       if (this.bgReal) {
         // 배경에 이미 그려져 있다: 살펴보기/출구용이면 보이지 않는 영역만
@@ -342,8 +361,8 @@ export class Stage {
     const drop = s.add.sprite(x, top, dt.key, dt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false);
     const rt = objTexture('ripple');
     // 물결 칸은 양동이 전체 그림이므로 양동이와 같은 자리(바닥)에 겹친다
-    const bucket = Object.values(this.props).find((e) => e.def.obj === 'bucket');
-    const ripple = real ? s.add.sprite(bucket ? bucket.obj.x : x, bucket ? bucket.obj.y : this.floorY, rt.key, rt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false) : null;
+    const bucket = Object.values(this.props).find((e) => e.def.obj === 'bucket' && !e.obj.bgHidden);
+    const ripple = real && bucket ? s.add.sprite(bucket ? bucket.obj.x : x, bucket ? bucket.obj.y : this.floorY, rt.key, rt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false) : null;
     const fall = () => {
       if (!this.scene || !drop.active) return;
       drop.setPosition(x, top + 4).setVisible(true);

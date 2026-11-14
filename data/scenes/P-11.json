@@ -6,7 +6,10 @@
   "stage": {
     "bg": "bg_dive_room",
     "width": 480,
-    "floorY": 216,
+    "floorY": 214,
+    "charScale": 1.5,
+    "charTint": "#e7efff",
+    "charBrightness": 0.81,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
@@ -23,10 +26,10 @@
       {"text": "DIVE-04", "x": 435, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
     ],
     "props": [
-      {"id": "cap1", "obj": "capsule", "x": 107, "y": 202, "frame": 1},
-      {"id": "cap2", "obj": "capsule", "x": 217, "y": 202, "frame": 3},
-      {"id": "cap3", "obj": "capsule", "x": 327, "y": 202, "frame": 3},
-      {"id": "cap4", "obj": "capsule", "x": 435, "y": 202, "frame": 1},
+      {"id": "cap1", "obj": "capsule", "x": 107, "y": 202, "frame": 1, "scale": 1},
+      {"id": "cap2", "obj": "capsule", "x": 217, "y": 202, "frame": 3, "scale": 1, "keep": true},
+      {"id": "cap3", "obj": "capsule", "x": 327, "y": 202, "frame": 3, "scale": 1, "keep": true},
+      {"id": "cap4", "obj": "capsule", "x": 435, "y": 202, "frame": 1, "scale": 1},
       {"id": "mon1", "ph": "ph_monitor", "x": 63, "y": 160},
       {"id": "mon2", "ph": "ph_monitor", "x": 173, "y": 160},
       {"id": "mon3", "ph": "ph_monitor", "x": 283, "y": 160},

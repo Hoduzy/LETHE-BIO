@@ -37,7 +37,7 @@ html, body {
   justify-content: center;
 }
 
-body.has-touch #game {
+body.touch-bottom #game {
   align-items: flex-start;
   padding-top: env(safe-area-inset-top);
 }
@@ -74,65 +74,69 @@ body.has-touch #game {
   position: absolute;
   left: calc(24px + env(safe-area-inset-left));
   bottom: calc(24px + env(safe-area-inset-bottom));
-  width: 150px;
-  height: 150px;
+  width: var(--pad, 150px);
+  height: var(--pad, 150px);
   border-radius: 50%;
   pointer-events: auto;
   touch-action: none;
+  opacity: var(--op, 0.45);
 }
 #touch .pad-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
 }
 #touch .knob {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 60px;
-  height: 60px;
-  margin: -30px 0 0 -30px;
+  left: 30%;
+  top: 30%;
+  width: 40%;
+  height: 40%;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.7);
 }
 
 #touch .btns {
   position: absolute;
   right: calc(20px + env(safe-area-inset-right));
   bottom: calc(20px + env(safe-area-inset-bottom));
-  width: 190px;
-  height: 190px;
+  width: var(--btns, 190px);
+  height: var(--btns, 190px);
+  opacity: var(--op, 0.45);
 }
+/* 대사·휴대폰·계약서·정산 중에는 패드와 버튼을 숨긴다 (아무 곳이나 탭하면 넘어감) */
+#touch.idle .pad, #touch.idle .btns { display: none; }
 #touch .tbtn {
   position: absolute;
-  width: 74px;
-  height: 74px;
+  width: calc(74px * var(--k, 1));
+  height: calc(74px * var(--k, 1));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 14px;
+  font-size: calc(14px * var(--k, 1));
   line-height: 1.1;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.10);
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   pointer-events: auto;
   touch-action: none;
 }
 #touch .tbtn.on { background: rgba(255, 255, 255, 0.35); }
-#touch .b-attack   { left: 0;    bottom: 0;   width: 88px; height: 88px; font-size: 16px; }
+#touch .b-attack   { left: 0;    bottom: 0;   width: calc(88px * var(--k, 1)); height: calc(88px * var(--k, 1)); font-size: calc(16px * var(--k, 1)); }
 #touch .b-dash     { right: 0;   bottom: 0; }
 #touch .b-parry    { left: 0;    top: 0; }
 #touch .b-interact { right: 0;   top: 0; }
 #touch .b-menu {
   left: auto;
   right: calc(4px + env(safe-area-inset-right));
-  bottom: calc(220px + env(safe-area-inset-bottom));
-  top: auto;
+  top: calc(4px + env(safe-area-inset-top));
+  bottom: auto;
+  opacity: 0.6;
   width: 44px;
   height: 44px;
   font-size: 20px;
@@ -168,6 +172,11 @@ body.has-touch #game {
 }
 #editbar button.copy { background: #2f5e9e; border-color: #8fb8ff; }
 #editbar .info { color: #9fb0c8; font-size: 13px; }
+#editbar .sliders { display: flex; flex-wrap: wrap; gap: 4px 12px; width: 100%; font-size: 13px; }
+#editbar .sliders label { display: flex; align-items: center; gap: 4px; }
+#editbar .sliders input[type=range] { width: 110px; }
+#editbar .sliders input[type=color] { width: 36px; height: 26px; padding: 0; border: none; background: none; }
+#editbar .sliders b { font-weight: normal; color: #f0dc8c; min-width: 30px; }
 .edit-toast {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
   z-index: 30; padding: 10px 14px; background: rgba(20, 40, 30, 0.95);

@@ -2,7 +2,8 @@
 //  - 그림 시트가 있으면 data/sprites.json 의 동작 이름으로 Phaser 애니메이션을 재생
 //  - 없으면 임시 도형을 살짝 움직여(기울이기·눕히기·흔들기 등) 동작을 대신
 //  - physics: true 면 보이지 않는 충돌 상자(zone)를 따로 두고, 그림은 매 프레임 그 발밑을 따라간다
-//    (임시 도형을 눕히거나 크기를 바꿔도 충돌 상자가 흔들리지 않게)
+//  - 장면 배율(scene.charScale): 그림·충돌 상자 모두 같은 배율 (확대는 nearest 라 픽셀이 뭉개지지 않음)
+//  - 장면 조명(charTint·charBrightness·lightZones): setLight() 로 받은 색을 곱한다. 초상화에는 적용 안 함
 
 import { G } from '../core/state.js';
 import { DEPTH } from '../core/gfx.js';
@@ -14,29 +15,36 @@ export class CharSprite {
     this.def = G.spriteData.characters[id] || G.spriteData.characters.doyun;
     const [cw, ch] = this.def.cell || [64, 64];
     this.cell = [cw, ch];
+    this.k = opts.scale != null ? opts.scale : (scene.charScale || 1);
     this.facesLeft = this.def.faces === 'left';
     this.anims = this.def.anims || {};
     this.realAny = Object.keys(this.anims).some((n) => !!this.resolve(n));
 
     const start = this.startTexture();
     this.sprite = scene.add.sprite(x, y, start.key, start.frame).setOrigin(0.5, 1).setDepth(opts.depth != null ? opts.depth : DEPTH.actor);
+    this.sprite.setScale(this.k);
     this.facing = 1;
     this.pose = null;
     this.poseTweens = [];
     this.baseY = y;
     this.lyingOffset = 0;
     this.liftY = 0; // 캡슐 위처럼 바닥보다 높이 눕힐 때
+    this.lightColor = 0xffffff;
+    this.lightBright = 1;
+    this.flashing = false;
 
     if (opts.physics) {
       const [bw, bh] = this.def.body || [20, 46];
-      this.bw = bw;
-      this.bh = bh;
-      this.zone = scene.add.zone(x, y - bh / 2, bw, bh);
+      this.bw = Math.round(bw * this.k);
+      this.bh = Math.round(bh * this.k);
+      this.zone = scene.add.zone(x, y - this.bh / 2, this.bw, this.bh);
       scene.physics.add.existing(this.zone);
       this.body = this.zone.body;
       scene.events.on('postupdate', this.sync, this);
       this.sprite.once('destroy', () => scene.events.off('postupdate', this.sync, this));
     }
+    // 장면 조명 대상으로 등록
+    if (scene.lightTargets && opts.light !== false) scene.lightTargets.push(this);
     this.play('idle');
   }
 
@@ -68,12 +76,12 @@ export class CharSprite {
 
   setPosition(x, y) {
     if (this.zone) {
-      this.body.reset(x, y - this.bh / 2);
+      this.body.reset(x, (y != null ? y : this.y) - this.bh / 2);
     } else {
       this.sprite.x = x;
       if (y != null) {
         this.baseY = y;
-        this.sprite.y = y - this.lyingOffset;
+        this.sprite.y = y - this.lyingOffset - this.liftY;
       }
     }
     this.sync();
@@ -85,6 +93,14 @@ export class CharSprite {
     this.sprite.y = Math.round(this.zone.y + this.bh / 2 - this.lyingOffset - this.liftY);
   }
 
+  // 바닥보다 높이 (의자 좌판에 앉기, 캡슐 위에 눕기). 배경 좌표 기준 px
+  setLift(v) {
+    this.liftY = v || 0;
+    if (this.zone) this.sync();
+    else this.sprite.y = Math.round(this.baseY - this.lyingOffset - this.liftY);
+    return this;
+  }
+
   setVisible(v) { this.sprite.setVisible(v); return this; }
   get visible() { return this.sprite.visible; }
   setDepth(d) { this.sprite.setDepth(d); return this; }
@@ -94,6 +110,48 @@ export class CharSprite {
     this.facing = dir < 0 ? -1 : 1;
     this.sprite.setFlipX(this.facesLeft ? this.facing > 0 : this.facing < 0);
     if (this.pose && ['lean', 'swing', 'hurt', 'bow', 'bowhead'].includes(this.pose)) this.applyPose(this.pose);
+  }
+
+  // ---------- 조명 ----------
+  // color: 곱하기 색, bright: 0.5~1.2 (1보다 크면 밝게 — WebGL 색 행렬 사용)
+  setLight(color, bright) {
+    this.lightColor = color;
+    this.lightBright = bright;
+    this.restoreTint();
+  }
+
+  restoreTint() {
+    const s = this.sprite;
+    if (!s.active || this.flashing) return;
+    const b = Math.min(1, this.lightBright);
+    const r = Math.round(((this.lightColor >> 16) & 255) * b);
+    const g = Math.round(((this.lightColor >> 8) & 255) * b);
+    const bl = Math.round((this.lightColor & 255) * b);
+    const c = (r << 16) | (g << 8) | bl;
+    if (c === 0xffffff) s.clearTint();
+    else s.setTint(c);
+    if (s.preFX) {
+      if (this.lightBright > 1.001) {
+        if (!this.cm) this.cm = s.preFX.addColorMatrix();
+        this.cm.brightness(this.lightBright);
+      } else if (this.cm) {
+        this.cm.reset();
+      }
+    }
+  }
+
+  // 맞았을 때 하얗게 번쩍
+  flash(ms = 70) {
+    const s = this.sprite;
+    this.flashing = true;
+    s.setTintFill(0xffffff);
+    this.scene.time.delayedCall(ms, () => {
+      this.flashing = false;
+      if (s.active) {
+        s.clearTint();
+        this.restoreTint();
+      }
+    });
   }
 
   has(name) {
@@ -129,11 +187,12 @@ export class CharSprite {
     this.poseTweens.forEach((t) => t.stop());
     this.poseTweens = [];
     const s = this.sprite;
-    s.setAngle(0).setScale(1).clearTint();
+    s.setAngle(0).setScale(this.k);
+    this.restoreTint();
     s.setOrigin(0.5, 1);
     if (this.lyingOffset) {
       this.lyingOffset = 0;
-      if (!this.zone) s.y = this.baseY;
+      if (!this.zone) s.y = this.baseY - this.liftY;
     }
     this.pose = null;
   }
@@ -141,6 +200,7 @@ export class CharSprite {
   applyPose(pose) {
     const s = this.sprite;
     const sc = this.scene;
+    const k = this.k;
     const keepLie = this.pose === 'lie' && pose === 'lie';
     if (!keepLie) this.clearPose();
     this.pose = pose;
@@ -152,27 +212,25 @@ export class CharSprite {
     };
     switch (pose) {
       case 'bob':
-        tw({ targets: s, scaleY: 1.06, duration: 130, yoyo: true, repeat: -1 });
+        tw({ targets: s, scaleY: k * 1.06, duration: 130, yoyo: true, repeat: -1 });
         break;
       case 'lie': {
         // 발밑 기준으로 눕힌다: 몸 가운데를 축으로 90도 돌리고 바닥 위로 올린다
-        const [cw, ch] = this.cell;
+        const ch = this.cell[1];
         const ph = this.def.placeholder || { w: 20, h: 48 };
-        const cy = (ch - ph.h / 2) / ch;
-        s.setOrigin(0.5, cy).setAngle(-90);
-        this.lyingOffset = Math.round(ph.w / 2);
+        s.setOrigin(0.5, (ch - ph.h / 2) / ch).setAngle(-90);
+        this.lyingOffset = Math.round((ph.w / 2) * k);
         if (!this.zone) s.y = this.baseY - this.lyingOffset;
-        void cw;
         break;
       }
       case 'rise':
         s.setOrigin(0.5, 1).setAngle(-60);
         return new Promise((res) => tw({ targets: s, angle: 0, duration: 600, ease: 'Sine.out', onComplete: res }));
       case 'sit':
-        s.setScale(1, 0.7);
+        s.setScale(k, k * 0.7);
         break;
       case 'crouch':
-        s.setScale(1, 0.85);
+        s.setScale(k, k * 0.85);
         break;
       case 'lean':
         s.setAngle(12 * f);
@@ -184,7 +242,7 @@ export class CharSprite {
         s.setAngle(5 * f);
         break;
       case 'raise':
-        s.setScale(1, 1.05);
+        s.setScale(k, k * 1.05);
         break;
       case 'swing':
         return new Promise((res) => tw({ targets: s, angle: 16 * f, duration: 80, yoyo: true, onComplete: res }));
@@ -203,6 +261,10 @@ export class CharSprite {
 
   destroy() {
     this.clearPose();
+    if (this.scene.lightTargets) {
+      const i = this.scene.lightTargets.indexOf(this);
+      if (i >= 0) this.scene.lightTargets.splice(i, 1);
+    }
     this.sprite.destroy();
     if (this.zone) this.zone.destroy();
   }

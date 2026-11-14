@@ -76,6 +76,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   update() {
+    G.controls = false;
     if (this.leaving) return;
     if (this.pendingAct) {
       const a = this.pendingAct;

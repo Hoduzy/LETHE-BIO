@@ -5,7 +5,10 @@
   "stage": {
     "bg": "bg_locker_room",
     "width": 480,
-    "floorY": 216,
+    "floorY": 222,
+    "charScale": 1.95,
+    "charTint": "#f4f5ff",
+    "charBrightness": 0.67,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],

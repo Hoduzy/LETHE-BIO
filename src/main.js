@@ -3,7 +3,7 @@ import { W, H } from './core/gfx.js';
 import { G } from './core/state.js';
 import { Input } from './core/input.js';
 import { Audio } from './core/audio.js';
-import { setupTouch } from './core/touch.js';
+import { setupTouch, syncTouchVisibility, layoutTouch } from './core/touch.js';
 import { BootScene } from './scenes/BootScene.js';
 import { MenuScene } from './scenes/MenuScene.js';
 import { StoryScene } from './scenes/StoryScene.js';
@@ -59,7 +59,10 @@ async function start() {
   window.__game = game;
   window.__audio = Audio;
 
-  const onResize = () => game.scale.setZoom(calcZoom());
+  const onResize = () => {
+    game.scale.setZoom(calcZoom());
+    layoutTouch();
+  };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
 
@@ -67,7 +70,10 @@ async function start() {
     Input.install(game.canvas);
   });
   // 프레임마다 "방금 눌림" 상태 초기화
-  game.events.on('poststep', () => Input.endFrame());
+  game.events.on('poststep', () => {
+    Input.endFrame();
+    syncTouchVisibility();
+  });
 
   Audio.installUnlock();
   if (G.edit) {

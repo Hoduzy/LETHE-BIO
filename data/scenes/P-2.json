@@ -5,7 +5,10 @@
   "stage": {
     "bg": "bg_warehouse",
     "width": 480,
-    "floorY": 216,
+    "floorY": 232,
+    "charScale": 1.55,
+    "charTint": "#dcfbff",
+    "charBrightness": 0.64,
     "bgColor": "#000000",
     "ambience": ["conveyor"],
     "abilities": ["move"],

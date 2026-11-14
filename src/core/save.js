@@ -34,7 +34,9 @@ export const DEFAULT_SETTINGS = {
   voice: true,          // 대사 효과음 켜기/끄기
   voiceVolume: 0.7,     // 대사 효과음 음량 0~1
   ambienceVolume: 0.6,  // 배경 소리 음량 0~1
-  sfxVolume: 0.7        // 효과음 음량 0~1
+  sfxVolume: 0.7,       // 효과음 음량 0~1
+  ctrlSize: 'normal',   // 터치 조작 크기 small / normal / large
+  ctrlOpacity: 0.45     // 화면 위에 겹칠 때 터치 조작 불투명도
 };
 
 export const Save = {

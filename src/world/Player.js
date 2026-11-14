@@ -29,9 +29,11 @@ export class Player {
     this.cs = new CharSprite(scene, x, y, charId, { physics: true, depth: DEPTH.player });
     this.sprite = this.cs.sprite;
     this.body = this.cs.body;
-    this.body.setGravityY(MOVE.gravity);
-    this.body.setMaxVelocityY(900);
-    this.speed = opts.speed || (this.dive ? MOVE.run : MOVE.walk);
+    // 장면 배율: 속도·중력·점프·대시·공격 범위를 모두 같은 배율로 (점프 높이·거리도 배율만큼, 체공 시간은 그대로)
+    const k = this.k = this.cs.k;
+    this.body.setGravityY(MOVE.gravity * k);
+    this.body.setMaxVelocityY(900 * k);
+    this.speed = (opts.speed || (this.dive ? MOVE.run : MOVE.walk)) * k;
     this.facing = opts.facing || 1;
     this.cs.face(this.facing);
 
@@ -53,7 +55,7 @@ export class Player {
     // 그림이 없을 때만 손에 리퍼를 그린다
     const diverReal = Object.values(this.cs.anims).some(([k]) => this.cs.realSheet(k));
     if (this.cs.def.reaper && !diverReal) {
-      this.reaper = scene.add.image(x, y, 'ph_reaper').setOrigin(0.5, 0.9).setDepth(DEPTH.player + 1);
+      this.reaper = scene.add.image(x, y, 'ph_reaper').setOrigin(0.5, 0.9).setScale(this.cs.k).setDepth(DEPTH.player + 1);
       this.swingAngle = 0;
     }
     this.fx = scene.add.graphics().setDepth(DEPTH.fx);
@@ -117,7 +119,7 @@ export class Player {
   knock(dir) {
     this.stun = 360;
     this.actionLock = 360;
-    this.body.setVelocity(dir * 200, -220);
+    this.body.setVelocity(dir * 200 * this.k, -220 * this.k);
     this.cs.current = null;
     this.cs.play('hurt');
     Audio.sfx('hit');
@@ -149,7 +151,7 @@ export class Player {
     // 대시 중
     if (this.dashTime > 0) {
       this.dashTime -= dt;
-      b.setVelocity(this.facing * MOVE.dashV, 0);
+      b.setVelocity(this.facing * MOVE.dashV * this.k, 0);
       if (Math.random() < 0.6) this.afterImage();
       if (this.dashTime <= 0) {
         b.setAllowGravity(true);
@@ -173,7 +175,7 @@ export class Player {
 
     if (canAct) {
       if (this.abilities.has('jump') && Input.justPressed('up') && grounded) {
-        b.setVelocityY(-MOVE.jumpV);
+        b.setVelocityY(-MOVE.jumpV * this.k);
         Audio.sfx('jump');
       }
       if (this.abilities.has('dash') && Input.justPressed('dash') && this.dashCooldown <= 0 && (grounded || !this.airDashUsed)) {
@@ -236,8 +238,8 @@ export class Player {
         onComplete: () => { this.swingAngle = 0; }
       });
     }
-    const reach = step === 3 ? MOVE.reach3 : MOVE.reach;
-    const hitbox = new Phaser.Geom.Rectangle(this.facing > 0 ? this.x : this.x - reach, this.y - 46, reach, 48);
+    const reach = (step === 3 ? MOVE.reach3 : MOVE.reach) * this.k;
+    const hitbox = new Phaser.Geom.Rectangle(this.facing > 0 ? this.x : this.x - reach, this.y - 46 * this.k, reach, 48 * this.k);
     if (!this.cs.has('attack' + step)) {
       // 임시 궤적
       const g = this.fx;
@@ -246,7 +248,7 @@ export class Player {
       g.beginPath();
       const a0 = this.facing > 0 ? -1.2 : Math.PI + 1.2;
       const a1 = this.facing > 0 ? 1.0 : Math.PI - 1.0;
-      g.arc(this.x, this.y - 24, reach - 6, Math.min(a0, a1), Math.max(a0, a1), false);
+      g.arc(this.x, this.y - 24 * this.k, reach - 6 * this.k, Math.min(a0, a1), Math.max(a0, a1), false);
       g.strokePath();
       this.scene.time.delayedCall(90, () => g.clear());
     }
@@ -255,20 +257,20 @@ export class Player {
 
   parryFlash() {
     if (this.cs.has('parry')) return;
-    const ring = this.scene.add.circle(this.x + this.facing * 8, this.y - 26, 8, 0xffffff, 0).setStrokeStyle(1, 0xffffff, 1).setDepth(DEPTH.fx);
-    this.scene.tweens.add({ targets: ring, radius: 26, alpha: 0, duration: 260, onComplete: () => ring.destroy() });
+    const ring = this.scene.add.circle(this.x + this.facing * 8 * this.k, this.y - 26 * this.k, 8 * this.k, 0xffffff, 0).setStrokeStyle(1, 0xffffff, 1).setDepth(DEPTH.fx);
+    this.scene.tweens.add({ targets: ring, radius: 26 * this.k, alpha: 0, duration: 260, onComplete: () => ring.destroy() });
   }
 
   afterImage() {
     const s = this.sprite;
-    const ghost = this.scene.add.image(s.x, s.y, s.texture.key, s.frame.name).setOrigin(0.5, 1).setAlpha(0.4).setTint(0x9fc0ff).setDepth(DEPTH.player - 1);
+    const ghost = this.scene.add.image(s.x, s.y, s.texture.key, s.frame.name).setOrigin(0.5, 1).setScale(this.k).setAlpha(0.4).setTint(0x9fc0ff).setDepth(DEPTH.player - 1);
     ghost.setFlipX(s.flipX);
     this.scene.tweens.add({ targets: ghost, alpha: 0, duration: 200, onComplete: () => ghost.destroy() });
   }
 
   updateReaper() {
     if (!this.reaper) return;
-    this.reaper.setPosition(this.x + this.facing * 10, this.y - 18);
+    this.reaper.setPosition(this.x + this.facing * 10 * this.k, this.y - 18 * this.k);
     this.reaper.setAngle(this.facing * (25 + this.swingAngle));
     this.reaper.setVisible(this.cs.visible && !this.override);
   }

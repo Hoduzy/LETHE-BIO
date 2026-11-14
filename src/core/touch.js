@@ -2,16 +2,96 @@
 // Pointer Events + setPointerCapture 로 멀티터치를 처리한다.
 
 import { Input } from './input.js';
+import { G } from './state.js';
+import { Save } from './save.js';
+
+// 조작 크기 (작게/보통/크게)
+const SIZE = { small: 0.75, normal: 1, large: 1.3 };
+const PAD = 150;     // 패드 지름 (보통)
+const BTNS = 190;    // 버튼 묶음 한 변 (보통)
+const GAP = 16;
+
+let rootEl = null;
+let lastShown = null;
+
+// 게임 화면(canvas)이 차지하는 영역을 보고 패드·버튼 자리를 정한다
+//  1) 좌우 검은 여백이 넉넉하면: 화면 가운데, 패드는 왼쪽 여백·버튼은 오른쪽 여백
+//  2) 아래 여백이 넉넉하면: 화면을 위에 붙이고 아래 여백 양쪽 끝
+//  3) 둘 다 좁으면: 화면 위에 반투명(기본 0.45)으로 겹친다
+export function layoutTouch() {
+  const root = rootEl;
+  if (!root || root.classList.contains('hidden')) {
+    document.body.classList.remove('touch-bottom');
+    return;
+  }
+  const st = Save.settings();
+  const k = SIZE[st.ctrlSize] || 1;
+  const pad = Math.round(PAD * k);
+  const btns = Math.round(BTNS * k);
+  root.style.setProperty('--pad', pad + 'px');
+  root.style.setProperty('--btns', btns + 'px');
+  root.style.setProperty('--k', k);
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const game = G.phaser;
+  const zoom = game ? game.scale.zoom : 1;
+  const cw = 480 * zoom;
+  const ch = 270 * zoom;
+  const side = (vw - cw) / 2;
+  const need = Math.max(pad, btns) + GAP * 2;
+  let mode = 'overlay';
+  if (side >= need) mode = 'side';
+  else if (vh - ch >= Math.max(pad, btns) + GAP * 2) mode = 'bottom';
+  document.body.classList.toggle('touch-bottom', mode === 'bottom');
+  root.dataset.mode = mode;
+  const op = st.ctrlOpacity != null ? st.ctrlOpacity : 0.45;
+  root.style.setProperty('--op', mode === 'overlay' ? op : Math.max(op, 0.85));
+  const padEl = root.querySelector('.pad');
+  const btnEl = root.querySelector('.btns');
+  if (mode === 'side') {
+    padEl.style.left = Math.round((side - pad) / 2) + 'px';
+    btnEl.style.right = Math.round((side - btns) / 2) + 'px';
+    padEl.style.bottom = Math.round((vh - ch) / 2 + ch * 0.12) + 'px';
+    btnEl.style.bottom = Math.round((vh - ch) / 2 + ch * 0.08) + 'px';
+  } else {
+    padEl.style.left = '';
+    btnEl.style.right = '';
+    padEl.style.bottom = '';
+    btnEl.style.bottom = '';
+  }
+}
+
+// 대사·휴대폰·계약서·살펴보기 글·정산 중에는 패드와 버튼을 숨긴다 (G.controls 가 거짓일 때)
+export function syncTouchVisibility() {
+  if (!rootEl) return;
+  const on = G.controls !== false;
+  if (on === lastShown) return;
+  lastShown = on;
+  rootEl.classList.toggle('idle', !on);
+}
 
 export function setupTouch() {
   const root = document.getElementById('touch');
   if (!root) return;
+  rootEl = root;
 
   const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
   // 터치 조작이 보일 때는 게임 화면을 위쪽에 붙여서, 아래 남는 공간에 패드와 버튼이 겹치지 않게 놓는다
-  const show = () => { root.classList.remove('hidden'); document.body.classList.add('has-touch'); window.dispatchEvent(new Event('resize')); };
-  const hide = () => { root.classList.add('hidden'); document.body.classList.remove('has-touch'); window.dispatchEvent(new Event('resize')); };
+  const show = () => {
+    if (!root.classList.contains('hidden')) return;
+    root.classList.remove('hidden');
+    document.body.classList.add('has-touch');
+    window.dispatchEvent(new Event('resize'));
+  };
+  const hide = () => {
+    if (root.classList.contains('hidden')) return;
+    root.classList.add('hidden');
+    document.body.classList.remove('has-touch');
+    window.dispatchEvent(new Event('resize'));
+  };
   if (isTouch) show();
+  window.addEventListener('resize', () => setTimeout(layoutTouch, 0));
+  setTimeout(layoutTouch, 0);
   // 터치하면 보이고, 키보드를 쓰면 숨긴다
   window.addEventListener('touchstart', show, { passive: true });
   window.addEventListener('keydown', (e) => {

@@ -10,6 +10,9 @@
     "bg": "bg_simulation",
     "width": 480,
     "floorY": 216,
+    "charScale": 1.0,
+    "charTint": "#ffffff",
+    "charBrightness": 1.0,
     "bgColor": "#000000",
     "ambience": [],
     "abilities": ["move", "jump", "dash", "attack", "parry"],
@@ -35,7 +38,7 @@
       {"ph": "ph_sim_box", "x": 250, "visible": true}
     ],
     "props": [
-      {"id": "crystal", "obj": "crystal_gray", "x": 305, "visible": false}
+      {"id": "crystal", "obj": "crystal_gray", "x": 305, "visible": false, "keep": true}
     ],
     "actors": []
   },

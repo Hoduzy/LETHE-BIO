@@ -43,6 +43,10 @@ OBJ_ROWS = {  # 물건 한 줄 시트: (기준, 목표 크기px, 좌우 정렬 �
     'obj_crystal_gray': ('h', 20, 'base'),
     'obj_capsule': ('w', 80, 'base'),
 }
+# 그림이 서로 겹쳐 자동으로 못 나누는 시트: 원본 픽셀 x 로 자를 위치를 직접 지정
+MANUAL_CUTS = {
+    'jaehee_actions': [185, 375, 580, 800, 990, 1130, 1495, 1765, 1960],
+}
 UI_ROWS = {'ui_next_arrow', 'ui_btn_attack', 'ui_btn_dash', 'ui_btn_parry', 'ui_btn_interact', 'ui_hold_gauge'}
 REPORT = {'frames': [], 'overflow': [], 'notes': []}
 
@@ -279,6 +283,81 @@ def quantize(img, colors=32):
     return Image.fromarray(res.astype(np.uint8), 'RGBA')
 
 
+def component_frames(band, n, label):
+    """2D 연결 덩어리로 프레임을 찾는다. 큰 덩어리가 정확히 n개면 그걸 프레임으로 (작은 조각은 가까운 그림에 붙임)."""
+    f = 4
+    al = band[..., 3] > 0
+    h, w = al.shape
+    hh, ww = (h + f - 1) // f, (w + f - 1) // f
+    pad = np.zeros((hh * f, ww * f), bool)
+    pad[:h, :w] = al
+    small = pad.reshape(hh, f, ww, f).any(axis=(1, 3))
+    lab, cnt = components(small)
+    if cnt < n:
+        return None
+    sizes = np.bincount(lab.ravel())[1:]
+    order = np.argsort(sizes)[::-1]
+    big = order[:n]
+    # n번째 덩어리가 n+1번째보다 충분히 커야 '그림 n개'로 인정
+    if len(order) > n and sizes[order[n]] > sizes[order[n - 1]] * 0.35:
+        return None
+    cx = {}
+    for c in range(cnt):
+        ys, xs = np.where(lab == c + 1)
+        cx[c] = xs.mean()
+    bigs = sorted(big, key=lambda c: cx[c])
+    owner = {c: i for i, c in enumerate(bigs)}
+    for c in range(cnt):
+        if c in owner:
+            continue
+        owner[c] = min(range(n), key=lambda i: abs(cx[c] - cx[bigs[i]]))
+    full = np.kron(lab, np.ones((f, f), int))[:h, :w]
+    pieces = []
+    for i in range(n):
+        keep = np.zeros_like(full, bool)
+        for c, o in owner.items():
+            if o == i:
+                keep |= full == c + 1
+        p = band.copy()
+        p[..., 3] = np.where(keep & al, 255, 0)
+        pieces.append(p)
+    REPORT['frames'].append(f'{label}: 그림 덩어리 {n}개를 2D로 분리')
+    return pieces
+
+
+def majority_assign(band, segs, f=4):
+    al = band[..., 3] > 0
+    h, w = al.shape
+    hh, ww = (h + f - 1) // f, (w + f - 1) // f
+    pad = np.zeros((hh * f, ww * f), bool)
+    pad[:h, :w] = al
+    small = pad.reshape(hh, f, ww, f).any(axis=(1, 3))
+    lab, cnt = components(small)
+    full = np.kron(lab, np.ones((f, f), int))[:h, :w]
+    full = np.where(al, full, 0)
+    seg_of_col = np.zeros(w, int)
+    for i, (x0, x1) in enumerate(segs):
+        seg_of_col[x0:x1] = i
+    avg = np.mean([x1 - x0 for x0, x1 in segs])
+    owner = np.full(cnt + 1, -1)
+    cols = np.broadcast_to(seg_of_col, (h, w))
+    for c in range(1, cnt + 1):
+        m = full == c
+        xs = np.where(m.any(axis=0))[0]
+        if len(xs) == 0 or (xs.max() - xs.min()) > avg * 1.8:
+            continue  # 두 그림이 붙은 큰 덩어리: 자른 그대로
+        counts = np.bincount(cols[m], minlength=len(segs))
+        owner[c] = int(np.argmax(counts))
+    pieces = []
+    for i, (x0, x1) in enumerate(segs):
+        keep = np.isin(full, np.where(owner == i)[0]) & (full > 0)
+        rest = (full > 0) & (np.isin(full, np.where(owner == -1)[0])) & (cols == i)
+        p = band.copy()
+        p[..., 3] = np.where(keep | rest, 255, 0)
+        pieces.append(p)
+    return pieces
+
+
 def frame_list(name, a, sheet):
     """시트 → (프레임 조각 목록, 조각마다 (왼쪽이 잘린 곳인가, 오른쪽이 잘린 곳인가))"""
     alpha = a[..., 3]
@@ -296,9 +375,30 @@ def frame_list(name, a, sheet):
         bands.append((a, n, name))
     flags = []
     for band, cnt, label in bands:
-        segs = split(band[..., 3], 1, cnt, label)
+        # 세로 빈칸으로 안 나뉘는 시트(그림이 겹침)는 먼저 2D 덩어리로 시도
+        prof = (band[..., 3] > 0).sum(axis=0)
+        if len(runs(prof)) < cnt:
+            comp = component_frames(band, cnt, label)
+            if comp is not None:
+                pieces.extend(comp)
+                flags.extend([(False, False)] * cnt)
+                continue
+        if name in MANUAL_CUTS and len(bands) == 1:
+            xs = np.where((band[..., 3] > 0).any(axis=0))[0]
+            edges = [xs.min()] + MANUAL_CUTS[name] + [xs.max() + 1]
+            segs = [(edges[i], edges[i + 1]) for i in range(cnt)]
+            REPORT['frames'].append(f'{label}: 지정한 위치에서 {cnt}칸으로 나눔')
+        else:
+            segs = split(band[..., 3], 1, cnt, label)
         if segs is None:
             return None, None
+        if len(runs(prof)) < cnt:
+            # 잘린 곳에 걸친 덩어리는 픽셀이 더 많은 칸에 통째로 (들어 올린 손, 누운 머리 등)
+            fixed = majority_assign(band, segs)
+            if fixed is not None:
+                pieces.extend(fixed)
+                flags.extend([(False, False)] * cnt)
+                continue
         for (x0, x1) in segs:
             p = band[:, x0:x1]
             lc = x0 > 0 and band[:, x0, 3].any() and band[:, x0 - 1, 3].any()

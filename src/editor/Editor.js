@@ -300,7 +300,12 @@ export class Editor {
         if (step.type === 'teleport') mk('순간이동', () => step.x, (v) => { step.x = v; });
         if (step.type === 'spawn') (step.enemies || []).forEach((en) => mk(`적 생성 · ${en.kind}`, () => en.x, (v) => { en.x = v; }, COLORS.solid));
         if ((step.type === 'actor' || step.type === 'player') && (step.action === 'move' || step.action === 'show' || step.action === 'lie') && step.x != null) {
-          mk(`${step.type === 'player' ? '도윤' : step.id} ${step.action === 'move' ? '→ 이동' : step.action}`, () => step.x, (v) => { step.x = v; });
+          const who = step.type === 'player' ? '도윤' : step.id;
+          const anim = String(step.anim || step.pose || '');
+          // lift 가 있으면 의자에 앉는/일어서는 자리
+          const seat = 'lift' in step ? (step.lift ? 'sit' : 'stand') : /sit/.test(anim) ? 'sit' : /stand/.test(anim) ? 'stand' : '';
+          const what = seat === 'sit' ? '앉는 위치' : seat === 'stand' ? '서는 위치' : step.action === 'move' ? '→ 이동' : step.action;
+          mk(`${who} ${what}`, () => step.x, (v) => { step.x = v; });
         }
       });
       this.stepCount = n;
@@ -430,7 +435,13 @@ export class Editor {
       <select class="scene"></select>
       <button class="copy">복사</button>
       <button class="steps"></button>
-      <span class="info"></span>`;
+      <span class="info"></span>
+      <div class="sliders">
+        <label>인물 배율 <input type="range" class="charScale" min="0.5" max="3" step="0.05"><b></b></label>
+        <label>바닥선 <input type="range" class="floorY" min="120" max="268" step="1"><b></b></label>
+        <label>인물 색 <input type="color" class="charTint"><b></b></label>
+        <label>밝기 <input type="range" class="charBrightness" min="0.5" max="1.2" step="0.02"><b></b></label>
+      </div>`;
     document.body.appendChild(bar);
     const sel = bar.querySelector('.scene');
     (G.game.chapters || []).forEach((ch) => ch.scenes.forEach((id) => {
@@ -455,7 +466,37 @@ export class Editor {
     });
     this.info = bar.querySelector('.info');
     this.updateInfo();
+    this.setupSliders(bar);
     this.s.events.once('shutdown', () => { if (bar.parentNode) bar.remove(); });
+  }
+
+  // 장면 배율·바닥선·조명: 값은 def.stage 에 바로 들어가고 복사 결과에 포함된다
+  setupSliders(bar) {
+    const st = this.st;
+    const fyNow = this.s.stage.floorY;
+    const conf = {
+      charScale: { get: () => st.charScale || 1, fmt: (v) => Number(v).toFixed(2), num: true, restart: true },
+      floorY: { get: () => st.floorY || fyNow, fmt: (v) => String(v), num: true, restart: true },
+      charTint: { get: () => st.charTint || '#ffffff', fmt: (v) => v, num: false, restart: false },
+      charBrightness: { get: () => (st.charBrightness != null ? st.charBrightness : 1), fmt: (v) => Number(v).toFixed(2), num: true, restart: false }
+    };
+    Object.keys(conf).forEach((key) => {
+      const c = conf[key];
+      const inp = bar.querySelector('input.' + key);
+      const out = inp.parentNode.querySelector('b');
+      inp.value = c.get();
+      out.textContent = c.fmt(c.get());
+      const set = () => {
+        const v = c.num ? Number(inp.value) : inp.value;
+        st[key] = key === 'charScale' || key === 'charBrightness' ? Math.round(v * 100) / 100 : v;
+        out.textContent = c.fmt(st[key]);
+        this.markDirty();
+        if (!c.restart) this.s.setupLighting(st);
+      };
+      inp.addEventListener('input', set);
+      // 배율·바닥선은 손을 뗄 때 장면을 다시 그린다
+      if (c.restart) inp.addEventListener('change', () => this.s.scene.restart({ sceneId: this.s.sceneId }));
+    });
   }
 
   updateInfo() {

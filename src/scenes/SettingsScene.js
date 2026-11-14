@@ -1,9 +1,13 @@
 // 설정: 대사 효과음 켜기/끄기, 대사 음량, 배경 소리 음량, 효과음 음량
 
+import { G } from '../core/state.js';
 import { Save } from '../core/save.js';
 import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
 import { W, H, txt, panel } from '../core/gfx.js';
+import { layoutTouch } from '../core/touch.js';
+
+const SIZES = [['small', '작게'], ['normal', '보통'], ['large', '크게']];
 
 export class SettingsScene extends Phaser.Scene {
   constructor() {
@@ -19,20 +23,22 @@ export class SettingsScene extends Phaser.Scene {
     this.settings = Save.settings();
     this.pending = null;
     this.add.rectangle(0, 0, W, H, 0x000000, 0.75).setOrigin(0);
-    panel(this, 90, 40, 300, 190, { fill: 0x0c0f16, border: 0x8a93a3 });
-    txt(this, W / 2, 50, '설정', { origin: [0.5, 0], color: '#f0dc8c' });
+    panel(this, 90, 26, 300, 226, { fill: 0x0c0f16, border: 0x8a93a3 });
+    txt(this, W / 2, 34, '설정', { origin: [0.5, 0], color: '#f0dc8c' });
 
     this.rows = [
       { key: 'voice', label: '대사 효과음', type: 'toggle' },
       { key: 'voiceVolume', label: '대사 음량', type: 'slider' },
       { key: 'ambienceVolume', label: '배경 소리', type: 'slider' },
-      { key: 'sfxVolume', label: '효과음', type: 'slider' }
+      { key: 'sfxVolume', label: '효과음', type: 'slider' },
+      { key: 'ctrlSize', label: '버튼 크기', type: 'choice', options: SIZES },
+      { key: 'ctrlOpacity', label: '버튼 불투명도', type: 'slider', min: 0.2 }
     ];
     if (this.from === 'Story') this.rows.push({ label: '메뉴로 나가기', type: 'button', act: () => this.toMenu() });
     this.rows.push({ label: '닫기', type: 'button', act: () => this.close() });
 
     this.rowTexts = this.rows.map((r, i) => {
-      const y = 76 + i * 22;
+      const y = 56 + i * 19;
       const label = txt(this, 112, y, r.label, { color: '#c8ccd4' });
       label.setInteractive();
       label.on('pointerdown', () => {
@@ -56,7 +62,7 @@ export class SettingsScene extends Phaser.Scene {
       const bars = r.type === 'slider' ? this.add.graphics() : null;
       return { label, value, left, right, bars, y };
     });
-    txt(this, W / 2, 212, '↑↓ 선택 · ←→ 조절 · Space 확인', { origin: [0.5, 0], color: '#5c6370' });
+    txt(this, W / 2, 234, '↑↓ 선택 · ←→ 조절 · Space 확인', { origin: [0.5, 0], color: '#5c6370' });
     this.sel = 0;
     this.refresh();
   }
@@ -69,7 +75,19 @@ export class SettingsScene extends Phaser.Scene {
       const d = dir === 0 ? 0.1 : dir * 0.1;
       let v = Math.round((s[row.key] + d) * 10) / 10;
       if (dir === 0 && v > 1) v = 0;
-      s[row.key] = Math.max(0, Math.min(1, v));
+      if (dir === 0 && v > 1) v = row.min || 0;
+      s[row.key] = Math.max(row.min || 0, Math.min(1, v));
+    } else if (row.type === 'choice') {
+      const keys = row.options.map((o) => o[0]);
+      let i = keys.indexOf(s[row.key]);
+      i = (i + (dir === 0 ? 1 : dir) + keys.length) % keys.length;
+      s[row.key] = keys[i];
+    }
+    if (row.key === 'ctrlSize' || row.key === 'ctrlOpacity') {
+      Save.saveSettings(s);
+      layoutTouch();
+      this.refresh();
+      return;
     }
     Save.saveSettings(s);
     Audio.applySettings(s);
@@ -89,6 +107,7 @@ export class SettingsScene extends Phaser.Scene {
       t.label.setColor(on ? '#ffffff' : '#8a93a3');
       t.label.setText((on ? '▶ ' : '  ') + r.label);
       if (r.type === 'toggle') t.value.setText(this.settings[r.key] ? '  켜짐' : '  꺼짐');
+      if (r.type === 'choice') t.value.setText('  ' + ((r.options.find((o) => o[0] === this.settings[r.key]) || r.options[1])[1]));
       if (r.type === 'slider') {
         const n = Math.round(this.settings[r.key] * 10);
         t.value.setText('');
@@ -123,6 +142,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   update() {
+    G.controls = false;
     if (this.pending) {
       const a = this.pending;
       this.pending = null;

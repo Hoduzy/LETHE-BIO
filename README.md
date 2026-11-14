@@ -27,6 +27,12 @@
 
 대사: 버튼 한 번 → 타이핑 즉시 완료, 한 번 더 → 다음 대사.
 
+아이패드 터치 조작:
+- 패드와 버튼은 직접 움직일 수 있을 때만 보입니다. 대사·휴대폰·계약서·살펴보기 글·정산 중에는 숨고, 화면 어디든(검은 여백 포함) 탭하면 넘어갑니다.
+- 게임 화면 옆이나 아래 검은 여백이 넉넉하면 패드는 왼쪽, 버튼은 오른쪽 여백에 놓입니다. 여백이 좁으면 화면 위에 반투명(기본 0.45)으로 겹칩니다.
+- 설정(⚙)에서 버튼 크기(작게/보통/크게)와 불투명도를 바꿀 수 있습니다.
+- 계약서: 종이 어디든 끌어서 스크롤, 오른쪽 ▲▼ 버튼(누르고 있으면 계속), '제22조로 이동' 버튼. 서명란은 맨 아래이고 제22조를 살펴본 뒤에만 서명할 수 있습니다.
+
 ---
 
 ## 로컬에서 실행
@@ -76,7 +82,8 @@ python3 -m http.server 8000
 4. 왼쪽 위 도구 막대
    - 장면 목록: 다른 장면으로 바로 이동 (바꾼 값은 새로고침 전까지 기억, 바꾼 장면은 `*` 표시)
    - **복사**: 지금 장면 JSON 전체를 클립보드에 복사 → `data/scenes/<장면>.json` 에 통째로 붙여넣기. 클립보드가 막혀 있으면 글상자로 보여 줍니다.
-   - 이동 표시 켜기/끄기: 스크립트 속 위치 표시
+   - 이동 표시 켜기/끄기: 스크립트 속 위치 표시 (의자에 앉는/일어서는 이동은 '앉는 위치'·'서는 위치'로 표시)
+   - **인물 배율 / 바닥선 / 인물 색 / 밝기** 슬라이더: 장면의 `charScale`, `floorY`, `charTint`, `charBrightness` 를 바로 바꿉니다. 복사 결과에 들어갑니다.
 5. 편집 모드에서는 대사·전투·저장이 멈춰 있고, 터치 조작 패드는 숨겨집니다.
 
 ---
@@ -129,11 +136,19 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
   "heading": "#P-1 반지하 방 / 새벽 4시",   // 시작할 때 잠깐 표시
   "startBlack": true,                      // 검은 화면에서 시작(직접 fade)
   "stage": {
-    "bg": "bg_banjiha_dawn", "width": 480, "floorY": 216,
+    "bg": "bg_banjiha_dawn", "width": 480,
+    "floorY": 224,                         // 인물 발이 닿는 바닥선 (배경 그림의 바닥)
+    "charScale": 2.0,                      // 인물·적 배율 (소수 가능, nearest). 속도·점프·대시·충돌·상호작용 거리도 같이
+    "charTint": "#d0d8ff",                 // 인물에 곱하는 색 (배경 평균 색에서 자동으로 뽑은 초기값)
+    "charBrightness": 0.65,                // 0.5~1.2. 초상화에는 적용 안 함
+    "lightZones": [ { "x0": 330, "x1": 410, "color": "#e6dcd0", "brightness": 0.82, "soft": 36 } ],  // 들어가면 부드럽게 바뀜
+    "foreground": [[0, 178, 122, 70]],     // 배경의 이 부분(계산대 등)을 인물 위에 다시 그림 → 인물이 그 뒤에 선 것처럼
     "ambience": ["rain", "drip"],          // rain drip conveyor fridge street hum
     "abilities": ["move"],                 // 다이브: move jump dash attack parry
     "player": { "x": 80, "anim": "lie_sleep" },            // 시작 자세
     "backdrop": [ { "rect": [x,y,w,h], "color": "#..." } ],  // 배경 PNG 없을 때만
+    // 배경 PNG 가 있으면 ph(가구 임시 도형)·obj 는 그리지 않고 살펴보기 영역만 남김 (가까이 가면 작은 반짝임).
+    // 대본에서 보였다 숨겼다·움직이는 물건은 "keep": true 로 그린다 (손에 드는 물건은 charScale 배율, "scale" 로 따로)
     "props":  [ { "id": "bucket", "obj": "bucket", "x": 270 },              // obj_prologue 칸
                 { "id": "fridge", "ph": "ph_fridge", "x": 322, "label": "냉장고",  // 배경 속 가구
                   "examine": { "lines": ["…"] } } ],
@@ -169,7 +184,7 @@ assets/sprites/         PNG 넣는 곳 (README 에 전체 목록)
 | `card` | 광고판·로비 글씨 | `style`: ad, adSmall, lobby, post |
 | `item` | 물건 클로즈업 | 견본 결정 등 |
 | `title` | [타이틀] | `endChapter: true` 면 장 완료 저장 |
-| `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, anim(이름으로 동작 재생), toss, stand, lie |
+| `actor`, `player`, `prop` | 인물/소품 연출 | move, show, hide, face, anim(이름으로 동작 재생), toss, stand, lie. 의자에 앉기: `{"action":"move","x":143,"anim":"sit_chair","lift":4}` (`lift` = 좌판 높이에 맞춰 그림을 올리는 px, 일어날 때 `lift: 0`) |
 | `teleport` | | 플레이어 순간이동 (시뮬레이션 공간이 다시 이어지는 연출) |
 | `fade`, `wait`, `sfx`, `ambience`, `silence`, `shake` | 연출 | |
 | `parallel`, `sequence` | | 동시에 / 차례로 실행 |

@@ -5,7 +5,13 @@
   "stage": {
     "bg": "bg_banjiha_night",
     "width": 480,
-    "floorY": 216,
+    "floorY": 224,
+    "charScale": 2.0,
+    "charTint": "#e1d4ff",
+    "charBrightness": 0.61,
+    "lightZones": [
+      {"x0": 300, "x1": 430, "color": "#ffd7a8", "brightness": 0.92, "soft": 40}
+    ],
     "bgColor": "#000000",
     "ambience": ["drip"],
     "abilities": ["move"],

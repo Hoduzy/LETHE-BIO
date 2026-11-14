@@ -106,7 +106,10 @@ class InputState {
 
     if (canvas) {
       const activePointers = new Set();
-      canvas.addEventListener('pointerdown', (e) => {
+      // 화면 어디든(검은 여백 포함) 탭하면 대사를 넘긴다. 패드·버튼·메뉴·편집 막대는 제외
+      window.addEventListener('pointerdown', (e) => {
+        const t = e.target;
+        if (t && t.closest && t.closest('#touch .pad, #touch .tbtn, #editbar, .modal, input, select, button')) return;
         activePointers.add(e.pointerId);
         this.pointerHeld = true;
         this.pointerPressed = true;

@@ -60,6 +60,9 @@ export class StoryScene extends Phaser.Scene {
 
     // 공간
     const st = def.stage || {};
+    // 장면 캐릭터 배율·조명 (Stage 를 만들기 전에 정해야 인물에 적용된다)
+    this.charScale = st.charScale || 1;
+    this.lightTargets = [];
     this.stage = new Stage(this, st);
     const p = st.player || {};
     this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char });
@@ -72,6 +75,7 @@ export class StoryScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12, 0, 0);
     this.cameras.main.setRoundPixels(true);
     this.lastSafeX = this.player.x;
+    this.setupLighting(st);
 
     // 상호작용 표시
     this.markerG = this.add.graphics().setDepth(DEPTH.worldUi);
@@ -80,7 +84,7 @@ export class StoryScene extends Phaser.Scene {
     this.markerT = 0;
 
     // UI
-    this.dialogue = new DialogueBox(this, { position: () => (this.phone && this.phone.visible) || (this.panels && this.panels.anyVisible()) ? 'bottom' : 'top' });
+    this.dialogue = new DialogueBox(this, { position: () => (this.panels && this.panels.anyVisible()) ? 'bottom' : 'top' });
     this.phone = new Phone(this);
     this.panels = new Panels(this);
     this.fadeRect = this.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.fade);
@@ -108,8 +112,55 @@ export class StoryScene extends Phaser.Scene {
     this.runScript();
   }
 
+  // ------------------------------------------------------------------
+  // 장면 조명: 배경에 맞춘 곱하기 색 + 밝기, 스탠드 불빛 같은 lightZones 안에서는 그 색으로 부드럽게
+  // ------------------------------------------------------------------
+  setupLighting(st) {
+    const hex = (v) => Phaser.Display.Color.HexStringToColor(v || '#ffffff');
+    this.baseLight = { c: hex(st.charTint), b: st.charBrightness != null ? st.charBrightness : 1 };
+    this.lightZones = (st.lightZones || []).map((z) => ({ x0: z.x0, x1: z.x1, c: hex(z.color), b: z.brightness != null ? z.brightness : this.baseLight.b, soft: z.soft || 24 }));
+    this.lightTargets.forEach((cs) => { cs.lightNow = null; });
+    this.updateLighting(1000);
+  }
+
+  lightAt(x) {
+    let { c, b } = this.baseLight;
+    let r = c.red;
+    let g = c.green;
+    let bl = c.blue;
+    this.lightZones.forEach((z) => {
+      // 영역 가장자리는 soft 픽셀에 걸쳐 섞인다
+      let w = 0;
+      if (x >= z.x0 && x <= z.x1) w = 1;
+      else if (x > z.x0 - z.soft && x < z.x0) w = 1 - (z.x0 - x) / z.soft;
+      else if (x > z.x1 && x < z.x1 + z.soft) w = 1 - (x - z.x1) / z.soft;
+      if (w > 0) {
+        r += (z.c.red - r) * w;
+        g += (z.c.green - g) * w;
+        bl += (z.c.blue - bl) * w;
+        b += (z.b - b) * w;
+      }
+    });
+    return { r, g, bl, b };
+  }
+
+  updateLighting(dt) {
+    const t = Math.min(1, dt / 250); // 약 0.25초에 걸쳐 바뀜
+    this.lightTargets.forEach((cs) => {
+      if (!cs.sprite.active) return;
+      const want = this.lightAt(cs.x);
+      const n = cs.lightNow || want;
+      const cur = { r: n.r + (want.r - n.r) * t, g: n.g + (want.g - n.g) * t, bl: n.bl + (want.bl - n.bl) * t, b: n.b + (want.b - n.b) * t };
+      cs.lightNow = cur;
+      const color = (Math.round(cur.r) << 16) | (Math.round(cur.g) << 8) | Math.round(cur.bl);
+      if (color !== cs.lightColor || Math.abs(cur.b - cs.lightBright) > 0.002) cs.setLight(color, cur.b);
+    });
+  }
+
   showHeading(h) {
-    const t = txt(this, W - 8, 252, h, { color: '#8a93a3', depth: DEPTH.banner, origin: [1, 0] });
+    // 장소 자막: 화면 위쪽 대화창 바로 아래 (아래쪽 버튼에 가리지 않게)
+    const t = txt(this, W - 10, 92, h, { color: '#c8ccd4', depth: DEPTH.banner, origin: [1, 0] });
+    t.setShadow(1, 1, '#000000', 0, false, true);
     t.setAlpha(0);
     this.tweens.add({ targets: t, alpha: 1, duration: 600, delay: 400, hold: 2600, yoyo: true, onComplete: () => t.destroy() });
   }
@@ -359,7 +410,7 @@ export class StoryScene extends Phaser.Scene {
   moveObj(o, x, speed = 50) {
     const dist = Math.abs(o.x - x);
     if (dist < 1) return Promise.resolve();
-    const dur = G.auto ? 60 : (dist / speed) * 1000;
+    const dur = G.auto ? 60 : (dist / (speed * this.charScale)) * 1000;
     return new Promise((res) => this.tweens.add({ targets: o, x, duration: dur, onComplete: res }));
   }
 
@@ -371,7 +422,7 @@ export class StoryScene extends Phaser.Scene {
     cs.face(x < from ? -1 : 1);
     cs.play(cs.anims.walk ? 'walk' : 'idle');
     if (!cs.anims.walk && !cs.realAny) cs.applyPose('bob');
-    const dur = G.auto ? 60 : (dist / speed) * 1000;
+    const dur = G.auto ? 60 : (dist / (speed * this.charScale)) * 1000;
     return new Promise((res) => {
       const st = { x: from };
       this.tweens.add({
@@ -412,9 +463,13 @@ export class StoryScene extends Phaser.Scene {
         o.setAlpha(1);
         break;
       case 'move': {
-        const pr = this.moveChar(cs, s.x, s.speed || 45, s.anim || 'idle');
+        // 앉으러 갈 때는 서서 걷다가 도착해서 lift(의자 좌판 높이)를 준다
+        if ('lift' in s) cs.setLift(0);
+        const pr = this.moveChar(cs, s.x, s.speed || 45, s.anim || 'idle').then(() => {
+          if (s.face) cs.face(s.face);
+          if ('lift' in s) cs.setLift(s.lift);
+        });
         if (s.wait !== false) await pr;
-        if (s.face) cs.face(s.face);
         break;
       }
       case 'face':
@@ -422,6 +477,7 @@ export class StoryScene extends Phaser.Scene {
         break;
       // 이름으로 동작 재생 (data/sprites.json characters.<id>.anims). wait: true 면 끝날 때까지 기다림
       case 'anim': {
+        if ('lift' in s) cs.setLift(s.lift);
         const pr = cs.play(s.name);
         if (s.wait) await pr;
         break;
@@ -478,11 +534,13 @@ export class StoryScene extends Phaser.Scene {
         break;
       // 이름으로 동작 재생 / 고정 (null 이면 자동으로)
       case 'anim': {
+        if ('lift' in s) pl.cs.setLift(s.lift);
         const pr = pl.setOverride(s.name || null);
         if (s.wait) await pr;
         break;
       }
       case 'move': {
+        if ('lift' in s) pl.cs.setLift(0);
         const b = pl.body;
         b.setVelocity(0, 0);
         b.enable = false;
@@ -491,7 +549,7 @@ export class StoryScene extends Phaser.Scene {
         pl.setOverride(walk);
         pl.face(s.x < pl.x ? -1 : 1);
         const dist = Math.abs(pl.x - s.x);
-        const dur = G.auto ? 60 : (dist / (s.speed || 60)) * 1000;
+        const dur = G.auto ? 60 : (dist / ((s.speed || 60) * this.charScale)) * 1000;
         const st = { x: pl.x };
         await new Promise((res) => this.tweens.add({
           targets: st, x: s.x, duration: dur,
@@ -502,6 +560,8 @@ export class StoryScene extends Phaser.Scene {
         b.reset(s.x, pl.cs.zone.y);
         pl.setOverride(s.anim || null);
         if (s.face) pl.face(s.face);
+        // 의자에 앉기: 그림만 좌판 높이로 (충돌 상자는 바닥에 그대로)
+        if ('lift' in s) pl.cs.setLift(s.lift);
         break;
       }
       default:
@@ -621,7 +681,6 @@ export class StoryScene extends Phaser.Scene {
     this.panels.banner('살펴보기', [`${ex.label} — Space / 버튼 터치`]);
     let k = 0;
     const ev = this.time.addEvent({ delay: 350, loop: true, callback: () => ph.highlightButton((k++ % 2) === 0) });
-    const r = ph.buttonRect;
     Input.consumeAdvance();
     await this.waitUntil(() => {
       if (G.auto) return true;
@@ -629,6 +688,7 @@ export class StoryScene extends Phaser.Scene {
         Input.consume('interact');
         return true;
       }
+      const r = ph.buttonRect;
       if (Input.pointerPressed && r) {
         const p = this.input.activePointer;
         if (p.x >= r.x - 6 && p.x <= r.x + r.w + 6 && p.y >= r.y - 6 && p.y <= r.y + r.h + 6) {
@@ -734,7 +794,7 @@ export class StoryScene extends Phaser.Scene {
       if (!e.obj.visible) return;
       if (this.exploreCfg && this.exploreCfg.only && !this.exploreCfg.only.includes(e.id)) return;
       if (this.exploreCfg && e.id === this.exploreCfg.exit && !this.exploreRequirementsMet()) return;
-      const range = e.def.range || 20;
+      const range = (e.def.range || 20) * this.charScale;
       const d = Math.abs(e.obj.x - px);
       if (d <= range && d < bestD) {
         best = e;
@@ -759,38 +819,32 @@ export class StoryScene extends Phaser.Scene {
     this.checkExploreDone(e.id);
   }
 
+  // 살펴보기·출구: 가까이 가면 작은 반짝임만 띄운다
   drawMarkers(dt) {
     const g = this.markerG;
     g.clear();
     this.markerT += dt;
-    if (this.mode !== 'play' || !this.exploreCfg) {
-      this.markerLabel.setVisible(false);
-      return;
-    }
+    this.markerLabel.setVisible(false);
+    if (this.mode !== 'play' || !this.exploreCfg) return;
     const near = this.nearestInteractable();
-    const bob = Math.round(Math.sin(this.markerT / 200) * 1.5);
-    this.stage.interactables.forEach((e) => {
-      if (!e.obj.visible) return;
-      if (this.exploreCfg.only && !this.exploreCfg.only.includes(e.id)) return;
-      const isExit = e.id === this.exploreCfg.exit;
-      if (isExit && !this.exploreRequirementsMet()) return;
-      const top = e.obj.getBounds().top - 4 + bob;
-      if (e === near) return;
-      if (!this.examined.has(e.id) || isExit) {
-        g.fillStyle(isExit ? 0x8fd0ff : 0xf0dc8c, 0.9);
-        g.fillRect(Math.round(e.obj.x) - 1, top - 2, 2, 2);
-      }
-    });
-    if (near) {
-      const top = near.obj.getBounds().top - 3 + bob;
-      g.fillStyle(0xf0dc8c, 1);
-      g.fillTriangle(near.obj.x - 4, top - 5, near.obj.x + 4, top - 5, near.obj.x, top);
-      this.markerLabel.setText(near.def.label || '');
-      this.markerLabel.setPosition(Math.round(near.obj.x), top - 6);
-      this.markerLabel.setVisible(!!near.def.label);
-    } else {
-      this.markerLabel.setVisible(false);
-    }
+    if (!near) return;
+    const b = near.obj.getBounds();
+    const zoneTop = near.def.sparkleY != null ? near.def.sparkleY : b.top + Math.min(10, b.height / 3);
+    const x = Math.round(near.obj.x);
+    const y = Math.round(zoneTop);
+    const ph = this.markerT / 170;
+    const r = 3 + Math.round((Math.sin(ph) + 1) * 1.5);
+    const isExit = this.exploreCfg && near.id === this.exploreCfg.exit;
+    const col = isExit ? 0x9fd8ff : 0xfff2b0;
+    g.fillStyle(col, 0.95);
+    g.fillRect(x - 1, y - r, 2, r * 2);
+    g.fillRect(x - r, y - 1, r * 2, 2);
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(x - 1, y - 1, 2, 2);
+    g.fillStyle(col, 0.7);
+    const s2 = Math.round((Math.sin(ph + 2) + 1) * 1.5) + 1;
+    g.fillRect(x + 6, y - 6, 1, s2);
+    g.fillRect(x + 6 - Math.floor(s2 / 2), y - 6 + Math.floor(s2 / 2), s2, 1);
   }
 
   // ------------------------------------------------------------------
@@ -980,6 +1034,7 @@ export class StoryScene extends Phaser.Scene {
     if (!this.def) return;
     if (this.editor) {
       this.stage.update(dt);
+      this.updateLighting(dt);
       this.editor.update(dt);
       return;
     }
@@ -995,8 +1050,14 @@ export class StoryScene extends Phaser.Scene {
     const playing = this.mode === 'play' && !this.harvest;
     this.player.update(dt, playing || (this.mode === 'play' && this.harvest && !this.harvest.hp.holding));
     this.stage.update(dt);
+    this.updateLighting(dt);
     if (this.mode === 'play') this.enemies.forEach((e) => e.update(dt, this.player));
     this.dialogue.update(dt);
+    // 대사창이 위에 뜨면 휴대폰을 살짝 내려 내용이 가려지지 않게
+    if (this.phone.visible) this.phone.setLowered(this.dialogue.visible);
+    // 터치 패드·버튼은 직접 움직일 때만 보인다
+    const settle = this.panels.groups && this.panels.groups.settle && this.panels.groups.settle.length;
+    G.controls = this.mode === 'play' && !this.dialogue.visible && !this.phone.visible && !settle;
 
     // 구덩이에 떨어지면 마지막 안전 지점으로 (페널티 없음)
     if (this.player.grounded && this.player.body.enable) this.lastSafeX = this.player.x;
@@ -1022,7 +1083,7 @@ export class StoryScene extends Phaser.Scene {
 
     if (this.harvest) {
       const { hp, target } = this.harvest;
-      const near = Math.abs(this.player.x - target.obj.x) < 44;
+      const near = Math.abs(this.player.x - target.obj.x) < 44 * this.charScale;
       hp.update(dt, near);
     }
 
