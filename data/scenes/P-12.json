@@ -9,7 +9,7 @@
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
-    "player": {"x": 198, "facing": 1},
+    "player": {"x": 132, "facing": 1},
     "backdrop": [
       {"rect": [0, 0, 480, 216], "color": "#f1f3f5"},
       {"rect": [0, 216, 480, 54], "color": "#e3e6e9"},
@@ -20,12 +20,12 @@
     ],
     "props": [
       {"id": "window", "ph": "ph_window_city", "x": 240, "y": 140, "depth": 1},
-      {"id": "desk", "ph": "ph_office_desk", "x": 260},
-      {"id": "chair1", "ph": "ph_chair", "x": 198},
-      {"id": "chair2", "ph": "ph_chair", "x": 322}
+      {"id": "desk", "ph": "ph_office_desk", "x": 240},
+      {"id": "chair1", "ph": "ph_chair", "x": 130},
+      {"id": "chair2", "ph": "ph_chair", "x": 348}
     ],
     "actors": [
-      {"id": "yoon", "char": "yoon", "x": 328, "speaker": "윤 실장", "facing": -1}
+      {"id": "yoon", "char": "yoon", "x": 348, "speaker": "윤 실장", "facing": -1}
     ]
   },
   "steps": [
@@ -40,7 +40,7 @@
     {"type": "profile", "hide": true},
     {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
     {"type": "say", "speaker": "윤 실장", "text": "내일 아침 9시. 첫 다이브예요.", "face": 1},
-    {"type": "actor", "id": "yoon", "action": "move", "x": 262, "speed": 30, "face": -1, "anim": "handshake"},
+    {"type": "actor", "id": "yoon", "action": "move", "x": 300, "speed": 30, "face": -1, "anim": "handshake"},
     {"type": "player", "action": "anim", "name": null},
     {"type": "narration", "text": "윤 실장이 일어나 다시 손을 내민다."},
     {"type": "say", "speaker": "윤 실장", "text": "그리고 도윤 씨. 입사 축하금은 방금 입금했어요.", "face": 4},

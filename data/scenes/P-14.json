@@ -28,20 +28,20 @@
     ],
     "effects": [
       {"name": "rainWindow", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
-      {"name": "drip", "x": 270, "top": 34}
+      {"name": "drip", "x": 115, "top": 40}
     ],
     "props": [
       {"id": "futon", "ph": "ph_futon", "x": 80},
-      {"id": "curtain", "ph": "ph_curtain", "x": 190, "alpha": 0.94, "depth": 22},
-      {"id": "bucket", "obj": "bucket", "x": 270},
-      {"id": "fridge", "ph": "ph_fridge", "x": 322},
-      {"id": "calendar", "obj": "calendar", "x": 362, "y": 150},
-      {"id": "desk", "ph": "ph_desk", "x": 405},
-      {"id": "envelopes", "obj": "envelopes", "x": 405, "y": 188},
+      {"id": "curtain", "ph": "ph_curtain", "x": 210, "alpha": 0.94, "depth": 22},
+      {"id": "bucket", "obj": "bucket", "x": 115, "y": 205},
+      {"id": "fridge", "ph": "ph_fridge", "x": 305},
+      {"id": "calendar", "obj": "calendar", "x": 432, "y": 150},
+      {"id": "desk", "ph": "ph_desk", "x": 390},
+      {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
       {"id": "door", "ph": "ph_door", "x": 461}
     ],
     "actors": [
-      {"id": "mother", "char": "mother", "x": 200, "anim": "sleep", "depth": 18}
+      {"id": "mother", "char": "mother", "x": 250, "anim": "sleep", "depth": 18}
     ]
   },
   "steps": [

@@ -427,6 +427,8 @@ export class StoryScene extends Phaser.Scene {
         break;
       }
       case 'stand':
+        // 캡슐 위처럼 높이 누워 있던 인물을 바닥으로
+        cs.setPosition(cs.x, s.y != null ? s.y : this.stage.floorY);
         await cs.play(s.anim || 'idle');
         break;
       case 'toss': {
@@ -1007,7 +1009,8 @@ export class StoryScene extends Phaser.Scene {
 
     if (this.mode === 'play' && this.exploreCfg) {
       const s = this.exploreCfg;
-      if (s.reach != null && this.player.x >= s.reach && this.exploreResolve) this.exploreResolve();
+      // 도착 지점: 바닥 높이에 있을 때만 (구덩이로 떨어지면서 지나가는 것은 도착이 아님)
+      if (s.reach != null && this.player.x >= s.reach && this.player.y <= this.stage.floorY + 2 && this.exploreResolve) this.exploreResolve();
       if (!s.combat && !s.harvest && Input.justPressed('interact')) {
         const e = this.nearestInteractable();
         if (e) {

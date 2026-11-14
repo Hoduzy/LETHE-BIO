@@ -24,12 +24,12 @@
       {"name": "lobbyScreen", "x": 60, "y": 18, "w": 360, "h": 120, "phOnly": true}
     ],
     "props": [
-      {"id": "screen", "x": 240, "y": 142, "w": 300, "h": 120, "label": "로비 화면", "range": 70, "examine": {"lines": ["다 남의 기억이겠지.", "이 사람들은 지금 어디 있을까."]}},
-      {"id": "desk", "ph": "ph_reception", "x": 82, "label": "안내 데스크", "range": 50, "examine": {"steps": [{"type": "actor", "id": "receptionist", "action": "anim", "name": "gesture"}, {"type": "say", "speaker": "안내원", "text": "면접 보러 오셨어요? 서도윤 님 맞으시죠? 7층으로 올라가세요. 실장님이 기다리세요."}, {"type": "actor", "id": "receptionist", "action": "anim", "name": "idle"}]}},
-      {"id": "elevator", "ph": "ph_elevator", "x": 446, "label": "엘리베이터", "interact": {"steps": []}}
+      {"id": "screen", "x": 244, "y": 180, "w": 268, "h": 95, "label": "로비 화면", "range": 70, "examine": {"lines": ["다 남의 기억이겠지.", "이 사람들은 지금 어디 있을까."]}},
+      {"id": "desk", "ph": "ph_reception", "x": 60, "label": "안내 데스크", "range": 50, "examine": {"steps": [{"type": "actor", "id": "receptionist", "action": "anim", "name": "gesture"}, {"type": "say", "speaker": "안내원", "text": "면접 보러 오셨어요? 서도윤 님 맞으시죠? 7층으로 올라가세요. 실장님이 기다리세요."}, {"type": "actor", "id": "receptionist", "action": "anim", "name": "idle"}]}},
+      {"id": "elevator", "ph": "ph_elevator", "x": 437, "label": "엘리베이터", "interact": {"steps": []}}
     ],
     "actors": [
-      {"id": "receptionist", "char": "npc_receptionist", "x": 70, "speaker": "안내원", "facing": 1, "depth": 5}
+      {"id": "receptionist", "char": "npc_receptionist", "x": 52, "speaker": "안내원", "facing": 1, "depth": 5}
     ]
   },
   "steps": [

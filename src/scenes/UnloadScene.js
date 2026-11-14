@@ -153,16 +153,14 @@ export class UnloadScene extends Phaser.Scene {
   }
 
   drawTruck() {
-    const g = this.truckBoxes;
-    g.clear();
-    const n = Math.min(this.count, 30);
-    for (let i = 0; i < n; i++) {
+    // 실린 상자: 상자 그림(obj_prologue 8번 칸)을 쌓는다
+    const t = objTexture('parcel');
+    this.truckPile = this.truckPile || [];
+    while (this.truckPile.length < Math.min(this.count, 30)) {
+      const i = this.truckPile.length;
       const x = TRUCK_X0 + (i % 6) * 18;
-      const y = FLOOR - 6 - Math.floor(i / 6) * 16 - 15;
-      g.fillStyle(0xb98d55, 1);
-      g.fillRect(x - 8, y, 16, 15);
-      g.lineStyle(1, 0x7f6038, 1);
-      g.strokeRect(x - 7.5, y + 0.5, 15, 14);
+      const y = FLOOR - 6 - Math.floor(i / 6) * 16;
+      this.truckPile.push(this.add.image(x, y, t.key, t.frame).setOrigin(0.5, 1).setDepth(2));
     }
   }
 

@@ -29,20 +29,20 @@
     "effects": [
       {"name": "feet", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
       {"name": "rainWindow", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
-      {"name": "drip", "x": 270, "top": 34}
+      {"name": "drip", "x": 115, "top": 40}
     ],
     "props": [
       {"id": "futon", "ph": "ph_futon", "x": 80},
-      {"id": "curtain", "ph": "ph_curtain", "x": 190, "alpha": 0.94, "depth": 22},
-      {"id": "bucket", "obj": "bucket", "x": 270, "label": "양동이", "interact": {"steps": [{"type": "narration", "text": "도윤이 일어나 양동이의 물을 화장실에 비우고 다시 제자리에 놓는다. 익숙한 동작이다."}]}},
-      {"id": "fridge", "ph": "ph_fridge", "x": 322, "label": "냉장고", "w": 36, "h": 66, "examine": {"lines": ["김치, 계란 두 개, 어제 편의점에서 가져온 폐기 삼각김밥.", "계란은 엄마 거."]}},
-      {"id": "calendar", "obj": "calendar", "x": 362, "y": 150, "label": "벽에 붙은 달력", "examine": {"lines": ["월·수·금에 빨간 동그라미. 투석하는 날.", "25일에는 검은 동그라미. 이자 내는 날.", "오늘은 23일이다."]}},
-      {"id": "desk", "ph": "ph_desk", "x": 405},
-      {"id": "envelopes", "obj": "envelopes", "x": 405, "y": 188, "label": "책상 위 봉투 더미", "examine": {"lines": ["독촉장. 독촉장. 최고장. 독촉장.", "맨 위 봉투는 아직 뜯지 않았다. 뜯지 않아도 뭐라고 적혀 있는지 안다."]}},
+      {"id": "curtain", "ph": "ph_curtain", "x": 210, "alpha": 0.94, "depth": 22},
+      {"id": "bucket", "obj": "bucket", "x": 115, "y": 205, "label": "양동이", "interact": {"steps": [{"type": "narration", "text": "도윤이 일어나 양동이의 물을 화장실에 비우고 다시 제자리에 놓는다. 익숙한 동작이다."}]}},
+      {"id": "fridge", "ph": "ph_fridge", "x": 305, "label": "냉장고", "w": 50, "h": 66, "examine": {"lines": ["김치, 계란 두 개, 어제 편의점에서 가져온 폐기 삼각김밥.", "계란은 엄마 거."]}},
+      {"id": "calendar", "obj": "calendar", "x": 432, "y": 150, "label": "벽에 붙은 달력", "examine": {"lines": ["월·수·금에 빨간 동그라미. 투석하는 날.", "25일에는 검은 동그라미. 이자 내는 날.", "오늘은 23일이다."]}},
+      {"id": "desk", "ph": "ph_desk", "x": 390},
+      {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186, "label": "책상 위 봉투 더미", "examine": {"lines": ["독촉장. 독촉장. 최고장. 독촉장.", "맨 위 봉투는 아직 뜯지 않았다. 뜯지 않아도 뭐라고 적혀 있는지 안다."]}},
       {"id": "door", "ph": "ph_door", "x": 461, "label": "현관문", "interact": {"steps": []}}
     ],
     "actors": [
-      {"id": "mother", "char": "mother", "x": 200, "anim": "sleep", "speaker": "어머니", "label": "어머니", "range": 34, "depth": 18, "examine": {"lines": ["엄마가 자고 있다. 어제 투석하고 와서 밤새 다리가 저리다고 했다.", "깨우지 말자."]}}
+      {"id": "mother", "char": "mother", "x": 250, "anim": "sleep", "speaker": "어머니", "label": "어머니", "range": 34, "depth": 18, "examine": {"lines": ["엄마가 자고 있다. 어제 투석하고 와서 밤새 다리가 저리다고 했다.", "깨우지 말자."]}}
     ]
   },
   "steps": [

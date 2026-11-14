@@ -67,12 +67,12 @@ export class DialogueBox {
     this.nameBg = scene.add.graphics().setScrollFactor(0).setDepth(d + 3);
     this.nameImg = this.skin.name ? scene.add.image(0, 0, 'ui_nametag').setOrigin(0).setScrollFactor(0).setDepth(d + 3) : null;
     this.nameText = txt(scene, 0, 0, '', { depth: d + 4 });
-    this.body = txt(scene, 0, 0, '', { depth: d + 4, lineSpacing: 5 });
+    this.body = txt(scene, 0, 0, '', { depth: d + 4, lineSpacing: 3 });
     this.body.setPadding(0, 0, 6, 0);
     this.arrow = this.skin.arrow
       ? scene.add.image(0, 0, 'ui_next_arrow', 0).setOrigin(0).setScrollFactor(0).setDepth(d + 4)
       : txt(scene, 0, 0, '▼', { depth: d + 4, color: '#c8ccd6', size: 12 });
-    this.measure = scene.add.text(0, 0, '', { fontFamily: FONT, fontSize: '12px', lineSpacing: 5 }).setVisible(false);
+    this.measure = scene.add.text(0, 0, '', { fontFamily: FONT, fontSize: '12px', lineSpacing: 3 }).setVisible(false);
     this.arrowT = 0;
     this.parts = [this.bg, this.boxImg, this.portraitImg, this.frameG, this.frameImg, this.nameBg, this.nameImg, this.nameText, this.body, this.arrow].filter(Boolean);
     this.setVisible(false);
@@ -120,7 +120,7 @@ export class DialogueBox {
     this.textW = boxX + BOX_W - 12 - this.textX;
     this.nameX = withPortrait ? this.textX - 4 : boxX + 6;
     this.nameY = L.nameY;
-    this.body.setPosition(this.textX, this.box.y + 12);
+    this.body.setPosition(this.textX, this.box.y + 8);
     this.measure.setWordWrapWidth(this.textW, true);
     if (this.arrow.setPosition) this.arrow.setPosition(boxX + BOX_W - 16, this.box.y + BOX_H - 15);
   }

@@ -31,8 +31,8 @@
       {"name": "puddles", "xs": [60, 200, 330, 440], "phOnly": true}
     ],
     "props": [
-      {"id": "billboard", "ph": "ph_billboard", "x": 240, "y": 168, "label": "광고판", "range": 50, "examine": {"lines": ["레테 바이오. 뉴스에서 자주 나오는 회사.", "혼수상태인 사람들 병원비를 대신 내준다고 했다.", "좋은 회사인가 보다."]}},
-      {"id": "bus_stop", "ph": "ph_bus_stop", "x": 320}
+      {"id": "billboard", "ph": "ph_billboard", "x": 270, "y": 190, "w": 46, "h": 76, "label": "광고판", "range": 50, "examine": {"lines": ["레테 바이오. 뉴스에서 자주 나오는 회사.", "혼수상태인 사람들 병원비를 대신 내준다고 했다.", "좋은 회사인가 보다."]}},
+      {"id": "bus_stop", "ph": "ph_bus_stop", "x": 390}
     ],
     "actors": [
       {"id": "office", "char": "extra_pedestrian_office", "x": 300, "facing": -1, "alpha": 0.9},
@@ -45,7 +45,7 @@
     {"type": "actor", "id": "office", "action": "move", "x": -40, "speed": 55, "wait": false},
     {"type": "actor", "id": "elder", "action": "move", "x": -40, "speed": 16, "wait": false},
     {"type": "narration", "text": "비가 그쳤다. 낡은 상가 거리. 도윤이 걸어간다."},
-    {"type": "goal", "reach": 190},
+    {"type": "goal", "reach": 214},
     {"type": "narration", "text": "버스 정류장 옆 광고판. 하얀 화면에 하얀 글씨."},
     {"type": "card", "style": "ad", "lines": [{"t": "잠든 이에게는 희망을,", "size": 16, "color": "#b9c0c9"}, {"t": "깨어 있는 당신에게는 기회를.", "size": 16, "color": "#b9c0c9", "after": 10}, {"t": "— LETHE BIO", "color": "#c9cfd6"}]},
     {"type": "explore", "only": ["billboard"], "require": ["billboard"]},

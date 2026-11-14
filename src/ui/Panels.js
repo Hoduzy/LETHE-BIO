@@ -241,8 +241,10 @@ export class Panels {
       this.addTo('title', logo);
       this.scene.tweens.add({ targets: logo, alpha: 1, duration: 3000 });
     }
-    const main = txt(this.scene, W / 2, 104, def.title, { big: true, size: 28, color: '#ffffff', origin: 0.5, depth: DEPTH.top + 1 });
-    const sub = txt(this.scene, W / 2, 140, def.subtitle, { big: true, size: 14, color: '#b9c0cc', origin: 0.5, depth: DEPTH.top + 1 });
+    // 타이틀 그림이 있으면 가운데 결정 그림 위쪽에 글자를 올린다 (결정을 가리지 않게)
+    const hasLogo = G.realSprites.has('title_logo');
+    const main = txt(this.scene, W / 2, hasLogo ? 50 : 104, def.title, { big: true, size: 28, color: '#ffffff', origin: 0.5, depth: DEPTH.top + 1 });
+    const sub = txt(this.scene, W / 2, hasLogo ? 78 : 140, def.subtitle, { big: true, size: 14, color: '#b9c0cc', origin: 0.5, depth: DEPTH.top + 1 });
     this.addTo('title', main);
     this.addTo('title', sub);
     main.setAlpha(0);

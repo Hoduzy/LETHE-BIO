@@ -8,8 +8,9 @@ export function setupTouch() {
   if (!root) return;
 
   const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
-  const show = () => root.classList.remove('hidden');
-  const hide = () => root.classList.add('hidden');
+  // 터치 조작이 보일 때는 게임 화면을 위쪽에 붙여서, 아래 남는 공간에 패드와 버튼이 겹치지 않게 놓는다
+  const show = () => { root.classList.remove('hidden'); document.body.classList.add('has-touch'); window.dispatchEvent(new Event('resize')); };
+  const hide = () => { root.classList.add('hidden'); document.body.classList.remove('has-touch'); window.dispatchEvent(new Event('resize')); };
   if (isTouch) show();
   // 터치하면 보이고, 키보드를 쓰면 숨긴다
   window.addEventListener('touchstart', show, { passive: true });

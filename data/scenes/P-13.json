@@ -28,21 +28,21 @@
     ],
     "effects": [
       {"name": "rainWindow", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
-      {"name": "drip", "x": 270, "top": 34}
+      {"name": "drip", "x": 115, "top": 40}
     ],
     "props": [
       {"id": "futon", "ph": "ph_futon", "x": 80},
-      {"id": "curtain", "ph": "ph_curtain", "x": 190, "alpha": 0.94, "depth": 22},
-      {"id": "bucket", "obj": "bucket", "x": 270},
-      {"id": "fridge", "ph": "ph_fridge", "x": 322},
-      {"id": "calendar", "obj": "calendar", "x": 362, "y": 150},
-      {"id": "desk", "ph": "ph_desk", "x": 405},
-      {"id": "envelopes", "obj": "envelopes", "x": 405, "y": 188},
+      {"id": "curtain", "ph": "ph_curtain", "x": 210, "alpha": 0.94, "depth": 22},
+      {"id": "bucket", "obj": "bucket", "x": 115, "y": 205},
+      {"id": "fridge", "ph": "ph_fridge", "x": 305},
+      {"id": "calendar", "obj": "calendar", "x": 432, "y": 150},
+      {"id": "desk", "ph": "ph_desk", "x": 390},
+      {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
       {"id": "door", "ph": "ph_door", "x": 461},
-      {"id": "stove", "ph": "ph_stove", "x": 240},
-      {"id": "pot", "obj": "pot", "x": 240},
-      {"id": "low_table", "obj": "low_table", "x": 150},
-      {"id": "lamp", "obj": "lamp", "x": 108, "glow": true}
+      {"id": "stove", "ph": "ph_stove", "x": 333},
+      {"id": "pot", "obj": "pot", "x": 333},
+      {"id": "low_table", "ph": "ph_low_table", "x": 390},
+      {"id": "lamp", "obj": "lamp", "x": 352, "y": 200, "glow": true}
     ],
     "actors": [
       {"id": "mother", "char": "mother", "x": 300, "speaker": "어머니", "facing": 1, "anim": "phone"}
@@ -51,7 +51,7 @@
   "steps": [
     {"type": "sfx", "name": "door"},
     {"type": "narration", "text": "도윤이 들어온다. 어머니가 놀란 얼굴로 휴대폰을 들고 있다."},
-    {"type": "player", "action": "move", "x": 380, "face": -1},
+    {"type": "player", "action": "move", "x": 385, "face": -1},
     {"type": "say", "speaker": "어머니", "text": "도윤아. 병원에서 문자 왔는데, 다 냈대. 밀린 거 다.", "face": 4},
     {"type": "say", "speaker": "도윤", "text": "응.", "face": 1},
     {"type": "say", "speaker": "어머니", "text": "네가 냈어? 무슨 돈으로?", "face": 4},
@@ -60,7 +60,7 @@
     {"type": "say", "speaker": "도윤", "text": "응. 회사. 사무직. 정규직이야.", "face": 5},
     {"type": "say", "speaker": "어머니", "text": "(한참 도윤을 본다) …정말?", "face": 4},
     {"type": "say", "speaker": "도윤", "text": "응. 입사 축하금 나와서 그걸로 냈어. 다음 달부터는 투석비도 회사에서 지원해 준대.", "face": 5},
-    {"type": "actor", "id": "mother", "action": "move", "x": 356, "speed": 25, "face": 1, "anim": "touch_face"},
+    {"type": "actor", "id": "mother", "action": "move", "x": 361, "speed": 25, "face": 1, "anim": "touch_face"},
     {"type": "narration", "text": "어머니가 도윤에게 다가와 얼굴을 만진다. 울 것 같은 얼굴로 웃는다."},
     {"type": "say", "speaker": "어머니", "text": "우리 아들. 우리 아들 고생 끝났다.", "face": 5, "anim": "teary"},
     {"type": "say", "speaker": "도윤", "text": "(어머니 손을 잡는다) …응.", "face": 6},
@@ -69,11 +69,11 @@
     {"type": "say", "speaker": "도윤", "text": "(멈칫) 바이오 회사. 병원 관련된 거.", "face": 5},
     {"type": "say", "speaker": "어머니", "text": "좋은 일 하는 데구나.", "face": 1},
     {"type": "say", "speaker": "도윤", "text": "…응. 좋은 일 하는 데야.", "face": 5},
-    {"type": "actor", "id": "mother", "action": "move", "x": 262, "speed": 30, "face": -1, "anim": "cook"},
+    {"type": "actor", "id": "mother", "action": "move", "x": 318, "speed": 30, "face": 1, "anim": "cook"},
     {"type": "sfx", "name": "pot"},
     {"type": "narration", "text": "어머니가 부엌으로 간다. 냄비 소리."},
     {"type": "say", "speaker": "어머니", "text": "찌개 데울게. 오늘은 계란도 넣어줄게.", "face": 1},
-    {"type": "player", "action": "move", "x": 172, "face": -1, "anim": "sit"},
+    {"type": "player", "action": "move", "x": 372, "face": 1, "anim": "sit"},
     {"type": "narration", "text": "도윤이 접이식 상 앞에 앉는다. 휴대폰을 꺼내 아까 받은 대상자 사진을 다시 본다."},
     {"type": "item", "sprite": "harin_photo", "scale": 2},
     {"type": "narration", "text": "한하린. 22세. 자는 것 같은 얼굴."},

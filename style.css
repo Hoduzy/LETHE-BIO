@@ -37,6 +37,11 @@ html, body {
   justify-content: center;
 }
 
+body.has-touch #game {
+  align-items: flex-start;
+  padding-top: env(safe-area-inset-top);
+}
+
 #game canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -125,8 +130,9 @@ html, body {
 #touch .b-interact { right: 0;   top: 0; }
 #touch .b-menu {
   left: auto;
-  right: calc(14px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
+  right: calc(4px + env(safe-area-inset-right));
+  bottom: calc(220px + env(safe-area-inset-bottom));
+  top: auto;
   width: 44px;
   height: 44px;
   font-size: 20px;

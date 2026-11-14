@@ -20,21 +20,21 @@
     ],
     "props": [
       {"id": "window", "ph": "ph_window_city", "x": 240, "y": 140, "depth": 1},
-      {"id": "desk", "ph": "ph_office_desk", "x": 260},
-      {"id": "chair1", "ph": "ph_chair", "x": 198},
-      {"id": "chair2", "ph": "ph_chair", "x": 322},
-      {"id": "cup", "obj": "water_cup", "x": 240, "y": 184, "visible": false, "depth": 12},
-      {"id": "case", "obj": "sample_case", "x": 270, "y": 184, "visible": false, "depth": 12},
-      {"id": "contract", "obj": "contract_doc", "x": 252, "y": 184, "visible": false, "depth": 12}
+      {"id": "desk", "ph": "ph_office_desk", "x": 240},
+      {"id": "chair1", "ph": "ph_chair", "x": 130},
+      {"id": "chair2", "ph": "ph_chair", "x": 348},
+      {"id": "cup", "obj": "water_cup", "x": 205, "y": 174, "visible": false, "depth": 12},
+      {"id": "case", "obj": "sample_case", "x": 262, "y": 174, "visible": false, "depth": 12},
+      {"id": "contract", "obj": "contract_doc", "x": 232, "y": 174, "visible": false, "depth": 12}
     ],
     "actors": [
-      {"id": "yoon", "char": "yoon", "x": 328, "speaker": "윤 실장", "facing": -1}
+      {"id": "yoon", "char": "yoon", "x": 348, "speaker": "윤 실장", "facing": -1}
     ]
   },
   "steps": [
     {"type": "actor", "id": "yoon", "action": "anim", "name": "handshake"},
     {"type": "narration", "text": "하얀 방. 창밖으로 도시가 내려다보인다. 윤 실장이 일어나 손을 내민다."},
-    {"type": "player", "action": "move", "x": 198, "face": 1},
+    {"type": "player", "action": "move", "x": 132, "face": 1},
     {"type": "say", "speaker": "윤 실장", "text": "서도윤 씨. 반가워요. 윤서진입니다. 앉으세요.", "face": 1},
     {"type": "actor", "id": "yoon", "action": "anim", "name": "sit"},
     {"type": "player", "action": "anim", "name": "sit_chair"},

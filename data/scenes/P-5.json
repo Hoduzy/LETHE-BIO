@@ -28,30 +28,30 @@
     ],
     "effects": [
       {"name": "rainWindow", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
-      {"name": "drip", "x": 270, "top": 34}
+      {"name": "drip", "x": 115, "top": 40}
     ],
     "props": [
       {"id": "futon", "ph": "ph_futon", "x": 80},
-      {"id": "curtain", "ph": "ph_curtain", "x": 190, "alpha": 0.94, "depth": 22},
-      {"id": "bucket", "obj": "bucket", "x": 270},
-      {"id": "fridge", "ph": "ph_fridge", "x": 322},
-      {"id": "calendar", "obj": "calendar", "x": 362, "y": 150},
-      {"id": "desk", "ph": "ph_desk", "x": 405},
-      {"id": "envelopes", "obj": "envelopes", "x": 405, "y": 188},
+      {"id": "curtain", "ph": "ph_curtain", "x": 210, "alpha": 0.94, "depth": 22},
+      {"id": "bucket", "obj": "bucket", "x": 115, "y": 205},
+      {"id": "fridge", "ph": "ph_fridge", "x": 305},
+      {"id": "calendar", "obj": "calendar", "x": 432, "y": 150},
+      {"id": "desk", "ph": "ph_desk", "x": 390},
+      {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
       {"id": "door", "ph": "ph_door", "x": 461},
-      {"id": "stove", "ph": "ph_stove", "x": 240},
-      {"id": "pot", "obj": "pot", "x": 240},
-      {"id": "low_table", "obj": "low_table", "x": 150},
-      {"id": "lamp", "obj": "lamp", "x": 108, "glow": true}
+      {"id": "stove", "ph": "ph_stove", "x": 333},
+      {"id": "pot", "obj": "pot", "x": 333},
+      {"id": "low_table", "ph": "ph_low_table", "x": 390},
+      {"id": "lamp", "obj": "lamp", "x": 352, "y": 200, "glow": true}
     ],
     "actors": [
-      {"id": "mother", "char": "mother", "x": 120, "anim": "sit_rub", "speaker": "어머니", "facing": 1}
+      {"id": "mother", "char": "mother", "x": 300, "anim": "sit_rub", "speaker": "어머니", "facing": 1}
     ]
   },
   "steps": [
     {"type": "sfx", "name": "door"},
     {"type": "narration", "text": "도윤이 조용히 들어온다. 어머니가 깨어 있다. 작은 스탠드 불빛."},
-    {"type": "player", "action": "move", "x": 200, "face": -1},
+    {"type": "player", "action": "move", "x": 385, "face": -1},
     {"type": "say", "speaker": "어머니", "text": "왔니.", "face": 1},
     {"type": "say", "speaker": "도윤", "text": "왜 안 자. 내일 투석이잖아.", "face": 2},
     {"type": "say", "speaker": "어머니", "text": "다리가 저려서. (웃으며) 괜찮아. 늘 그래.", "face": 1},
@@ -59,10 +59,10 @@
     {"type": "say", "speaker": "어머니", "text": "배고프지? 찌개 있어. 데워줄까?", "face": 1},
     {"type": "say", "speaker": "도윤", "text": "먹고 왔어.", "face": 5},
     {"type": "say", "speaker": "어머니", "text": "거짓말. 너 편의점에서 폐기만 먹잖아.", "face": 3},
-    {"type": "actor", "id": "mother", "action": "move", "x": 262, "speed": 30, "face": -1, "anim": "cook"},
+    {"type": "actor", "id": "mother", "action": "move", "x": 318, "speed": 30, "face": 1, "anim": "cook"},
     {"type": "sfx", "name": "pot"},
     {"type": "narration", "text": "어머니가 일어나 작은 가스레인지에 냄비를 올린다. 된장찌개."},
-    {"type": "player", "action": "move", "x": 172, "face": -1, "anim": "sit"},
+    {"type": "player", "action": "move", "x": 362, "face": 1, "anim": "sit"},
     {"type": "narration", "text": "도윤이 식탁 대신 쓰는 접이식 상 앞에 앉는다."},
     {"type": "say", "speaker": "어머니", "text": "도윤아.", "face": 2},
     {"type": "say", "speaker": "도윤", "text": "응.", "face": 1},
@@ -74,7 +74,7 @@
     {"type": "say", "speaker": "도윤", "text": "그런 말 한 적 없잖아.", "face": 4},
     {"type": "say", "speaker": "어머니", "text": "했어.", "face": 3},
     {"type": "say", "speaker": "도윤", "text": "안 했어.", "face": 4},
-    {"type": "actor", "id": "mother", "action": "move", "x": 128, "speed": 30, "face": 1, "anim": "idle"},
+    {"type": "actor", "id": "mother", "action": "move", "x": 425, "speed": 30, "face": -1, "anim": "idle"},
     {"type": "say", "speaker": "어머니", "text": "(찌개를 상에 놓으며) …엄마 때문에 네가 이렇게 사는 게 싫어.", "face": 2},
     {"type": "say", "speaker": "도윤", "text": "엄마 때문 아니야.", "face": 2},
     {"type": "say", "speaker": "어머니", "text": "그럼 누구 때문인데.", "face": 3},

@@ -101,8 +101,9 @@ export class Stage {
       const w = so.w || spec.w;
       const h = so.h || spec.h;
       let obj;
-      if (this.bgReal) obj = s.add.rectangle(so.x, so.y || this.floorY, w, h, 0x000000, 0).setOrigin(0.5, 1);
-      else obj = s.add.image(so.x, so.y || this.floorY, so.ph).setOrigin(0.5, 1).setDepth(DEPTH.prop);
+      // visible: true 면 배경 그림이 있어도 상자를 그린다 (배경에 없는 장애물)
+      if (this.bgReal && !so.visible) obj = s.add.rectangle(so.x, so.y || this.floorY, w, h, 0x000000, 0).setOrigin(0.5, 1);
+      else obj = s.add.image(so.x, so.y || this.floorY, so.ph).setOrigin(0.5, 1).setDepth(DEPTH.prop).setDisplaySize(w, h);
       obj.__solidIndex = i;
       s.physics.add.existing(obj, true);
       this.solidGroup.add(obj);
@@ -340,7 +341,9 @@ export class Stage {
     const dt = objTexture('drip');
     const drop = s.add.sprite(x, top, dt.key, dt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false);
     const rt = objTexture('ripple');
-    const ripple = real ? s.add.sprite(x, by + 16, rt.key, rt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false) : null;
+    // 물결 칸은 양동이 전체 그림이므로 양동이와 같은 자리(바닥)에 겹친다
+    const bucket = Object.values(this.props).find((e) => e.def.obj === 'bucket');
+    const ripple = real ? s.add.sprite(bucket ? bucket.obj.x : x, bucket ? bucket.obj.y : this.floorY, rt.key, rt.frame).setOrigin(0.5, 1).setDepth(DEPTH.prop + 1).setVisible(false) : null;
     const fall = () => {
       if (!this.scene || !drop.active) return;
       drop.setPosition(x, top + 4).setVisible(true);

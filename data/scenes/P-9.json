@@ -16,34 +16,35 @@
       {"vlines": [0, 18, 198, 110, 5], "color": "#dde2e6"},
       {"rect": [0, 216, 480, 54], "color": "#cfd5da"},
       {"line": [0, 216, 480, 216], "color": "#aab2ba"},
-      {"text": "DIVE-01", "x": 76, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
-      {"text": "DIVE-02", "x": 186, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
-      {"text": "DIVE-03", "x": 296, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
-      {"text": "DIVE-04", "x": 406, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
+      {"text": "DIVE-01", "x": 107, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
+      {"text": "DIVE-02", "x": 217, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
+      {"text": "DIVE-03", "x": 327, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
+      {"text": "DIVE-04", "x": 435, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
     ],
     "props": [
-      {"id": "cap1", "obj": "capsule", "x": 76, "frame": 1},
-      {"id": "cap2", "obj": "capsule", "x": 186, "frame": 1},
-      {"id": "cap3", "obj": "capsule", "x": 296, "frame": 1},
-      {"id": "cap4", "obj": "capsule", "x": 406, "frame": 1},
-      {"id": "mon1", "ph": "ph_monitor", "x": 128, "y": 200},
-      {"id": "mon2", "ph": "ph_monitor", "x": 238, "y": 200},
-      {"id": "mon3", "ph": "ph_monitor", "x": 348, "y": 200}
+      {"id": "cap1", "obj": "capsule", "x": 107, "y": 202, "frame": 1},
+      {"id": "cap2", "obj": "capsule", "x": 217, "y": 202, "frame": 1},
+      {"id": "cap3", "obj": "capsule", "x": 327, "y": 202, "frame": 1},
+      {"id": "cap4", "obj": "capsule", "x": 435, "y": 202, "frame": 1},
+      {"id": "mon1", "ph": "ph_monitor", "x": 63, "y": 160},
+      {"id": "mon2", "ph": "ph_monitor", "x": 173, "y": 160},
+      {"id": "mon3", "ph": "ph_monitor", "x": 283, "y": 160},
+      {"id": "mon4", "ph": "ph_monitor", "x": 391, "y": 160}
     ],
     "actors": [
-      {"id": "instructor", "char": "npc_staff", "x": 236, "speaker": "교육 직원", "facing": -1, "anim": "look"}
+      {"id": "instructor", "char": "npc_staff", "x": 272, "speaker": "교육 직원", "facing": -1, "anim": "look"}
     ]
   },
   "steps": [
     {"type": "narration", "text": "다이브 캡슐이 줄지어 있는 방. 하얀 관 같다. 캡슐마다 이름표."},
-    {"type": "player", "action": "move", "x": 150, "face": 1},
+    {"type": "player", "action": "move", "x": 180, "face": 1},
     {"type": "narration", "text": "교육 담당 직원이 태블릿을 들고 있다."},
     {"type": "actor", "id": "instructor", "action": "anim", "name": "smile"},
     {"type": "say", "speaker": "교육 직원", "text": "첫날은 시뮬레이션이에요. 진짜 대상자 아니고, 회사가 만든 가상 기억 공간이에요. 위험한 거 없어요."},
     {"type": "actor", "id": "instructor", "action": "anim", "name": "tap"},
     {"type": "say", "speaker": "교육 직원", "text": "캡슐에 누우시면 신경 링크가 연결돼요. 잠드는 것처럼 느껴질 거예요. 무서우면 눈 감고 숫자 세세요."},
-    {"type": "player", "action": "move", "x": 186, "face": 1},
-    {"type": "player", "action": "lie", "x": 186, "anim": "capsule_lie", "lift": 14, "depth": 9},
+    {"type": "player", "action": "move", "x": 205, "face": 1},
+    {"type": "player", "action": "lie", "x": 217, "anim": "capsule_lie", "lift": 22, "depth": 9},
     {"type": "prop", "id": "cap2", "action": "anim", "name": "obj_capsule.close", "wait": true},
     {"type": "prop", "id": "cap2", "action": "anim", "name": "obj_capsule.blink"},
     {"type": "sfx", "name": "thud"},

@@ -60,7 +60,7 @@
     },
 
     "enemy_void_small": { "cell": [32, 32], "frames": 12, "anims": { "idle": [1, 1], "ripple": [2, 4, 6, "loop"], "emerge": [5, 7, 6], "slide": [8, 9, 6, "loop"], "hit": [10, 10], "vanish": [11, 12, 8] } },
-    "enemy_mannequin":  { "cell": [64, 64], "frames": 9,  "faces": "left", "anims": { "idle": [1, 1], "sway": [1, 2, 2, "loop"], "windup": [3, 4, 4], "strike": [5, 5], "parried": [6, 6], "fall": [7, 8, 8], "down": [9, 9] } },
+    "enemy_mannequin":  { "cell": [64, 64], "frames": 9,  "_설명": "실제 그림은 오른쪽을 봄", "anims": { "idle": [1, 1], "sway": [1, 2, 2, "loop"], "windup": [3, 4, 4], "strike": [5, 5], "parried": [6, 6], "fall": [7, 8, 8], "down": [9, 9] } },
 
     "obj_prologue": {
       "cell": [32, 32], "frames": 22, "grid": true,
@@ -226,7 +226,7 @@
       "anims": { "idle": ["enemy_void_small.ripple", "still"], "emerge": ["enemy_void_small.emerge", "still"], "slide": ["enemy_void_small.slide", "still"], "hit": ["enemy_void_small.hit", "still"], "vanish": ["enemy_void_small.vanish", "still"] }
     },
     "mannequin": {
-      "note": "시뮬레이션 마네킹 (그림은 왼쪽을 봄)", "faces": "left", "placeholder": { "w": 20, "h": 48, "color": "#8c8c8c", "outline": "#5c5c5c" }, "body": [20, 46],
+      "note": "시뮬레이션 마네킹 (그림은 오른쪽을 봄)", "placeholder": { "w": 20, "h": 48, "color": "#8c8c8c", "outline": "#5c5c5c" }, "body": [20, 46],
       "anims": { "idle": ["enemy_mannequin.sway", "still"], "windup": ["enemy_mannequin.windup", "lean"], "strike": ["enemy_mannequin.strike", "swing"], "parried": ["enemy_mannequin.parried", "hurt"], "fall": ["enemy_mannequin.fall", "still"], "down": ["enemy_mannequin.down", "still"] }
     }
   },
@@ -238,6 +238,7 @@
     "ph_fridge":       { "w": 36, "h": 66, "color": "#d6d6d0", "details": [[0, 22, 36, 1, "#9a9a94"], [30, 6, 3, 10, "#9a9a94"], [30, 28, 3, 14, "#9a9a94"]] },
     "ph_desk":         { "w": 56, "h": 28, "color": "#6e553d", "details": [[3, 6, 3, 22, "#4e3b2a"], [50, 6, 3, 22, "#4e3b2a"]] },
     "ph_door":         { "w": 34, "h": 76, "color": "#5d4836", "details": [[26, 36, 4, 4, "#c0a060"]] },
+    "ph_low_table":    { "w": 100, "h": 18, "color": "#8a6a48", "details": [[4, 6, 3, 12, "#5e472f"], [93, 6, 3, 12, "#5e472f"]] },
     "ph_stove":        { "w": 28, "h": 10, "color": "#6a6a6a" },
     "ph_conveyor":     { "w": 240, "h": 18, "color": "#3c4148", "details": [[0, 0, 240, 4, "#22262b"]] },
     "ph_truck":        { "w": 140, "h": 110, "color": "#3e4c5c", "details": [[6, 8, 128, 96, "#1c232b"]] },
