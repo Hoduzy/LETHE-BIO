@@ -55,7 +55,7 @@
     {"type": "narration", "text": "옆 캡슐에서 재희가 일어난다. 실제 다이브를 하고 나온 참이다. 얼굴에 아무 표정이 없다."},
     {"type": "actor", "id": "jaehee", "action": "move", "x": 352, "speed": 24, "face": 1, "anim": "idle"},
     {"type": "narration", "text": "재희가 캡슐 옆 모니터를 본다."},
-    {"type": "settlement", "lines": ["[정산] 강재희", "품목: 「아내와 처음 산 화분」 (B+)", "정산 금액: 1,720,000원"]},
+    {"type": "settlement", "lines": ["[정산] 강재희", "품목: 「남편과 처음 산 화분」 (B+)", "정산 금액: 1,720,000원"]},
     {"type": "actor", "id": "jaehee", "action": "face", "dir": -1},
     {"type": "actor", "id": "jaehee", "action": "anim", "name": "wave"},
     {"type": "narration", "text": "재희가 모니터를 끄고, 도윤을 보더니 웃는다. 평소처럼."},

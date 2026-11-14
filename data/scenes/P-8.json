@@ -41,7 +41,7 @@
   },
   "steps": [
     {"type": "narration", "text": "좁은 탈의실. 철제 사물함들. 형광등이 하나 나가 있다."},
-    {"type": "narration", "text": "사물함 앞에서 한 남자가 캔커피를 마시고 있다. 다 구겨진 다이버 슈트를 반쯤 걸쳤다."},
+    {"type": "narration", "text": "사물함 앞에서 한 여자가 캔커피를 마시고 있다. 다 구겨진 다이버 슈트를 반쯤 걸쳤다."},
     {"type": "player", "action": "move", "x": 250, "face": 1},
     {"type": "actor", "id": "jaehee", "action": "face", "dir": -1},
     {"type": "actor", "id": "jaehee", "action": "anim", "name": "idle"},

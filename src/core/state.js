@@ -10,7 +10,7 @@ export const G = {
   // 디버그: ?scene=P-7 로 해당 장면부터, ?auto=1 자동 진행(테스트용), ?fast=1 빠른 타이핑
   startScene: params.get('scene'),
   auto: params.get('auto') === '1',
-  fast: params.get('fast') === '1' || params.get('auto') === '1',
+  fast: params.get('fast') === '1' || (params.get('auto') === '1' && params.get('fast') !== '0'),
   autoDelay: Number(params.get('autoDelay') || 60),
   probeSprites: params.get('probe') !== '0'
 };

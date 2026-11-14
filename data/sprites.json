@@ -159,11 +159,11 @@
       "anims": { "idle": ["mingyu_actions.idle", "still"], "talk": ["mingyu_actions.talk", "bob"], "arrange": ["mingyu_actions.arrange", "crouch"], "whisper": ["mingyu_actions.whisper", "lean"], "shrug": ["mingyu_actions.shrug", "raise"] }
     },
     "jaehee": {
-      "note": "강재희", "placeholder": { "w": 18, "h": 49, "color": "#8a6f4e" }, "body": [18, 47],
+      "note": "강재희 (38세 여성) — 키 약 49", "placeholder": { "w": 18, "h": 49, "color": "#2a3550", "details": [[0, 0, 18, 9, "#8a7360"], [3, 9, 12, 14, "#1c1c22"]] }, "body": [18, 47],
       "anims": { "idle": ["jaehee_actions.idle", "still"], "drink": ["jaehee_actions.drink", "bowhead"], "toss": ["jaehee_actions.toss", "swing"], "crush": ["jaehee_actions.crush", "shake"], "photo": ["jaehee_actions.photo", "still"], "lie": ["jaehee_actions.lie", "lie"], "sit_up": ["jaehee_actions.sit_up", "sit"], "wave": ["jaehee_actions.wave", "raise"], "empty_hand": ["jaehee_actions.empty_hand", "bowhead"] }
     },
     "yoon": {
-      "note": "윤서진 실장", "placeholder": { "w": 18, "h": 48, "color": "#2b2f36", "outline": "#9aa3ad", "details": [[3, 2, 12, 10, "#e8e8e8"]] }, "body": [18, 46],
+      "note": "윤서진 실장 (41세 여성) — 키 약 48", "placeholder": { "w": 18, "h": 48, "color": "#1c1d22", "outline": "#9aa3ad", "details": [[0, 0, 18, 30, "#121216"], [4, 9, 10, 16, "#eef0f2"]] }, "body": [18, 46],
       "anims": { "idle": ["yoon_actions.idle", "still"], "handshake": ["yoon_actions.handshake", "lean"], "sit": ["yoon_actions.sit", "sit"], "pour": ["yoon_actions.pour", "sit"], "open_case": ["yoon_actions.open_case", "sit"], "slide_doc": ["yoon_actions.slide_doc", "sit"], "tablet": ["yoon_actions.tablet", "sit"], "glasses": ["yoon_actions.glasses", "raise"] }
     },
     "npc_foreman": {
