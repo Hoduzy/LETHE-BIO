@@ -9,6 +9,9 @@
 //  - occluders: 앞 가림막. 배경에서 다각형(poly) 모양대로 오린 조각을 인물 위에 그린다
 //    png 가 있고 이름 속 해시가 poly 와 맞으면 그 PNG(assets/sprites/fg/), 아니면 실행 중에 배경을 오려 만든다
 //  - pitArt: 배경의 구덩이 그림 일부를 늘려서 더 넓은 구덩이로 그린다
+//  - areas: 한 장면 안에 방(구역)을 가로로 나란히 둔다 [{ id, x0, w, left: { to, x }, right: { to, x } }]
+//    지금 구역만 카메라에 보이고, 구역 끝에 left/right 가 있으면 그쪽으로 걸어 나가면 다른 구역으로 이어진다
+//  - actors[].phase / level: 잔상 단계 (normal 정상 / corrupt 변질) → AfterimageFx
 //  - walkers: 실외 행인. 화면 양 끝에서 나와 반대편으로 걸어 나가고 몇 초마다 새로 나온다 (부딪힘 없음)
 //    { every: [ms, ms], max, lanes: ["floor", "back"], types: [{ char | chars: [..], gap, speed: [min, max] }] }
 //    lane 에 dim(0~1) 을 주면 그 줄 인물을 그만큼 어둡게
@@ -18,6 +21,7 @@ import { Audio } from '../core/audio.js';
 import { objTexture } from '../core/sprites.js';
 import { CharSprite, UNIT } from './CharSprite.js';
 import { Conveyor } from './Conveyor.js';
+import { AfterimageFx } from './AfterimageFx.js';
 import { W, H, DEPTH, txt } from '../core/gfx.js';
 
 function col(hex) {
@@ -53,6 +57,7 @@ export class Stage {
     // 배경 PNG 가 있으면 배경 속 가구(bgPart)는 그리지 않는다
     this.bgReal = !!(def.bg && G.realSprites.has(def.bg));
     this.setupLanes();
+    this.areas = (def.areas || []).map((a) => Object.assign({ w: W }, a));
 
     scene.cameras.main.setBackgroundColor(def.bgColor || '#000000');
     scene.cameras.main.setBounds(0, 0, this.width, H);
@@ -64,6 +69,7 @@ export class Stage {
     this.buildProps();
     this.buildActors();
     this.buildEffects();
+    this.buildDecor();
     this.buildConveyors();
     this.buildCapsules();
     this.walkers = [];
@@ -202,6 +208,17 @@ export class Stage {
   buildBackdrop() {
     const s = this.scene;
     const def = this.def;
+    // 구역(areas)이 있는 장면: 구역마다 배경 한 장 (areas[].bg, 없으면 stage.bg). 그림이 없는 구역은 backdrop 도형
+    if (this.areas.length) {
+      const g = s.add.graphics().setDepth(DEPTH.backdrop);
+      this.backdropG = g;
+      this.drawShapes(g, def.backdrop || [], DEPTH.backdrop + 1);
+      this.areas.forEach((a) => {
+        const key = a.bg || def.bg;
+        if (key && G.realSprites.has(key)) s.add.image(a.x0, 0, key).setOrigin(0).setDepth(DEPTH.backdrop + 0.8);
+      });
+      return;
+    }
     if (this.bgReal) {
       // 배경은 480x270 한 장. 장면 폭은 480 으로 맞춘다 (반복하지 않음)
       s.add.image(0, 0, def.bg).setOrigin(0).setDepth(DEPTH.backdrop);
@@ -215,12 +232,26 @@ export class Stage {
     }
     const g = s.add.graphics().setDepth(DEPTH.backdrop);
     this.backdropG = g;
-    (def.backdrop || []).forEach((sh) => {
+    this.drawShapes(g, def.backdrop || [], DEPTH.backdrop + 1);
+  }
+
+  // 단색 면·선·글자 목록 그리기 (backdrop, decor 공용)
+  //  rect [x,y,w,h] / line [x1,y1,x2,y2] / frame [x,y,w,h] / hlines [x,y,w,gap,n] / vlines [x,y,h,gap,n]
+  //  ellipse [cx,cy,w,h] / tri [x1,y1,x2,y2,x3,y3] / text
+  drawShapes(g, list, textDepth) {
+    const s = this.scene;
+    list.forEach((sh) => {
       const c = col(sh.color || '#ffffff');
       const a = sh.alpha != null ? sh.alpha : 1;
       if (sh.rect) {
         g.fillStyle(c, a);
         g.fillRect(...sh.rect);
+      } else if (sh.ellipse) {
+        g.fillStyle(c, a);
+        g.fillEllipse(...sh.ellipse);
+      } else if (sh.tri) {
+        g.fillStyle(c, a);
+        g.fillTriangle(...sh.tri);
       } else if (sh.line) {
         g.lineStyle(sh.width || 1, c, a);
         g.lineBetween(...sh.line);
@@ -238,10 +269,21 @@ export class Stage {
         g.lineStyle(1, c, a);
         for (let i = 0; i < n; i++) g.lineBetween(x + i * gap + 0.5, y, x + i * gap + 0.5, y + h);
       } else if (sh.text) {
-        const t = txt(s, sh.x, sh.y, sh.text, { color: sh.color, size: sh.size || 12, fixed: false, origin: sh.origin != null ? sh.origin : 0, align: sh.align || 'left' });
-        t.setDepth(DEPTH.backdrop + 1);
+        const t = txt(s, sh.x, sh.y, sh.text, { color: sh.color, size: sh.size || 12, small: !!sh.small, fixed: false, origin: sh.origin != null ? sh.origin : 0, align: sh.align || 'left' });
+        t.setDepth(textDepth);
         if (sh.alpha != null) t.setAlpha(sh.alpha);
       }
+    });
+  }
+
+  // decor: 가구 위에 얹는 작은 것들 (식탁 위 반찬, 매달린 고깔모자 등). 배경 PNG 가 있어도 그린다(keep 이 아니면 생략)
+  //  [{ depth, keep, shapes: [...] }]
+  buildDecor() {
+    (this.def.decor || []).forEach((d) => {
+      if (this.bgReal && !d.keep) return;
+      const g = this.scene.add.graphics().setDepth(d.depth != null ? d.depth : DEPTH.prop + 1);
+      this.drawShapes(g, d.shapes || [], (d.depth != null ? d.depth : DEPTH.prop + 1) + 0.1);
+      if (d.id) this.decor = Object.assign(this.decor || {}, { [d.id]: g });
     });
   }
 
@@ -298,7 +340,8 @@ export class Stage {
       // 손에 드는 물건은 인물과 같은 배율 (따로 정하면 그 값)
       img.setScale(p.scale != null ? p.scale : (s.charScale || 1) * UNIT);
     } else if (p.ph) {
-      if (this.bgReal) {
+      // keep: 배경 그림에는 없는 가구 (그 장면에만 놓는 버너 등) → 배경 PNG 가 있어도 그린다
+      if (this.bgReal && !p.keep) {
         // 배경에 이미 그려져 있다: 살펴보기/출구용이면 보이지 않는 영역만
         const spec = G.spriteData.placeholders[p.ph] || { w: 30, h: 40 };
         img = s.add.image(p.x, y, 'px').setOrigin(0.5, 1).setDisplaySize(p.w || spec.w, p.h || spec.h).setAlpha(0);
@@ -340,6 +383,7 @@ export class Stage {
       cs.setDepth(cs.baseDepth + ln.depth);
       if (ln.scale !== 1) cs.setLaneScale(ln.scale);
       cs.face(a.facing || 1);
+      if (a.phase) cs.afterFx = new AfterimageFx(s, cs, { phase: a.phase, level: a.level, skin: a.skin ? col(a.skin) : undefined });
       if (a.visible === false) cs.setVisible(false);
       if (a.alpha != null) cs.setAlpha(a.alpha);
       if (a.anim) cs.play(a.anim);
@@ -373,6 +417,11 @@ export class Stage {
         case 'grid': this.fxGrid(o); break;
         case 'puddles': this.fxPuddles(o); break;
         case 'cityLights': this.fxCityLights(o); break;
+        case 'candles': this.fxCandles(o); break;
+        case 'tvStatic': this.fxTvStatic(o); break;
+        case 'whiteWindow': this.fxWhiteWindow(o); break;
+        case 'stain': this.fxStain(o); break;
+        case 'glimmer': this.fxGlimmer(o); break;
         default: break;
       }
     });
@@ -590,8 +639,102 @@ export class Stage {
     }
   }
 
+  // ---------- 구역 (areas) ----------
+  areaAt(x) {
+    return this.areas.find((a) => x >= a.x0 && x < a.x0 + a.w) || null;
+  }
+
+  area(id) {
+    return this.areas.find((a) => a.id === id) || null;
+  }
+
+  // ---------- 1장 작은 연출 ----------
+  // 생일 케이크 초: 꺼지지 않고 계속 흔들리다가, 수확 순간(harvest-done) 동시에 꺼진다
+  fxCandles({ x = 240, y = 180, count = 10, w = 30 }) {
+    const s = this.scene;
+    const g = s.add.graphics().setDepth(DEPTH.prop + 2);
+    const flames = [];
+    for (let i = 0; i < count; i++) {
+      const cx = Math.round(x - w / 2 + (w * (i + 0.5)) / count);
+      g.fillStyle(i % 2 ? 0x8fc3ff : 0xffa3c8, 1);
+      g.fillRect(cx - 1, y - 7, 2, 7);
+      const f = s.add.ellipse(cx, y - 9, 3, 5, 0xffd27a, 1).setDepth(DEPTH.prop + 3);
+      const core = s.add.ellipse(cx, y - 8.5, 1.5, 2.5, 0xfffbe8, 1).setDepth(DEPTH.prop + 3);
+      flames.push({ f, core, cx, ph: Math.random() * 6 });
+    }
+    let out = false;
+    const glow = s.add.circle(x, y - 10, w * 0.9, 0xffc870, 0.12).setDepth(DEPTH.prop + 1);
+    this.updaters = this.updaters || [];
+    let t = 0;
+    this.updaters.push((dt) => {
+      if (out) return;
+      t += dt / 1000;
+      flames.forEach((fl) => {
+        const k = 1 + Math.sin(t * 13 + fl.ph) * 0.18 + Math.sin(t * 29 + fl.ph * 2) * 0.08;
+        fl.f.setScale(1, k);
+        fl.f.x = fl.cx + Math.sin(t * 7 + fl.ph) * 0.6;
+        fl.core.x = fl.f.x;
+      });
+      glow.setAlpha(0.1 + Math.sin(t * 9) * 0.02);
+    });
+    s.events.once('harvest-done', () => {
+      out = true;
+      flames.forEach((fl) => {
+        fl.f.destroy();
+        fl.core.destroy();
+        const smoke = s.add.rectangle(fl.cx, y - 10, 1, 4, 0xcfcfcf, 0.6).setDepth(DEPTH.prop + 3);
+        s.tweens.add({ targets: smoke, y: y - 24, alpha: 0, duration: 1400, onComplete: () => smoke.destroy() });
+      });
+      glow.destroy();
+    });
+  }
+
+  // 아무것도 안 나오고 지직거리기만 하는 TV 화면
+  fxTvStatic({ x = 0, y = 0, w = 40, h = 26 }) {
+    const s = this.scene;
+    const g = s.add.graphics().setDepth(DEPTH.prop + 1);
+    let t = 0;
+    this.updaters = this.updaters || [];
+    this.updaters.push((dt) => {
+      t -= dt;
+      if (t > 0) return;
+      t = 80;
+      g.clear();
+      g.fillStyle(0x1a1c20, 1);
+      g.fillRect(x, y, w, h);
+      for (let i = 0; i < (w * h) / 6; i++) {
+        const c = Math.random() < 0.5 ? 0x8a8f98 : 0xd8dce2;
+        g.fillStyle(c, 0.5 + Math.random() * 0.5);
+        g.fillRect(x + Math.floor(Math.random() * w), y + Math.floor(Math.random() * h), 1, 1);
+      }
+    });
+  }
+
+  // 창밖이 새하얗다: 창문 안을 하얗게, 숨 쉬듯 살짝
+  fxWhiteWindow({ x = 0, y = 0, w = 60, h = 40 }) {
+    const s = this.scene;
+    const r = s.add.rectangle(x, y, w, h, 0xffffff, 1).setOrigin(0).setDepth(DEPTH.backdrop + 1);
+    s.tweens.add({ targets: r, alpha: { from: 0.92, to: 1 }, duration: 2400, yoyo: true, repeat: -1 });
+  }
+
+  // 천장 얼룩 (곰팡이). StoryScene 의 step stain 이 잠깐 공백처럼 보이게 바꾼다
+  fxStain({ x = 120, y = 40, w = 22, h = 7 }) {
+    const s = this.scene;
+    this.stainObj = s.add.ellipse(x, y, w, h, 0x2a2a20, 0.75).setDepth(DEPTH.backdrop + 2);
+    this.stainDef = { x, y, w, h };
+  }
+
+  // 멀리서 희미하게 깜빡이는 빛 (반짝이는 것)
+  fxGlimmer({ x = 400, y = 150, r = 4, color = '#fff2c0' }) {
+    const s = this.scene;
+    const c = s.add.circle(x, y, r, col(color), 0.8).setDepth(DEPTH.prop + 2);
+    const halo = s.add.circle(x, y, r * 3, col(color), 0.2).setDepth(DEPTH.prop + 1);
+    s.tweens.add({ targets: [c, halo], alpha: { from: 0.1, to: 0.9 }, duration: 900 + Math.random() * 500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+  }
+
   update(dt) {
     (this.updaters || []).forEach((f) => f(dt));
+    Object.values(this.actors).forEach((a) => { if (a.cs.afterFx) a.cs.afterFx.update(dt); });
     Object.values(this.conveyors || {}).forEach((c) => c.update(dt));
     this.updateWalkers(dt);
     this.updateCapsules();

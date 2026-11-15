@@ -64,7 +64,11 @@ export class Panels {
       ad: { fill: 0xf7f8fa, border: 0xd5dae0, color: '#c4cad2', w: 300 },
       adSmall: { fill: 0xf3edf6, border: 0xc3b6cc, color: '#5c4f66', w: 280 },
       lobby: { fill: 0xfafbfc, border: 0xe0e4e8, color: '#9aa2ac', w: 300 },
-      post: { fill: 0x10151d, border: 0x5d6b80, color: '#dfe5ee', w: 300 }
+      post: { fill: 0x10151d, border: 0x5d6b80, color: '#dfe5ee', w: 300 },
+      // 하린의 노트 (줄 노트, 손글씨 느낌의 왼쪽 정렬)
+      note: { fill: 0xf4f0e2, border: 0xb9ae90, color: '#3a3226', w: 300, align: 'left', lines: true },
+      // 명함
+      namecard: { fill: 0xfbfbfc, border: 0xc9ced6, color: '#2a2f38', w: 220 }
     }[style];
     const pad = 14;
     const texts = [];
@@ -75,12 +79,13 @@ export class Panels {
         y += o.gap;
         return;
       }
-      const t = txt(this.scene, W / 2, 0, o.t, {
+      const left = theme.align === 'left' && !o.center;
+      const t = txt(this.scene, left ? W / 2 - theme.w / 2 + pad : W / 2, 0, o.t, {
         color: o.color || theme.color,
         size: o.size || 12,
         big: (o.size || 12) >= 16,
-        align: 'center',
-        origin: [0.5, 0],
+        align: left ? 'left' : 'center',
+        origin: left ? [0, 0] : [0.5, 0],
         wrap: theme.w - pad * 2,
         italic: !!o.italic,
         depth: DEPTH.panel + 2
@@ -92,6 +97,13 @@ export class Panels {
     const h = y + pad * 2;
     const top = Math.max(8, Math.round((190 - h) / 2));
     const bg = panel(this.scene, Math.round(W / 2 - theme.w / 2), top, theme.w, Math.round(h), { fill: theme.fill, border: theme.border, alpha: 1, depth: DEPTH.panel + 1 });
+    if (theme.lines) {
+      // 노트 줄
+      bg.lineStyle(1, 0xd8cfb4, 1);
+      for (let ly = top + pad + 14; ly < top + h - 6; ly += 16) bg.lineBetween(W / 2 - theme.w / 2 + 8, ly + 0.5, W / 2 + theme.w / 2 - 8, ly + 0.5);
+      bg.lineStyle(1, 0xe0a0a0, 1);
+      bg.lineBetween(W / 2 - theme.w / 2 + 10.5, top + 4, W / 2 - theme.w / 2 + 10.5, top + h - 4);
+    }
     const dim = this.scene.add.rectangle(0, 0, W, H, 0x000000, 0.45).setOrigin(0).setDepth(DEPTH.panel);
     this.addTo('card', dim);
     this.addTo('card', bg);
@@ -117,12 +129,13 @@ export class Panels {
   settlement(def) {
     this.clearGroup('settle');
     const lines = def.lines;
-    const bw = 300;
-    const lh = 18;
     const rows = lines.length;
+    // 줄이 많으면(대본의 정산 상자 그대로) 줄 간격을 줄이고 화면 가운데에
+    const lh = rows > 9 ? 14 : 18;
+    const bw = def.width || (rows > 9 ? 320 : 300);
     const bh = rows * lh + 28;
     const x0 = Math.round(W / 2 - bw / 2);
-    const y0 = Math.round((196 - bh) / 2);
+    const y0 = Math.max(4, Math.round(((rows > 9 ? H : 196) - bh) / 2));
     const dim = this.scene.add.rectangle(0, 0, W, H, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH.panel);
     this.addTo('settle', dim);
     const g = this.scene.add.graphics().setDepth(DEPTH.panel + 1);

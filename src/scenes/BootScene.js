@@ -5,6 +5,7 @@ import { G } from '../core/state.js';
 import { Audio } from '../core/audio.js';
 import { queueLoads, processLoaded, registerAnims, makePlaceholders } from '../core/sprites.js';
 import { applyTouchSkin } from '../core/touch.js';
+import { Skills } from '../core/skills.js';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -16,6 +17,7 @@ export class BootScene extends Phaser.Scene {
     this.load.json('speakers', 'data/speakers.json');
     this.load.json('voices', 'data/voices.json');
     this.load.json('sprites', 'data/sprites.json');
+    this.load.json('skills', 'data/skills.json');
   }
 
   create() {
@@ -24,6 +26,7 @@ export class BootScene extends Phaser.Scene {
     G.voices = this.cache.json.get('voices') || {};
     G.spriteData = this.cache.json.get('sprites') || {};
     Audio.setVoices(G.voices);
+    Skills.init(this.cache.json.get('skills') || {});
 
     const finish = () => {
       G.realSprites = processLoaded(this, G.spriteData);

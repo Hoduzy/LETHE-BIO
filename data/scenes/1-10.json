@@ -1,0 +1,84 @@
+{
+  "id": "1-10",
+  "title": "반지하 / 밤",
+  "heading": "#1-10 반지하 / 밤",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_banjiha_night",
+    "width": 480,
+    "floorY": 224,
+    "charScale": 1.0,
+    "charTint": "#e1d4ff",
+    "charBrightness": 0.61,
+    "lightZones": [
+      {"x0": 300, "x1": 430, "color": "#ffd7a8", "brightness": 0.92, "soft": 40}
+    ],
+    "bgColor": "#000000",
+    "ambience": ["grill"],
+    "abilities": ["move"],
+    "player": {"x": 420, "facing": -1, "anim": "sit"},
+    "tint": {"color": "#05081a", "alpha": 0.3},
+    "backdrop": [
+      {"rect": [0, 0, 480, 216], "color": "#2b2b33"},
+      {"vlines": [0, 30, 186, 24, 21], "color": "#34343d"},
+      {"rect": [0, 0, 480, 30], "color": "#1f1f25"},
+      {"line": [0, 30, 480, 30], "color": "#3c3c44"},
+      {"rect": [250, 30, 44, 7], "color": "#3d3b2c", "alpha": 0.8},
+      {"rect": [6, 100, 22, 50], "color": "#26262c", "alpha": 0.7},
+      {"rect": [180, 36, 110, 34], "color": "#0f131a"},
+      {"frame": [178, 34, 114, 38], "color": "#5a5a62"},
+      {"line": [235, 34, 235, 72], "color": "#5a5a62"},
+      {"rect": [0, 216, 480, 54], "color": "#1b1a1f"},
+      {"line": [0, 216, 480, 216], "color": "#4a4950"},
+      {"rect": [0, 208, 480, 8], "color": "#26252b"}
+    ],
+    "effects": [
+      {"name": "rainWindow", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
+      {"name": "drip", "x": 115, "top": 40}
+    ],
+    "props": [
+      {"id": "futon", "ph": "ph_futon", "x": 80},
+      {"id": "curtain", "ph": "ph_curtain", "x": 210, "alpha": 0.94, "depth": 22},
+      {"id": "bucket", "obj": "bucket", "x": 115, "y": 205},
+      {"id": "fridge", "ph": "ph_fridge", "x": 305},
+      {"id": "calendar", "obj": "calendar", "x": 432, "y": 150},
+      {"id": "desk", "ph": "ph_desk", "x": 390},
+      {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
+      {"id": "door", "ph": "ph_door", "x": 461},
+      {"id": "low_table", "ph": "ph_low_table", "x": 390},
+      {"id": "lamp", "obj": "lamp", "x": 352, "y": 200, "glow": true},
+      {"id": "burner", "ph": "ph_burner", "x": 380, "y": 200, "depth": 19, "keep": true},
+      {"id": "grill", "obj": "grill_meat", "x": 380, "y": 191, "scale": 1, "depth": 20, "keep": true}
+    ],
+    "actors": [
+      {"id": "mother", "char": "mother", "x": 342, "speaker": "어머니", "facing": 1, "anim": "sit_watch"}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 200},
+    {"type": "fade", "to": "none", "ms": 1200},
+    {"type": "narration", "text": "접이식 상 위에 휴대용 버너. 고기가 구워지는 소리. 어머니가 놀란 얼굴로 앉아 있다."},
+    {"type": "say", "speaker": "어머니", "text": "이게 얼마 만이니.", "face": 4},
+    {"type": "say", "speaker": "도윤", "text": "많이 먹어.", "face": 1},
+    {"type": "say", "speaker": "어머니", "text": "회사 좋은 데 들어갔나 보다. 벌써 이렇게 돈이 나와?", "face": 4},
+    {"type": "say", "speaker": "도윤", "text": "응. 성과급이 바로바로 나와.", "face": 5},
+    {"type": "say", "speaker": "어머니", "text": "사무직인데 성과급이 있어?", "face": 2},
+    {"type": "say", "speaker": "도윤", "text": "(멈칫) …응. 일 잘하면.", "face": 5},
+    {"type": "say", "speaker": "어머니", "text": "(웃으며) 우리 아들 일 잘하는구나.", "face": 1},
+    {"type": "actor", "id": "mother", "action": "anim", "name": "cook"},
+    {"type": "narration", "text": "어머니가 고기를 도윤 앞으로 밀어준다."},
+    {"type": "actor", "id": "mother", "action": "anim", "name": "sit_watch"},
+    {"type": "say", "speaker": "어머니", "text": "너 먹어. 엄마는 이거 많이 먹으면 안 돼.", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "조금은 괜찮잖아.", "face": 2},
+    {"type": "say", "speaker": "어머니", "text": "조금만. 너 많이 먹어.", "face": 1},
+    {"type": "player", "action": "anim", "name": "eat"},
+    {"type": "narration", "text": "도윤이 고기를 씹는다."},
+    {"type": "parallel", "steps": [{"type": "sfxSeq", "name": "chew", "count": 8, "interval": 520, "from": 0.9, "to": 0.08}, {"type": "grey", "amount": 0.32, "ms": 3800}, {"type": "sequence", "steps": [{"type": "wait", "ms": 1200}, {"type": "echo", "lines": [{"speaker": "하준(잔상)", "text": "누나 남자친구야?", "x": 150, "y": 92, "at": 0}, {"speaker": "엄마(잔상)", "text": "계란말이 내려놔.", "x": 300, "y": 70, "at": 1100}, {"speaker": "아빠(잔상)", "text": "많이 드세요.", "x": 220, "y": 120, "at": 2200}]}]}]},
+    {"type": "player", "action": "anim", "name": "sit"},
+    {"type": "say", "speaker": "어머니", "text": "맛없어?", "face": 2},
+    {"type": "say", "speaker": "도윤", "text": "…아니. 맛있어.", "face": 6},
+    {"type": "grey", "amount": 0, "ms": 1600},
+    {"type": "narration", "text": "어머니가 웃는다. 도윤도 웃는다. 왼쪽 입꼬리만."},
+    {"type": "fade", "to": "black", "ms": 1200}
+  ]
+}

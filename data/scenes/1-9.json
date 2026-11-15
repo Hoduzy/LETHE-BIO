@@ -1,0 +1,55 @@
+{
+  "id": "1-9",
+  "title": "정육점 / 저녁",
+  "heading": "#1-9 정육점 / 저녁",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_butcher",
+    "width": 480,
+    "floorY": 244,
+    "charScale": 1.0,
+    "charTint": "#ffe8dc",
+    "charBrightness": 0.85,
+    "bgColor": "#000000",
+    "ambience": ["street"],
+    "abilities": ["move"],
+    "player": {"x": 40, "facing": 1},
+    "lanes": {"behind": {"y": 222, "scale": 0.92, "depth": -15}},
+    "backdrop": [
+      {"rect": [0, 0, 480, 232], "color": "#3a3634"},
+      {"rect": [0, 0, 480, 24], "color": "#2a2624"},
+      {"rect": [40, 8, 400, 3], "color": "#ffd0c0"},
+      {"rect": [0, 232, 480, 38], "color": "#2a2826"},
+      {"hlines": [0, 238, 480, 10, 3], "color": "#3a3634"},
+      {"rect": [110, 40, 260, 30], "color": "#7a2a2a"},
+      {"text": "정육점", "x": 240, "y": 48, "color": "#ffe8d8", "size": 14, "origin": [0.5, 0]},
+      {"rect": [0, 60, 70, 172], "color": "#4a4642"},
+      {"rect": [420, 60, 60, 172], "color": "#4a4642"},
+      {"rect": [0, 232, 480, 38], "color": "#2a2826"}
+    ],
+    "props": [
+      {"id": "meat_case", "ph": "ph_meat_case", "x": 260, "depth": 18},
+      {"id": "meat", "obj": "meat_pack", "x": 228, "y": 188, "scale": 1, "depth": 19, "visible": false, "keep": true},
+      {"id": "wallet", "obj": "wallet", "x": 196, "y": 190, "scale": 1, "depth": 19, "visible": false, "label": "지갑", "range": 30, "examine": {"lines": ["처음으로 지갑에 만 원짜리가 여러 장 들어 있다."]}, "keep": true}
+    ],
+    "actors": [
+      {"id": "butcher", "char": "butcher", "x": 270, "lane": "behind", "speaker": "사장", "facing": -1}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 200},
+    {"type": "fade", "to": "none", "ms": 1000},
+    {"type": "narration", "text": "시장 골목의 작은 정육점. 도윤이 진열대 앞에 서 있다."},
+    {"type": "player", "action": "move", "x": 190, "face": 1},
+    {"type": "actor", "id": "butcher", "action": "anim", "name": "talk"},
+    {"type": "say", "speaker": "사장", "text": "뭐 드려요?"},
+    {"type": "say", "speaker": "도윤", "text": "…삼겹살이요. 한 근. 아니, 두 근이요.", "face": 1},
+    {"type": "actor", "id": "butcher", "action": "anim", "name": "wrap"},
+    {"type": "say", "speaker": "사장", "text": "오늘 무슨 날이에요?"},
+    {"type": "say", "speaker": "도윤", "text": "…월급날이요.", "face": 6},
+    {"type": "prop", "id": "meat", "action": "show"},
+    {"type": "prop", "id": "wallet", "action": "show"},
+    {"type": "explore", "only": ["wallet"], "require": ["wallet"]},
+    {"type": "fade", "to": "black", "ms": 900}
+  ]
+}

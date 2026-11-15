@@ -75,7 +75,7 @@ export function setupTouch() {
   if (!root) return;
   rootEl = root;
 
-  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
+  const isTouch = G.touchOnly || ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
   // 터치 조작이 보일 때는 게임 화면을 위쪽에 붙여서, 아래 남는 공간에 패드와 버튼이 겹치지 않게 놓는다
   const show = () => {
     if (!root.classList.contains('hidden')) return;
@@ -95,7 +95,7 @@ export function setupTouch() {
   // 터치하면 보이고, 키보드를 쓰면 숨긴다
   window.addEventListener('touchstart', show, { passive: true });
   window.addEventListener('keydown', (e) => {
-    if (e.key && e.key.startsWith('Arrow')) hide();
+    if (!G.touchOnly && e.key && e.key.startsWith('Arrow')) hide();
   });
 
   // iOS: 길게 누를 때 확대경/메뉴, 더블탭 확대 방지

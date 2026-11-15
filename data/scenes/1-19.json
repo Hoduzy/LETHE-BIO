@@ -1,0 +1,83 @@
+{
+  "id": "1-19",
+  "title": "반지하 / 25일",
+  "heading": "#1-19 반지하 / 25일",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_banjiha_dawn",
+    "width": 480,
+    "floorY": 224,
+    "charScale": 1.0,
+    "charTint": "#d0d8ff",
+    "charBrightness": 0.65,
+    "lightZones": [
+      {"x0": 330, "x1": 410, "color": "#e6dcd0", "brightness": 0.82, "soft": 36}
+    ],
+    "bgColor": "#000000",
+    "ambience": ["drip"],
+    "abilities": ["move"],
+    "player": {"x": 400, "facing": -1, "anim": "sit"},
+    "tint": {"color": "#0a1030", "alpha": 0.2},
+    "backdrop": [
+      {"rect": [0, 0, 480, 216], "color": "#2e2e36"},
+      {"vlines": [0, 30, 186, 24, 21], "color": "#34343d"},
+      {"rect": [0, 0, 480, 30], "color": "#1f1f25"},
+      {"line": [0, 30, 480, 30], "color": "#3c3c44"},
+      {"rect": [250, 30, 44, 7], "color": "#3d3b2c", "alpha": 0.8},
+      {"rect": [6, 100, 22, 50], "color": "#26262c", "alpha": 0.7},
+      {"rect": [180, 36, 110, 34], "color": "#0f131a"},
+      {"frame": [178, 34, 114, 38], "color": "#5a5a62"},
+      {"line": [235, 34, 235, 72], "color": "#5a5a62"},
+      {"rect": [0, 216, 480, 54], "color": "#1b1a1f"},
+      {"line": [0, 216, 480, 216], "color": "#4a4950"},
+      {"rect": [0, 208, 480, 8], "color": "#26252b"}
+    ],
+    "effects": [
+      {"name": "rainWindow", "x": 180, "y": 36, "w": 110, "h": 34, "phOnly": true},
+      {"name": "drip", "x": 115, "top": 40}
+    ],
+    "props": [
+      {"id": "futon", "ph": "ph_futon", "x": 80},
+      {"id": "curtain", "ph": "ph_curtain", "x": 210, "alpha": 0.94, "depth": 22},
+      {"id": "bucket", "obj": "bucket", "x": 115, "y": 205},
+      {"id": "fridge", "ph": "ph_fridge", "x": 305},
+      {"id": "calendar", "obj": "calendar", "x": 432, "y": 150},
+      {"id": "desk", "ph": "ph_desk", "x": 390},
+      {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
+      {"id": "door", "ph": "ph_door", "x": 461},
+      {"id": "mom_wallet", "obj": "wallet", "x": 330, "y": 214, "scale": 1, "depth": 22, "visible": false, "label": "어머니 지갑", "range": 40, "examine": {"lines": ["명함이 아빠 사진 옆에 꽂혔다.", "아빠 사진은 오래돼서 색이 다 바랬다."]}, "keep": true}
+    ],
+    "actors": [
+      {"id": "mother", "char": "mother", "x": 300, "speaker": "어머니", "facing": 1, "anim": "sit_watch"}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 200},
+    {"type": "fade", "to": "none", "ms": 1000},
+    {"type": "narration", "text": "도윤이 휴대폰을 본다."},
+    {"type": "phone", "action": "bank", "kind": "송금", "title": "○○대부 1,150,000원", "lines": ["송금이 완료되었습니다."]},
+    {"type": "sfx", "name": "pop"},
+    {"type": "narration", "text": "진동. 문자."},
+    {"type": "phone", "action": "sms", "from": "○○대부", "keep": true, "lines": ["서도윤 고객님, 이번 달 이자 납부 확인되었습니다. 감사합니다. 다음 납부일은 다음 달 25일입니다."]},
+    {"type": "narration", "text": "그 문자 아래에 이전 문자가 보인다. 3일 전 추심원의 문자."},
+    {"type": "phone", "action": "sms", "from": "○○대부", "lines": ["서도윤 고객님, 이자 납부일이 2일 남았습니다. 미납 시 방문 상담이 진행될 수 있습니다."]},
+    {"type": "phone", "action": "close"},
+    {"type": "player", "action": "anim", "name": "sit"},
+    {"type": "narration", "text": "도윤이 휴대폰을 내려놓는다. 숨을 길게 내쉰다. 처음으로 25일이 무섭지 않다."},
+    {"type": "say", "speaker": "어머니", "text": "도윤아, 회사 명함 있어?", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "왜?", "face": 1},
+    {"type": "say", "speaker": "어머니", "text": "그냥. 아들 회사 명함 보고 싶어서. 자랑하려고. 옆집 아줌마가 너 요즘 뭐 하냐고 물어보더라.", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "(지갑에서 명함을 꺼낸다. 잠깐 망설이다가 건넨다)", "face": 2},
+    {"type": "card", "style": "namecard", "lines": [{"t": "LETHE BIO", "size": 14, "after": 10}, {"t": "서도윤", "size": 16, "after": 6}, {"t": "수확운영팀 / 다이버"}]},
+    {"type": "say", "speaker": "어머니", "text": "수확운영팀? 다이버?", "face": 4},
+    {"type": "say", "speaker": "도윤", "text": "(빠르게) 그냥 부서 이름이야. 회사 용어. 자료 모으는 일 해.", "face": 5},
+    {"type": "say", "speaker": "어머니", "text": "아, 그렇구나. 요즘 회사들은 이름을 이상하게 짓네.", "face": 1},
+    {"type": "actor", "id": "mother", "action": "anim", "name": "touch_face"},
+    {"type": "say", "speaker": "어머니", "text": "(명함을 손으로 쓰다듬는다) 그래도 좋다. 우리 아들 이름이 회사 명함에 있네.", "face": 5},
+    {"type": "actor", "id": "mother", "action": "anim", "name": "sit_watch"},
+    {"type": "prop", "id": "mom_wallet", "action": "show"},
+    {"type": "narration", "text": "어머니가 명함을 지갑에 소중히 넣는다."},
+    {"type": "explore", "only": ["mom_wallet"], "require": ["mom_wallet"], "freeze": true},
+    {"type": "fade", "to": "black", "ms": 1000}
+  ]
+}

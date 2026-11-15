@@ -121,8 +121,10 @@ function shade(hex, amt) {
 function drawShape(g, spec, ox, oy) {
   const w = spec.w;
   const h = spec.h;
-  const color = col(spec.color || '#ff00ff');
-  const outline = spec.outline ? col(spec.outline) : shade(spec.color || '#ff00ff', 0.6);
+  // color 'none': 바탕 없이 details 만 (의자·이층침대처럼 뼈대만 있는 가구, 사람 모양)
+  const none = spec.color === 'none';
+  const color = none ? 0 : col(spec.color || '#ff00ff');
+  const outline = spec.outline && spec.outline !== 'none' ? col(spec.outline) : none ? 0 : shade(spec.color || '#ff00ff', 0.6);
   switch (spec.shape) {
     case 'diamond': {
       const cx = ox + w / 2;
@@ -198,6 +200,7 @@ function drawShape(g, spec, ox, oy) {
       break;
     }
     default: {
+      if (none) break;
       g.fillStyle(color, 1);
       g.fillRect(ox, oy, w, h);
       g.lineStyle(1, outline, 1);
@@ -225,7 +228,7 @@ export function makePlaceholders(scene, json, real) {
   // 인물: 64x64 칸 (공백은 32x32), 발밑이 칸 맨 아래
   Object.entries(json.characters || {}).forEach(([id, c]) => {
     if (id.startsWith('_')) return;
-    const [cw, ch] = c.cell || [64, 64];
+    const [cw, ch] = c.cell || [128, 128];
     makeCellTexture(scene, 'ph_char_' + id, c.placeholder, cw, ch);
   });
   // 물건: 시트 칸 크기 안에

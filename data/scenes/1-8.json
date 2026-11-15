@@ -1,0 +1,65 @@
+{
+  "id": "1-8",
+  "title": "다이브실 / 다이브 종료",
+  "heading": "#1-8 다이브실 / 다이브 종료",
+  "startColor": "white",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_dive_room",
+    "width": 480,
+    "floorY": 236,
+    "charScale": 1.0,
+    "charTint": "#e7efff",
+    "charBrightness": 0.81,
+    "lanes": {"capsule": {"y": 184, "scale": 0.76}},
+    "bgColor": "#000000",
+    "ambience": ["hum"],
+    "abilities": ["move"],
+    "player": {"x": 215, "facing": 1, "anim": "capsule_sleep", "lane": "capsule"},
+    "backdrop": [
+      {"rect": [0, 0, 480, 216], "color": "#e9ecef"},
+      {"rect": [0, 216, 480, 54], "color": "#d4d9de"},
+      {"line": [0, 216, 480, 216], "color": "#b9c0c7"}
+    ],
+    "capsules": [
+      {"id": "cap2", "x": 172, "y": 162},
+      {"id": "cap3", "x": 282, "y": 162}
+    ],
+    "props": [],
+    "actors": [
+      {"id": "jaehee", "char": "jaehee", "x": 325, "lane": "capsule", "speaker": "재희", "facing": 1, "anim": "lie"}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 800},
+    {"type": "fade", "to": "none", "ms": 1600},
+    {"type": "capsule", "id": "cap2", "action": "open"},
+    {"type": "player", "action": "anim", "name": "capsule_gasp"},
+    {"type": "sfx", "name": "breath"},
+    {"type": "narration", "text": "캡슐 뚜껑이 열린다. 도윤이 헐떡이며 일어난다."},
+    {"type": "player", "action": "anim", "name": "capsule_sit"},
+    {"type": "narration", "text": "손을 본다. 아무것도 없다. 결정은 회사 장비로 이미 전송됐다."},
+    {"type": "narration", "text": "손바닥에 아직 따뜻한 감촉이 남아 있다."},
+    {"type": "settlement", "lines": ["LETHE BIO 다이브 정산", "---", "다이버      서도윤", "대상자      LT-0417", "", "품목        「따뜻한 가족 저녁」", "등급        B", "", "정산 금액   1,240,000원", "---", "메모: 첫 다이브 수고하셨습니다.", "대상자 반응 양호.", "---"], "amount": 1240000},
+    {"type": "narration", "text": "도윤이 정산 화면을 한참 본다."},
+    {"type": "narration", "text": "'따뜻한 가족 저녁'이라는 글자를."},
+    {"type": "capsule", "id": "cap3", "action": "open"},
+    {"type": "actor", "id": "jaehee", "action": "anim", "name": "sit_up", "wait": true},
+    {"type": "say", "speaker": "재희", "text": "(옆 캡슐에서 일어나며) 어땠어?", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "…", "face": 2},
+    {"type": "say", "speaker": "재희", "text": "대상자가 너 엄청 좋아했나 보다. 첫 다이브에 B면 잘한 거야.", "face": 2},
+    {"type": "player", "action": "stand"},
+    {"type": "player", "action": "lane", "lane": "floor"},
+    {"type": "player", "action": "move", "x": 250, "face": 1},
+    {"type": "actor", "id": "jaehee", "action": "stand", "lane": "floor"},
+    {"type": "actor", "id": "jaehee", "action": "move", "x": 292, "face": -1},
+    {"type": "say", "speaker": "도윤", "text": "선배.", "face": 1},
+    {"type": "say", "speaker": "재희", "text": "응.", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "그 사람… 다음에 들어가면 저 기억해요?", "face": 2},
+    {"type": "say", "speaker": "재희", "text": "너는 기억해. 너랑 만난 건 기억해. 대신 방금 그거, 저녁 먹은 건 기억 못 할 거야.", "face": 4},
+    {"type": "say", "speaker": "도윤", "text": "…", "face": 2},
+    {"type": "actor", "id": "jaehee", "action": "move", "x": 266, "face": -1, "speed": 30},
+    {"type": "say", "speaker": "재희", "text": "(어깨를 두드리며) 처음엔 다 힘들어.", "face": 3},
+    {"type": "fade", "to": "black", "ms": 1000}
+  ]
+}

@@ -138,7 +138,10 @@ class AudioEngine {
       f = v.steps[this.stepToggle++ % v.steps.length];
     }
     f *= 1 + (Math.random() * 2 - 1) * (v.jitter || 0);
-    let vol = v.vol || 0.4;
+    // 변질된 잔상: 음이 조금씩 처지고 흔들린다 (opts.glitch 0~1)
+    if (opts.glitch) f *= 1 - Math.random() * 0.25 * opts.glitch;
+    if (opts.freqMul) f *= opts.freqMul;
+    let vol = (v.vol || 0.4) * (opts.volMul != null ? opts.volMul : 1);
     if (thought) {
       f *= tv.freqMul || 0.7;
       vol *= tv.volMul || 0.15;
@@ -297,11 +300,13 @@ class AudioEngine {
   }
 
   // 간단한 액션 효과음
-  sfx(name) {
+  sfx(name, opts = {}) {
     if (!this.ready || this.silenced) return;
     const ctx = this.ctx;
-    const t = ctx.currentTime + 0.005;
-    const tone = (type, f1, f2, dur, vol, lp) => {
+    const t = ctx.currentTime + 0.005 + (opts.delay || 0);
+    const vm = opts.vol != null ? opts.vol : 1;
+    const tone = (type, f1, f2, dur, vol0, lp) => {
+      const vol = Math.max(0.0002, vol0 * vm);
       const o = ctx.createOscillator();
       o.type = type;
       o.frequency.setValueAtTime(f1, t);
@@ -322,7 +327,8 @@ class AudioEngine {
       o.start(t);
       o.stop(t + dur + 0.02);
     };
-    const noise = (dur, vol, freq, q = 1) => {
+    const noise = (dur, vol0, freq, q = 1) => {
+      const vol = Math.max(0.0002, vol0 * vm);
       const n = ctx.createBufferSource();
       n.buffer = this.noiseBuffer;
       const f = ctx.createBiquadFilter();
@@ -393,6 +399,35 @@ class AudioEngine {
       }
       case 'capsuleLock': tone('square', 1800, 1200, 0.025, 0.12, 5000); setTimeout(() => this.sfx('capsuleLock2'), 70); break;
       case 'capsuleLock2': tone('square', 1300, 900, 0.03, 0.14, 4000); tone('sine', 160, 90, 0.08, 0.25); break;
+      // 하린 빛 구슬: 맑은 '핑' / 맞음
+      case 'orb': tone('sine', 1320, 1760, 0.12, 0.12); tone('triangle', 660, 990, 0.08, 0.06); break;
+      case 'orbHit': tone('sine', 1760, 880, 0.1, 0.1); noise(0.05, 0.12, 4000, 1.5); break;
+      // 따뜻한 등불 / 등불이 피어나지 못함
+      case 'lamp': tone('sine', 520, 780, 0.5, 0.12); tone('sine', 780, 1040, 0.6, 0.07); break;
+      case 'fizzle': noise(0.18, 0.08, 1800, 2); tone('sine', 440, 300, 0.18, 0.05); break;
+      // 엄마 콧노래 (짧은 가락). broken 이면 음이 군데군데 끊긴다
+      case 'hum':
+      case 'humBroken': {
+        const notes = [392, 440, 494, 440, 392, 330, 392];
+        notes.forEach((f, i) => {
+          if (name === 'humBroken' && Math.random() < 0.35) return;
+          const d = name === 'humBroken' && Math.random() < 0.3 ? 0.12 : 0;
+          this.sfx('humNote', { delay: (opts.delay || 0) + i * 0.32 + d, vol: vm, f });
+        });
+        break;
+      }
+      case 'humNote': {
+        const f = opts.f || 392;
+        tone('sine', f, f * 0.995, 0.3, 0.08);
+        tone('triangle', f * 2, f * 2, 0.2, 0.015);
+        break;
+      }
+      // 씹는 소리 (작아지게 vol 로)
+      case 'chew': noise(0.07, 0.3, 700, 1.4); noise(0.05, 0.18, 1500, 1.2); break;
+      // 고기 굽는 소리 한 번
+      case 'sizzle': noise(0.5, 0.12, 5200, 0.7); break;
+      case 'pop': noise(0.03, 0.2, 3000, 2); break;
+      // 신발장·액자 등을 살필 때의 작은 소리 없음. 형태 공백의 속삭임은 목소리로
       // 튜토리얼 단계 성공
       case 'success': tone('triangle', 660, null, 0.09, 0.14); setTimeout(() => this.sfx('success2'), 90); break;
       case 'success2': tone('triangle', 990, null, 0.16, 0.14); break;
@@ -585,6 +620,20 @@ class AudioEngine {
         level = 0.4;
         break;
       }
+      case 'grill': {
+        // 휴대용 버너 위 고기 굽는 소리: 지글지글 + 가끔 톡
+        const sz = loopNoise(this.noiseBuffer, 'highpass', 3800);
+        const sg = ctx.createGain();
+        sg.gain.value = 0.16;
+        sz.connect(sg);
+        sg.connect(out);
+        timers.push(setInterval(() => {
+          if (!this.ready || this.silenced) return;
+          if (Math.random() < 0.5) this.sfx('pop', { vol: 0.5 });
+        }, 700));
+        level = 0.5;
+        break;
+      }
       case 'fridge': {
         // 냉장고 모터 / 형광등 웅웅거림
         const o = ctx.createOscillator();
@@ -621,6 +670,33 @@ class AudioEngine {
         lfo.start(t);
         nodes.push(lfo);
         level = 0.35;
+        break;
+      }
+      case 'stew': {
+        // 부엌에서 된장찌개 끓는 소리: 낮은 보글보글 + 가끔 뽀글
+        const body = loopNoise(this.brownBuffer, 'lowpass', 420);
+        const bg = ctx.createGain();
+        bg.gain.value = 0.35;
+        body.connect(bg);
+        bg.connect(out);
+        timers.push(setInterval(() => {
+          if (!this.ready || this.silenced) return;
+          const tt = ctx.currentTime + Math.random() * 0.2;
+          const o = ctx.createOscillator();
+          o.type = 'sine';
+          const f0 = 180 + Math.random() * 140;
+          o.frequency.setValueAtTime(f0, tt);
+          o.frequency.exponentialRampToValueAtTime(f0 * 1.8, tt + 0.05);
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.0001, tt);
+          g.gain.exponentialRampToValueAtTime(0.18, tt + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.07);
+          o.connect(g);
+          g.connect(out);
+          o.start(tt);
+          o.stop(tt + 0.09);
+        }, 260));
+        level = 0.45;
         break;
       }
       case 'hum': {

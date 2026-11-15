@@ -1,0 +1,63 @@
+{
+  "id": "1-1",
+  "title": "레테 바이오 / 다이브실 / 오전 9시",
+  "heading": "#1-1 레테 바이오 / 다이브실 / 오전 9시",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_dive_room",
+    "width": 480,
+    "floorY": 236,
+    "charScale": 1.0,
+    "charTint": "#e7efff",
+    "charBrightness": 0.81,
+    "lanes": {"capsule": {"y": 184, "scale": 0.76}},
+    "bgColor": "#000000",
+    "ambience": ["hum"],
+    "abilities": ["move"],
+    "player": {"x": 150, "facing": 1},
+    "backdrop": [
+      {"rect": [0, 0, 480, 216], "color": "#e9ecef"},
+      {"rect": [0, 216, 480, 54], "color": "#d4d9de"},
+      {"line": [0, 216, 480, 216], "color": "#b9c0c7"}
+    ],
+    "capsules": [
+      {"id": "cap2", "x": 172, "y": 162},
+      {"id": "cap3", "x": 282, "y": 162}
+    ],
+    "props": [],
+    "actors": [
+      {"id": "jaehee", "char": "jaehee", "x": 300, "speaker": "재희", "facing": -1}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 400},
+    {"type": "fade", "to": "none", "ms": 1400},
+    {"type": "narration", "text": "다이브 캡슐이 줄지어 있다."},
+    {"type": "capsule", "id": "cap3", "action": "open"},
+    {"type": "actor", "id": "jaehee", "action": "move", "x": 325, "face": 1},
+    {"type": "actor", "id": "jaehee", "action": "lane", "lane": "capsule"},
+    {"type": "actor", "id": "jaehee", "action": "anim", "name": "lie"},
+    {"type": "sfx", "name": "thud"},
+    {"type": "player", "action": "move", "x": 200, "face": 1},
+    {"type": "say", "speaker": "재희", "text": "첫 진짜 다이브네. 떨려?", "face": 2},
+    {"type": "say", "speaker": "도윤", "text": "네.", "face": 1},
+    {"type": "say", "speaker": "재희", "text": "들어가면 대상자가 말 걸 거야. 그냥 대답해 줘. 어색하게 굴면 대상자가 더 무서워해.", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "뭐라고 해요? 제가 누구라고.", "face": 1},
+    {"type": "say", "speaker": "재희", "text": "아무 말이나. 대부분은 '나도 갇혔다' 그러지. 그게 제일 편해.", "face": 1},
+    {"type": "capsule", "id": "cap2", "action": "open"},
+    {"type": "player", "action": "lane", "lane": "capsule"},
+    {"type": "player", "action": "lie", "x": 215, "anim": "capsule_lie"},
+    {"type": "sfx", "name": "thud"},
+    {"type": "say", "speaker": "재희", "text": "(뚜껑이 닫히기 전에) 아, 그리고. 이름은 알려 줘도 돼.", "face": 4},
+    {"type": "parallel", "steps": [{"type": "capsule", "id": "cap3", "action": "close"}, {"type": "sequence", "steps": [{"type": "wait", "ms": 300}, {"type": "capsule", "id": "cap2", "action": "close"}]}]},
+    {"type": "ambience", "set": []},
+    {"type": "sfx", "name": "breath", "wait": 1400},
+    {"type": "player", "action": "anim", "name": "capsule_sleep"},
+    {"type": "say", "speaker": "시스템 음성", "text": "대상자 LT-0417. 신경 링크 연결. 동기화 12%… 47%… 83%… 100%."},
+    {"type": "say", "speaker": "시스템 음성", "text": "다이브를 시작합니다."},
+    {"type": "fade", "to": "white", "ms": 2600},
+    {"type": "wait", "ms": 500},
+    {"type": "fade", "to": "#f2a35a", "ms": 2400},
+    {"type": "wait", "ms": 600}
+  ]
+}

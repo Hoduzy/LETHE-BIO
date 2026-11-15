@@ -177,6 +177,8 @@ export class DialogueBox {
     this.style = style;
     this.voice = voice;
     this.thought = style === 'thought';
+    // 변질된 잔상: 0~1 (소리가 군데군데 빠지고, 가끔 멈칫하며 늦어진다)
+    this.glitch = entry.glitch || 0;
 
     const portrait = (style === 'say' || style === 'thought') ? this.portraitFor(sp, entry) : null;
     this.hasPortrait = !!portrait;
@@ -309,11 +311,13 @@ export class DialogueBox {
       while (this.typing && this.timer >= 0) {
         const ch = this.full[this.shown];
         this.shown++;
-        let delay = this.msPerChar;
+        let delay = this.msPerChar * (1 + this.glitch * 0.5);
         if (ch === '.' || ch === '?' || ch === '!' || ch === '…') delay += G.fast ? 0 : 110;
         else if (ch === ',') delay += G.fast ? 0 : 50;
+        if (this.glitch && !G.fast && Math.random() < 0.07 * this.glitch) delay += 160 + Math.random() * 220;
         this.timer -= delay;
-        if (ch && !this.silentStyle && !isSilentChar(ch)) Audio.blip(this.voice, { thought: this.thought });
+        const drop = this.glitch && Math.random() < 0.3 * this.glitch;
+        if (ch && !drop && !this.silentStyle && !isSilentChar(ch)) Audio.blip(this.voice, { thought: this.thought, glitch: this.glitch });
         if (this.shown >= this.full.length) this.typing = false;
       }
       this.body.setText(this.full.slice(0, this.shown));

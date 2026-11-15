@@ -7,6 +7,12 @@
   "jaehee":    { "wave": "sawtooth", "freq": 235, "dur": 0.05,  "vol": 0.24, "jitter": 0.04, "msPerChar": 38, "lowpass": 1250, "grit": 0.3, "_메모": "낮고 허스키한 여자 목소리. 도윤(140)보다 높고 어머니(330)보다 낮음, 노이즈로 거친 질감" },
   "collector": { "wave": "sawtooth", "freq": 98,  "dur": 0.06,  "vol": 0.32, "jitter": 0.02, "msPerChar": 42, "lowpass": 480, "grit": 0.55 },
   "system":    { "wave": "square",   "freq": 660, "dur": 0.024, "vol": 0.14, "jitter": 0,    "msPerChar": 32, "lowpass": 4200, "steps": [660, 880] },
+  "harin":     { "wave": "triangle", "freq": 470, "dur": 0.036, "vol": 0.36, "jitter": 0.08, "msPerChar": 30, "slide": 1.06, "_메모": "밝고 조금 높은 여자 목소리. 빠르고 통통 튐 (윤 실장 520 보다 낮고 따뜻하게, 음이 살짝 올라감)" },
+  "harin_mom": { "wave": "sine",     "freq": 360, "dur": 0.06,  "vol": 0.4,  "jitter": 0.05, "attack": 0.012, "msPerChar": 42, "_메모": "하린 엄마 잔상: 젊고 따뜻한 엄마 목소리" },
+  "harin_dad": { "wave": "triangle", "freq": 165, "dur": 0.05,  "vol": 0.45, "jitter": 0.03, "msPerChar": 44, "lowpass": 1500, "_메모": "하린 아빠 잔상: 낮고 순한 목소리, 말이 적음" },
+  "hajun":     { "wave": "square",   "freq": 620, "dur": 0.024, "vol": 0.18, "jitter": 0.1,  "msPerChar": 28, "lowpass": 3600, "_메모": "열 살 하준 잔상: 높고 빠른 아이 목소리" },
+  "butcher":   { "wave": "sawtooth", "freq": 125, "dur": 0.05,  "vol": 0.3,  "jitter": 0.04, "msPerChar": 38, "lowpass": 900, "grit": 0.25 },
+  "shade":     { "wave": "sine",     "freq": 210, "dur": 0.09,  "vol": 0.2,  "jitter": 0.2,  "msPerChar": 70, "lowpass": 600, "grit": 0.6, "_메모": "형태 공백: 아주 작고 흐린 속삭임" },
   "default":   { "wave": "triangle", "freq": 280, "dur": 0.04,  "vol": 0.4,  "jitter": 0.05, "msPerChar": 36 },
   "thought":   { "_설명": "속마음: 같은 목소리를 훨씬 작고 낮게. mute=true 로 하면 아예 무음", "volMul": 0.14, "freqMul": 0.7, "msPerChar": 58, "mute": false }
 }

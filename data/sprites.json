@@ -91,7 +91,21 @@
     "ui_btn_attack":   { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
     "ui_btn_dash":     { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
     "ui_btn_parry":    { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
-    "ui_btn_interact": { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" }
+    "ui_btn_interact": { "cell": [40, 40], "frames": 2, "_설명": "1 기본, 2 눌림" },
+    "harin_actions": {"cell": [128, 128], "frames": 16, "_설명": "하린(1장, 머리 묶음). 1 idle, 2~7 walk, 8~11 run, 12 jump, 13~14 cast(빛 구슬·등불 손 모으기), 15 umbrella(우산 겨눔), 16 wave", "anims": {"idle": [1, 1], "walk": [2, 7, 9, "loop"], "run": [8, 11, 12, "loop"], "jump": [12, 12], "cast": [13, 14, 10], "umbrella": [15, 15], "wave": [16, 16]}},
+    "harin_moods": {"cell": [128, 128], "frames": 6, "_설명": "하린 자세. 1 sit(식탁·거울 앞), 2 hold_hand(손 잡고 끌기), 3 cry, 4 surprised, 5 point, 6 hair_touch", "anims": {"sit": [1, 1], "hold_hand": [2, 2], "cry": [3, 3], "surprised": [4, 4], "point": [5, 5], "hair_touch": [6, 6]}},
+    "harin_loose_actions": {"cell": [128, 128], "frames": 16, "_설명": "하린(머리 풀림, #1-21 부터). harin_actions 와 같은 칸 구성", "anims": {"idle": [1, 1], "walk": [2, 7, 9, "loop"], "run": [8, 11, 12, "loop"], "jump": [12, 12], "cast": [13, 14, 10], "umbrella": [15, 15], "wave": [16, 16]}},
+    "harin_mom_actions": {"cell": [128, 128], "frames": 10, "_설명": "하린 엄마 잔상(젊은 엄마, 앞치마). 1 idle, 2~5 walk, 6 ladle(국자), 7 reach(손 뻗기), 8~9 tie_hair(머리 묶기), 10 wave", "anims": {"idle": [1, 1], "walk": [2, 5, 7, "loop"], "ladle": [6, 6], "reach": [7, 7], "tie_hair": [8, 9, 4, "loop"], "wave": [10, 10]}},
+    "harin_dad_actions": {"cell": [128, 128], "frames": 8, "_설명": "하린 아빠 잔상. 1 idle, 2~5 walk, 6 sit(식탁), 7 newspaper, 8 wave", "anims": {"idle": [1, 1], "walk": [2, 5, 7, "loop"], "sit": [6, 6], "newspaper": [7, 7], "wave": [8, 8]}},
+    "hajun_actions": {"cell": [128, 128], "frames": 8, "_설명": "열 살 하준 잔상 (키 약 70). 1 idle, 2~5 walk, 6 sit_eat(계란말이 집기), 7 party(고깔모자, 노래), 8 wave", "anims": {"idle": [1, 1], "walk": [2, 5, 8, "loop"], "sit_eat": [6, 6], "party": [7, 7], "wave": [8, 8]}},
+    "butcher_actions": {"cell": [128, 128], "frames": 4, "_설명": "정육점 사장. 1 idle, 2~3 talk, 4 wrap(고기 싸기)", "anims": {"idle": [1, 1], "talk": [2, 3, 4, "loop"], "wrap": [4, 4]}},
+    "enemy_shade": {"cell": [128, 128], "frames": 8, "_설명": "형태를 가진 공백(사람 모양 그림자). 1~2 idle, 3~6 walk, 7 reach(팔 뻗기), 8 vanish", "anims": {"idle": [1, 2, 3, "loop"], "walk": [3, 6, 5, "loop"], "reach": [7, 7], "vanish": [8, 8]}},
+    "portrait_harin": {"cell": [96, 96], "frames": 6, "faces": {"1": "밝게 웃음", "2": "경계(우산을 든 얼굴)", "3": "놀람", "4": "작게 웃음(안도)", "5": "겁먹음", "6": "멍함(무언가 잊은 얼굴)"}},
+    "portrait_harin_mom": {"cell": [96, 96], "frames": 3, "faces": {"1": "다정한 웃음", "2": "얼굴이 흐림(변질)", "3": "얼굴이 거의 안 보임"}},
+    "portrait_harin_dad": {"cell": [96, 96], "frames": 2, "faces": {"1": "잘 웃는 얼굴", "2": "흐릿한 웃음"}},
+    "portrait_hajun": {"cell": [96, 96], "frames": 3, "faces": {"1": "장난스러운 웃음", "2": "고깔모자, 신난 얼굴", "3": "흐릿한 얼굴"}},
+    "portrait_butcher": {"cell": [96, 96], "frames": 1, "faces": {"1": "무뚝뚝한 정육점 사장"}},
+    "obj_ch1": {"cell": [64, 64], "frames": 24, "columns": 8, "_설명": "1장 물건 (8칸×3줄). 칸 번호는 objects 의 from 참고"}
   },
 
   "images": {
@@ -113,7 +127,23 @@
     "ui_joystick_base":       { "size": [72, 72],   "use": "이동 패드 바탕" },
     "ui_joystick_knob":       { "size": [28, 28],   "use": "이동 패드 손잡이" },
     "harin_photo":            { "size": [96, 64],   "use": "P-12 대상자 정보 사진, P-13 휴대폰 사진", "chroma": false },
-    "title_logo":             { "size": [480, 270], "use": "마지막 타이틀 (글자는 코드로)" }
+    "title_logo":             { "size": [480, 270], "use": "마지막 타이틀 (글자는 코드로)" },
+    "bg_harin_entrance": {"size": [480, 270], "use": "1-2, 1-13, 1-21 하린의 집 현관"},
+    "bg_harin_living": {"size": [480, 270], "use": "1-3, 1-14, 1-24 거실 (1-22 끝없는 거실은 이 그림 + 바뀐 가구)"},
+    "bg_harin_dining": {"size": [480, 270], "use": "1-4, 1-15 식탁·부엌"},
+    "bg_harin_kitchen": {"size": [480, 270], "use": "1-7 부엌(가족 없음, 첫 번째 결정)"},
+    "bg_harin_room": {"size": [480, 270], "use": "1-5, 1-23 하린의 방"},
+    "bg_harin_corridor": {"size": [480, 270], "use": "1-6 길어진 복도"},
+    "bg_harin_bath": {"size": [480, 270], "use": "1-6 화장실(거울)"},
+    "bg_harin_veranda": {"size": [480, 270], "use": "1-6 베란다"},
+    "bg_harin_parents_room": {"size": [480, 270], "use": "1-6 안방"},
+    "bg_hajun_room": {"size": [480, 270], "use": "1-6 하준의 방, 1-17 생일 장식"},
+    "bg_harin_wet": {"size": [480, 270], "use": "1-16 젖은 집"},
+    "bg_butcher": {"size": [480, 270], "use": "1-9 정육점"},
+    "bg_lethe_breakroom": {"size": [480, 270], "use": "1-20 휴게실"},
+    "bg_lethe_restroom": {"size": [480, 270], "use": "1-18 화장실"},
+    "icon_skill_orb": {"size": [24, 24], "use": "하린 스킬 칸: 빛 구슬"},
+    "icon_skill_lamp": {"size": [24, 24], "use": "하린 스킬 칸: 따뜻한 등불"}
   },
 
   "objects": {
@@ -138,7 +168,31 @@
     "water_cup":        { "from": ["obj_prologue", 22], "placeholder": { "w": 7, "h": 10, "color": "#cfe8f4" } },
     "crystal_amber":    { "from": ["obj_crystal_amber", 1], "anim": "obj_crystal_amber.glow", "placeholder": { "shape": "diamond", "w": 10, "h": 13, "color": "#ffb347", "glow": "#ffd27a" } },
     "crystal_gray":     { "from": ["obj_crystal_gray", 1],  "anim": "obj_crystal_gray.float", "placeholder": { "shape": "crystal_on_pedestal", "w": 16, "h": 22, "color": "#8e8e8e" } },
-    "capsule":          { "from": ["obj_capsule", 1], "placeholder": { "shape": "capsule", "w": 80, "h": 32, "color": "#f2f4f6", "outline": "#b8bec5" } }
+    "capsule":          { "from": ["obj_capsule", 1], "placeholder": { "shape": "capsule", "w": 80, "h": 32, "color": "#f2f4f6", "outline": "#b8bec5" } },
+    "shoe_rack_4": {"from": ["obj_ch1", 1], "placeholder": {"w": 56, "h": 30, "color": "#8a6a4a", "details": [[4, 4, 48, 1, "#6a5038"], [6, 10, 10, 5, "#3a3a40"], [18, 10, 10, 5, "#c86a7a"], [30, 10, 10, 5, "#e8e8f0"], [42, 11, 8, 4, "#5ab0e8"], [44, 12, 2, 1, "#ffe066"]]}},
+    "shoe_rack_3": {"from": ["obj_ch1", 2], "placeholder": {"w": 56, "h": 30, "color": "#8a6a4a", "details": [[4, 4, 48, 1, "#6a5038"], [6, 10, 10, 5, "#3a3a40"], [18, 10, 10, 5, "#c86a7a"], [30, 10, 10, 5, "#e8e8f0"], [42, 13, 8, 2, "#7a5c40"]]}},
+    "shoe_rack_3b": {"from": ["obj_ch1", 3], "placeholder": {"w": 56, "h": 30, "color": "#8a6a4a", "details": [[4, 4, 48, 1, "#6a5038"], [6, 13, 10, 2, "#7a5c40"], [18, 10, 10, 5, "#c86a7a"], [30, 10, 10, 5, "#e8e8f0"], [42, 11, 8, 4, "#5ab0e8"], [44, 12, 2, 1, "#ffe066"]]}},
+    "photo_family_4": {"from": ["obj_ch1", 4], "placeholder": {"w": 36, "h": 26, "color": "#e8dcc0", "outline": "#7a5a3a", "details": [[3, 3, 30, 20, "#9fb8c8"], [5, 8, 6, 15, "#3a4050"], [12, 9, 6, 14, "#c86a7a"], [19, 11, 5, 12, "#e8b0a0"], [25, 14, 5, 9, "#5aa0d8"]]}},
+    "photo_family_4_blur": {"from": ["obj_ch1", 5], "placeholder": {"w": 36, "h": 26, "color": "#e8dcc0", "outline": "#7a5a3a", "details": [[3, 3, 30, 20, "#9fb8c8"], [5, 8, 6, 15, "#3a4050"], [12, 9, 6, 14, "#d8a0a0"], [12, 9, 6, 5, "#e8d6cc"], [19, 11, 5, 12, "#e8b0a0"], [25, 14, 5, 9, "#5aa0d8"]]}},
+    "photo_family_3": {"from": ["obj_ch1", 6], "placeholder": {"w": 36, "h": 26, "color": "#e8dcc0", "outline": "#7a5a3a", "details": [[3, 3, 30, 20, "#9fb8c8"], [5, 8, 6, 15, "#3a4050"], [12, 9, 6, 14, "#d8a0a0"], [19, 11, 5, 12, "#e8b0a0"], [24, 12, 3, 2, "#e8c4a8"]]}},
+    "height_marks": {"from": ["obj_ch1", 7], "placeholder": {"w": 14, "h": 60, "color": "#efe6d2", "outline": "#efe6d2", "details": [[2, 50, 10, 1, "#2a3a8a"], [2, 40, 10, 1, "#2a3a8a"], [2, 30, 10, 1, "#2a3a8a"], [2, 46, 6, 1, "#8a2a2a"], [2, 38, 6, 1, "#8a2a2a"]]}},
+    "height_marks_last": {"from": ["obj_ch1", 8], "placeholder": {"w": 14, "h": 60, "color": "#efe6d2", "outline": "#efe6d2", "details": [[2, 50, 10, 1, "#2a3a8a"], [2, 40, 10, 1, "#2a3a8a"], [2, 30, 10, 1, "#2a3a8a"], [2, 22, 10, 1, "#2a3a8a"], [2, 14, 12, 1, "#1a1a1a"], [2, 46, 6, 1, "#8a2a2a"], [2, 38, 6, 1, "#8a2a2a"]]}},
+    "notebook": {"from": ["obj_ch1", 9], "placeholder": {"w": 20, "h": 6, "color": "#f4f0e2", "details": [[0, 0, 20, 1, "#c86a5a"], [3, 2, 12, 1, "#7a7a8a"], [3, 4, 9, 1, "#7a7a8a"]]}},
+    "cake": {"from": ["obj_ch1", 10], "placeholder": {"w": 34, "h": 18, "color": "#f6eee4", "outline": "#d8c4b0", "details": [[0, 7, 34, 3, "#f0a0b8"], [0, 0, 34, 2, "#fff8f0"]]}},
+    "party_hat": {"from": ["obj_ch1", 11], "placeholder": {"shape": "triangle", "w": 10, "h": 12, "color": "#ffcf5a", "outline": "#d08a2a"}},
+    "umbrella": {"from": ["obj_ch1", 12], "placeholder": {"w": 3, "h": 40, "color": "#3a5a8a", "details": [[0, 36, 3, 4, "#2a2a2a"]]}},
+    "grad_photo": {"from": ["obj_ch1", 13], "placeholder": {"w": 26, "h": 20, "color": "#e8dcc0", "outline": "#7a5a3a", "details": [[3, 3, 20, 14, "#c8d8e0"], [6, 7, 5, 10, "#3a4050"], [13, 8, 5, 9, "#c86a7a"], [14, 7, 3, 3, "#ffcf5a"]]}},
+    "hair_tie": {"from": ["obj_ch1", 14], "placeholder": {"w": 8, "h": 4, "color": "#c8486a"}},
+    "wallet": {"from": ["obj_ch1", 15], "placeholder": {"w": 16, "h": 10, "color": "#5a3a2a", "details": [[2, 2, 12, 1, "#7a5a4a"]]}},
+    "business_card": {"from": ["obj_ch1", 16], "placeholder": {"w": 14, "h": 8, "color": "#fbfbfc", "outline": "#9aa0a8", "details": [[2, 2, 8, 1, "#2a2f38"]]}},
+    "supplement": {"from": ["obj_ch1", 17], "placeholder": {"w": 8, "h": 12, "color": "#e8f0f8", "details": [[0, 0, 8, 3, "#4a8ac8"], [1, 5, 6, 3, "#c8d8e8"]]}},
+    "blanket": {"from": ["obj_ch1", 18], "placeholder": {"w": 30, "h": 10, "color": "#c8b0d8", "details": [[0, 4, 30, 1, "#a890c0"]]}},
+    "rice_bag": {"from": ["obj_ch1", 19], "placeholder": {"w": 22, "h": 20, "color": "#efe8d8", "outline": "#b0a890", "details": [[4, 6, 14, 6, "#c84a3a"]]}},
+    "meat_pack": {"from": ["obj_ch1", 20], "placeholder": {"w": 18, "h": 8, "color": "#f0e8e0", "details": [[2, 2, 14, 4, "#d86a6a"]]}},
+    "hair_crystal": {"from": ["obj_ch1", 21], "placeholder": {"shape": "diamond", "w": 6, "h": 10, "color": "#ffcf8a", "glow": "#ffe0a8"}},
+    "crystal_ch1": {"from": ["obj_ch1", 22], "placeholder": {"shape": "diamond", "w": 14, "h": 20, "color": "#ffb347", "glow": "#ffd89a"}},
+    "lego_pile": {"from": ["obj_ch1", 23], "placeholder": {"w": 20, "h": 6, "color": "#e84a3a", "details": [[4, 0, 5, 3, "#3a8ae8"], [10, 2, 5, 3, "#ffcf3a"], [15, 1, 4, 3, "#4ac86a"]]}},
+    "grill_meat": {"from": ["obj_ch1", 24], "placeholder": {"w": 20, "h": 6, "color": "#2a2a2e", "details": [[2, 0, 7, 3, "#c86a5a"], [11, 0, 7, 3, "#d87a6a"]]}}
   },
 
   "characters": {
@@ -234,7 +288,14 @@
     "mannequin": {
       "note": "시뮬레이션 마네킹 (그림은 오른쪽을 봄)", "placeholder": { "w": 40, "h": 96, "color": "#8c8c8c", "outline": "#5c5c5c" }, "body": [40, 92],
       "anims": { "idle": ["enemy_mannequin.sway", "still"], "windup": ["enemy_mannequin.windup", "lean"], "strike": ["enemy_mannequin.strike", "swing"], "parried": ["enemy_mannequin.parried", "hurt"], "fall": ["enemy_mannequin.fall", "still"], "down": ["enemy_mannequin.down", "still"] }
-    }
+    },
+    "harin": {"note": "한하린 (꿈속, 머리 묶음). 키 약 94", "cell": [128, 128], "placeholder": {"w": 30, "h": 94, "color": "none", "outline": "none", "details": [[7, 0, 16, 11, "#4a3428"], [9, 7, 12, 12, "#f0cfb4"], [7, 5, 16, 4, "#4a3428"], [4, 19, 22, 35, "#efd9a6"], [6, 56, 18, 31, "#4a5a7a"], [6, 90, 18, 4, "#f2f2f2"], [22, 6, 5, 14, "#4a3428"]]}, "body": [30, 90], "anims": {"idle": ["harin_actions.idle", "still"], "walk": ["harin_actions.walk", "bob"], "run": ["harin_actions.run", "bob"], "jump": ["harin_actions.jump", "raise"], "cast": ["harin_actions.cast", "raise"], "umbrella": ["harin_actions.umbrella", "raise"], "wave": ["harin_actions.wave", "raise"], "sit": ["harin_moods.sit", "sit"], "hold_hand": ["harin_moods.hold_hand", "lean"], "cry": ["harin_moods.cry", "shake"], "surprised": ["harin_moods.surprised", "raise"], "point": ["harin_moods.point", "lean"], "hair_touch": ["harin_moods.hair_touch", "bowhead"]}},
+    "harin_loose": {"note": "한하린 (머리 풀림, #1-21 부터)", "cell": [128, 128], "placeholder": {"w": 30, "h": 94, "color": "none", "outline": "none", "details": [[7, 0, 16, 11, "#4a3428"], [9, 7, 12, 12, "#f0cfb4"], [7, 5, 16, 4, "#4a3428"], [4, 19, 22, 35, "#efd9a6"], [6, 56, 18, 31, "#4a5a7a"], [6, 90, 18, 4, "#f2f2f2"], [3, 6, 4, 30, "#4a3428"], [23, 6, 4, 30, "#4a3428"]]}, "body": [30, 90], "anims": {"idle": ["harin_loose_actions.idle", "still"], "walk": ["harin_loose_actions.walk", "bob"], "run": ["harin_loose_actions.run", "bob"], "jump": ["harin_loose_actions.jump", "raise"], "cast": ["harin_loose_actions.cast", "raise"], "umbrella": ["harin_loose_actions.umbrella", "raise"], "wave": ["harin_loose_actions.wave", "raise"], "sit": ["harin_moods.sit", "sit"], "hold_hand": ["harin_moods.hold_hand", "lean"], "cry": ["harin_moods.cry", "shake"], "surprised": ["harin_moods.surprised", "raise"], "point": ["harin_moods.point", "lean"], "hair_touch": ["harin_moods.hair_touch", "bowhead"]}},
+    "harin_mom": {"note": "하린 엄마 잔상 (젊은 엄마, 앞치마). 키 약 92", "cell": [128, 128], "placeholder": {"w": 32, "h": 92, "color": "none", "outline": "none", "details": [[8, 0, 16, 11, "#2e2420"], [10, 7, 12, 11, "#e8c4a8"], [8, 5, 16, 4, "#2e2420"], [5, 18, 22, 34, "#c88a6a"], [7, 55, 18, 31, "#5a4a40"], [7, 88, 18, 4, "#8a7a6a"], [6, 26, 20, 40, "#f2ece0"]]}, "body": [32, 88], "anims": {"idle": ["harin_mom_actions.idle", "still"], "walk": ["harin_mom_actions.walk", "bob"], "ladle": ["harin_mom_actions.ladle", "still"], "reach": ["harin_mom_actions.reach", "lean"], "tie_hair": ["harin_mom_actions.tie_hair", "raise"], "wave": ["harin_mom_actions.wave", "raise"]}},
+    "harin_dad": {"note": "하린 아빠 잔상. 키 약 100", "cell": [128, 128], "placeholder": {"w": 36, "h": 100, "color": "none", "outline": "none", "details": [[10, 0, 16, 12, "#22201e"], [12, 8, 12, 13, "#e0bca0"], [10, 6, 16, 4, "#22201e"], [7, 21, 22, 38, "#7a8a9a"], [9, 60, 18, 34, "#3a3e46"], [9, 96, 18, 4, "#2a2a2e"]]}, "body": [36, 96], "anims": {"idle": ["harin_dad_actions.idle", "still"], "walk": ["harin_dad_actions.walk", "bob"], "sit": ["harin_dad_actions.sit", "sit"], "newspaper": ["harin_dad_actions.newspaper", "still"], "wave": ["harin_dad_actions.wave", "raise"]}},
+    "hajun10": {"note": "열 살 하준 잔상. 키 약 70", "cell": [128, 128], "placeholder": {"w": 26, "h": 70, "color": "none", "outline": "none", "details": [[5, 0, 16, 10, "#2a2420"], [7, 6, 12, 9, "#f0cfb4"], [5, 4, 16, 4, "#2a2420"], [2, 15, 22, 26, "#5aa0d8"], [4, 42, 18, 23, "#3a4a6a"], [4, 66, 18, 4, "#e8e8f0"]]}, "body": [26, 66], "anims": {"idle": ["hajun_actions.idle", "still"], "walk": ["hajun_actions.walk", "bob"], "sit": ["hajun_actions.sit_eat", "sit"], "eat": ["hajun_actions.sit_eat", "bob"], "party": ["hajun_actions.party", "bob"], "wave": ["hajun_actions.wave", "raise"]}},
+    "butcher": {"note": "정육점 사장", "cell": [128, 128], "placeholder": {"w": 40, "h": 94, "color": "none", "outline": "none", "details": [[12, 0, 16, 11, "#f2f2f2"], [14, 7, 12, 12, "#d8a888"], [12, 5, 16, 4, "#f2f2f2"], [9, 19, 22, 35, "#e8e8e8"], [11, 56, 18, 31, "#3a3a40"], [11, 90, 18, 4, "#2a2a2a"], [8, 30, 24, 40, "#f6f6f6"], [10, 36, 20, 2, "#c84a4a"]]}, "body": [40, 90], "anims": {"idle": ["butcher_actions.idle", "still"], "talk": ["butcher_actions.talk", "bob"], "wrap": ["butcher_actions.wrap", "bob"]}},
+    "shade": {"note": "형태를 가진 공백 (사람 모양 그림자, 느림)", "cell": [128, 128], "placeholder": {"w": 34, "h": 100, "color": "#08080b", "outline": "#08080b", "details": [[9, 0, 16, 18, "#050507"], [0, 30, 6, 40, "#0c0c10"], [28, 30, 6, 40, "#0c0c10"]]}, "body": [34, 96], "anims": {"idle": ["enemy_shade.idle", "still"], "walk": ["enemy_shade.walk", "bob"], "reach": ["enemy_shade.reach", "lean"], "vanish": ["enemy_shade.vanish", "still"]}}
   },
 
   "placeholders": {
@@ -265,6 +326,34 @@
     "ph_bench":        { "w": 64, "h": 12, "color": "#8a7a62" },
     "ph_monitor":      { "w": 28, "h": 22, "color": "#1d242c", "outline": "#7a8590", "details": [[3, 3, 22, 14, "#2f4a5e"]] },
     "ph_sim_box":      { "w": 40, "h": 40, "color": "#b4b4b4", "outline": "#8f8f8f" },
-    "ph_harin_photo":  { "shape": "photo", "w": 96, "h": 64, "color": "#dfe6ea", "_설명": "harin_photo.png 가 없을 때의 임시 사진" }
+    "ph_harin_photo":  { "shape": "photo", "w": 96, "h": 64, "color": "#dfe6ea", "_설명": "harin_photo.png 가 없을 때의 임시 사진" },
+    "ph_sofa": {"w": 96, "h": 36, "color": "#8a6a58", "details": [[0, 0, 96, 10, "#9a7a66"], [0, 10, 10, 26, "#7a5c4a"], [86, 10, 10, 26, "#7a5c4a"], [60, 14, 24, 8, "#6e5242"]]},
+    "ph_sofa_flipped": {"w": 96, "h": 30, "color": "#7a5c4a", "details": [[0, 20, 96, 10, "#9a7a66"], [8, 0, 4, 8, "#4a3a30"], [84, 0, 4, 8, "#4a3a30"]]},
+    "ph_tv": {"w": 46, "h": 44, "color": "#5a4a40", "details": [[16, 32, 14, 12, "#4a3c34"]]},
+    "ph_tv_floor": {"w": 42, "h": 14, "color": "#1a1c20", "details": [[0, 10, 42, 4, "#3a3030"]]},
+    "ph_dining_table": {"w": 150, "h": 34, "color": "#a07a52", "details": [[0, 0, 150, 6, "#b88a5e"], [8, 6, 6, 28, "#7a5a3a"], [136, 6, 6, 28, "#7a5a3a"]]},
+    "ph_chair": {"w": 22, "h": 46, "color": "none", "outline": "none", "details": [[0, 0, 4, 26, "#7a5a3a"], [0, 24, 22, 4, "#9a7a56"], [2, 28, 3, 18, "#6a4a30"], [17, 28, 3, 18, "#6a4a30"]]},
+    "ph_kitchen_counter": {"w": 120, "h": 56, "color": "#d8d2c4", "details": [[0, 0, 120, 6, "#bdb6a6"], [70, 6, 40, 4, "#2a2a2e"], [8, 14, 30, 36, "#c8c0b0"], [44, 14, 30, 36, "#c8c0b0"]]},
+    "ph_pot": {"w": 22, "h": 12, "color": "#9aa0a8", "details": [[0, 0, 22, 2, "#c0c6ce"]]},
+    "ph_desk_harin": {"w": 80, "h": 40, "color": "#c8b090", "details": [[0, 0, 80, 5, "#d8c0a0"], [4, 5, 6, 35, "#a89070"], [70, 5, 6, 35, "#a89070"], [50, 10, 20, 26, "#b8a080"]]},
+    "ph_bed": {"w": 110, "h": 30, "color": "#a08a70", "details": [[0, 0, 24, 12, "#f6f0ea"], [24, 6, 86, 12, "#c8a8c0"]]},
+    "ph_poster": {"w": 30, "h": 40, "color": "#f0b8c8", "details": [[5, 5, 20, 22, "#4a4a7a"], [5, 30, 20, 3, "#ffffff"]]},
+    "ph_bookshelf": {"w": 44, "h": 90, "color": "#a08a6a", "details": [[2, 4, 40, 20, "#5a6a8a"], [2, 26, 40, 20, "#8a5a5a"], [2, 48, 40, 20, "#6a8a5a"], [2, 70, 40, 18, "#c8a05a"]]},
+    "ph_door_home": {"w": 40, "h": 92, "color": "#b89a78", "details": [[4, 4, 32, 84, "#c8aa86"], [32, 46, 4, 4, "#e8d080"]]},
+    "ph_bunk_bed": {"w": 70, "h": 96, "color": "none", "outline": "none", "details": [[0, 0, 6, 96, "#4a7ab8"], [64, 0, 6, 96, "#4a7ab8"], [6, 30, 58, 10, "#e8e8f0"], [6, 80, 58, 10, "#e8e8f0"]]},
+    "ph_mirror": {"w": 34, "h": 44, "color": "#c8ccd4", "details": [[3, 3, 28, 38, "#dfe8f0"]]},
+    "ph_sink": {"w": 40, "h": 36, "color": "#e8ecf0", "details": [[0, 0, 40, 8, "#f6f8fa"]]},
+    "ph_toilet": {"w": 26, "h": 30, "color": "#f2f4f6", "details": [[0, 0, 26, 12, "#e8ecf0"], [4, 12, 18, 18, "#f6f8fa"]]},
+    "ph_veranda_rail": {"w": 200, "h": 40, "color": "none", "outline": "none", "details": [[0, 0, 200, 4, "#a8acb0"], [0, 36, 200, 4, "#a8acb0"], [20, 4, 2, 32, "#a8acb0"], [60, 4, 2, 32, "#a8acb0"], [100, 4, 2, 32, "#a8acb0"], [140, 4, 2, 32, "#a8acb0"], [180, 4, 2, 32, "#a8acb0"]]},
+    "ph_wardrobe": {"w": 64, "h": 100, "color": "#b89a78", "details": [[31, 4, 2, 92, "#8a6a48"], [26, 48, 3, 6, "#e8d080"], [35, 48, 3, 6, "#e8d080"]]},
+    "ph_frame_wall": {"w": 28, "h": 22, "color": "#7a5a3a", "details": [[3, 3, 22, 16, "#c8d8e0"]]},
+    "ph_meat_case": {"w": 160, "h": 56, "color": "#e8e8ec", "details": [[0, 0, 160, 26, "#ffd8d8"], [6, 8, 30, 12, "#d86a6a"], [42, 8, 30, 12, "#c85a5a"], [78, 8, 30, 12, "#e07a7a"], [114, 8, 30, 12, "#d86a6a"], [0, 26, 160, 4, "#c8ccd4"]]},
+    "ph_vending": {"w": 40, "h": 90, "color": "#d84a4a", "details": [[4, 6, 32, 50, "#1a2030"], [6, 8, 6, 10, "#e8c060"], [14, 8, 6, 10, "#60a0e8"], [22, 8, 6, 10, "#e86060"], [6, 60, 28, 4, "#2a2a2a"]]},
+    "ph_break_table": {"w": 60, "h": 32, "color": "none", "outline": "none", "details": [[0, 0, 60, 4, "#e0e4e8"], [28, 4, 4, 28, "#8a8e96"]]},
+    "ph_trash": {"w": 18, "h": 24, "color": "#5a6a7a", "details": [[0, 0, 18, 3, "#3a4a5a"]]},
+    "ph_restroom_sink": {"w": 120, "h": 40, "color": "#e8ecf0", "details": [[0, 0, 120, 6, "#f6f8fa"]]},
+    "ph_low_table_round": {"w": 70, "h": 16, "color": "none", "outline": "none", "details": [[0, 0, 70, 4, "#b88a5e"], [6, 4, 4, 12, "#7a5a3a"], [60, 4, 4, 12, "#7a5a3a"]]},
+    "ph_burner": {"w": 24, "h": 10, "color": "#2a2a2e", "details": [[2, 0, 20, 3, "#6a6e76"]]},
+    "ph_door_light": {"w": 40, "h": 92, "color": "#ffffff", "details": [[0, 0, 40, 2, "#fff6dc"], [0, 90, 40, 2, "#fff6dc"]]}
   }
 }

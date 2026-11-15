@@ -1,6 +1,6 @@
 # 결정 (結晶 · 決定)
 
-횡스크롤 도트 스토리 액션 게임 《결정》. 현재 **프롤로그 「반지하」(P-1 ~ P-14)** 까지 처음부터 끝까지 플레이할 수 있습니다.
+횡스크롤 도트 스토리 액션 게임 《결정》. 현재 **프롤로그 「반지하」(P-1 ~ P-14)** 와 **1장 「저녁 식탁」(1-1 ~ 1-27)** 까지 처음부터 끝까지 플레이할 수 있습니다. 1장 마지막 장면이 끝나면 '1장 종료' 화면 뒤 메뉴로 돌아갑니다.
 
 - Phaser 3.80.1 + 순수 JavaScript (ES 모듈). 빌드 도구 없음.
 - 480×270 기준 도트 화면, 기기 픽셀 기준 정수배 확대 (`pixelArt: true`).
@@ -51,6 +51,7 @@ python3 -m http.server 8000
 - `?auto=1` — 전체 자동 진행 (흐름 테스트용)
 - `?probe=0` — `assets/sprites` PNG 탐색 생략 (콘솔의 404 로그 없애기)
 - `?edit=1` — 위치 편집 모드 (아래 설명)
+- `?touchonly=1` — 키보드를 무시하고 터치 조작(패드·버튼·화면 탭)만으로 플레이 (아이패드 확인용)
 
 ---
 
@@ -94,7 +95,43 @@ python3 -m http.server 8000
 ## 진행 저장
 
 - 장면이 시작될 때마다 `localStorage` 에 저장되고, 메뉴의 **이어하기** 로 그 장면부터 다시 시작합니다.
+- 함께 저장되는 것: 누적 정산 금액(`money`, 같은 정산은 한 번만), 유대 지수(`bond`), 하린 스킬 상태(`skills`), 장별 수확 횟수(`harvests`), 끝낸 장(`cleared`). **처음부터** 를 고르면 끝낸 장 표시만 남고 지워집니다.
 - 사파리 개인정보 보호 모드처럼 저장소가 막혀 있어도 오류 없이 진행됩니다(그 경우 저장만 안 됨).
+
+---
+
+## 1장에서 생긴 시스템
+
+- **하린(동료, `src/world/Companion.js`)**: 도윤이 지나간 길을 일정 거리 뒤에서 그대로 따라온다(점프·대시 자리도 그대로). 너무 멀어지면 화면 밖에서 뒤로 순간이동. 전투 중에는 가장 가까운 적에게 빛 구슬을 쏘고 도윤은 맞히지 않는다. 걸을 때 무작위 혼잣말은 머리 위 작은 글씨(대화창 아님). 장면 `stage.companion`: `{ id, follow, lines, every:[ms,ms], combatLines, hud }`.
+- **스킬(`data/skills.json`, `src/core/skills.js`)**: 빛 구슬(기본 원거리), 따뜻한 등불(도윤 회복). 등불은 `lostAfter: { chapter, harvests }` — 1장 첫 수확 뒤 알림 없이 사라진다. 화면 구석 작은 칸(`src/ui/Hud.js`)에 아이콘·이름, 잃은 스킬은 회색. 장면 `stage.skills` 로 그 장면에서만 덮어쓸 수 있다.
+- **체력**: `stage.playerHp` 가 있으면 왼쪽 위 작은 네모. 다 떨어지면 하얗게 번쩍이고 그 구역 처음 자리에서 다시 (벌칙 없음).
+- **잔상 단계(`src/world/AfterimageFx.js`)**: 같은 그림에 코드로 얼굴 번짐·픽셀 노이즈·몸 지직. 인물에 `"phase": "corrupt", "level": 0~1`. 변질된 잔상의 대사는 말할 때마다 더 끊기고 느려진다.
+- **구역(areas)**: 한 장면 안에 방을 가로로 나란히 두고, 문(`warp`)이나 화면 끝(`left`/`right`)으로 이어 붙인다. 구역에 `enter` 연출을 주면 처음 들어올 때 한 번 실행(대화, 전투). 전투 중에는 구역 끝이 벽. `stage.hints`: `[{ area, after(ms), text, repeat }]` — 그만큼 못 나아가면 하린이 짧게 귀띔.
+- **유대 지수**: 화면 오른쪽 아래에 작고 차가운 글씨로 잠깐 (`bond` step, 정산의 `bondFlash`). 하린은 보지 못한다.
+
+### 1장에서 추가한 step
+
+| type | 대본 표기 | 설명 |
+|---|---|---|
+| `companion` | 하린 동행 | `action`: follow, stay, say(머리 위 글씨), shoot(빛 구슬), lampFail(등불이 안 켜짐), lines, combatLines |
+| `skill` | [시스템] 스킬 | `{ id, state: active/locked/lost }` 알림 없이 바꿈 |
+| `enemy` | 공백이 하린 쪽으로 | `action`: approach(`target: "harin"`), die |
+| `warp` | 문을 열면 | 다른 구역으로 `{ to, x, face }` |
+| `press` | [미니 이벤트] | 누를 때마다 한 단계 (`count`, `button`, `lines: { "1": { speaker, text, bubble } }`, `anim`, `sfx`). 화면 탭·상호작용·전용 버튼 모두 됨 |
+| `harvest` | [수확 — N초] | 추가: `holdLines`(누르는 동안 잔상 목소리, `at` 진행도 0~1), `silence: "done"`, `restore: false`(정적 유지) |
+| `crumble` | 위에서부터 무너진다 | 화면을 조각내 소리 없이 떨어뜨림. `wait: false` 면 무너지는 동안 다음 연출 |
+| `escape` | [자동 달리기] | 하린이 손을 잡고 앞서 달림. `wave: ["mom", …]` 가족 잔상이 뒤에서 손을 흔듦 |
+| `bond`, `system` | [시스템 메시지] | 유대 지수 작은 숫자 / 위쪽 가운데 작은 상자 |
+| `grey`, `echo`, `sfxSeq` | [연출] 회색으로 바램·겹치는 목소리 | 현실 장면 연출 |
+| `glow`, `vignette` | 따뜻한 빛 / 가장자리 어두워짐 | |
+| `closeup`, `stain` | 손바닥 클로즈업 / 천장 얼룩 | 1-27 |
+| `chapterEnd` | [1장 종료] | 요약 화면 → 메뉴 |
+
+`actor` 추가 동작: `loop`(같은 자리까지 와서 손을 뻗고 돌아가기를 되풀이), `phase`, `wave`, `stop`, `dissolve`(모래처럼 흩어짐). `explore` 에 `freeze: true` 면 앉은 채 살펴보기만. 정산(`settlement`)에 `amount`, `bond`, `bondFlash`. 카드 `style` 에 `note`(줄 노트), `namecard`(명함). `startColor` 에 `#f2a35a` 같은 색.
+
+### 1장 효과(effects)
+
+`candles`(케이크 초: 수확 순간 동시에 꺼짐), `tvStatic`, `whiteWindow`(창밖이 새하얗다), `stain`(천장 곰팡이), `glimmer`(멀리 깜빡이는 빛), `puddles`. 배경 소리 `stew`(된장찌개 끓는 소리), `grill`(고기 굽는 소리). `decor`: 가구 위 작은 것들(반찬, 고깔모자)을 도형으로.
 
 ---
 

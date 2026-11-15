@@ -1,0 +1,83 @@
+{
+  "id": "1-14",
+  "title": "하린의 집 / 거실 / 변질",
+  "heading": "#1-14 거실 / 변질",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_harin_living",
+    "width": 480,
+    "floorY": 232,
+    "charScale": 1.0,
+    "charTint": "#fff1e2",
+    "charBrightness": 1.0,
+    "bgColor": "#000000",
+    "ambience": ["stew"],
+    "abilities": ["move", "jump", "dash"],
+    "player": {"x": 120, "facing": 1, "char": "diver"},
+    "backdrop": [
+      {"rect": [0, 0, 480, 232], "color": "#efe2c8"},
+      {"vlines": [10, 18, 206, 22, 22], "color": "#e6d6b8"},
+      {"rect": [0, 0, 480, 18], "color": "#d9c9a8"},
+      {"line": [0, 18, 480, 18], "color": "#c2b08c"},
+      {"rect": [0, 226, 480, 6], "color": "#8a6744"},
+      {"rect": [0, 232, 480, 38], "color": "#a8835a"},
+      {"hlines": [0, 240, 480, 9, 4], "color": "#97744d"},
+      {"rect": [286, 66, 118, 84], "color": "#c8b896"},
+      {"rect": [290, 70, 110, 76], "color": "#ffffff"},
+      {"line": [345, 70, 345, 146], "color": "#c8b896", "width": 2},
+      {"rect": [284, 150, 122, 4], "color": "#b8a684"},
+      {"rect": [431, 125, 52, 107], "color": "#8a6a48"},
+      {"rect": [434, 128, 46, 104], "color": "#7a5e44"},
+      {"rect": [20, 60, 2, 150], "color": "#d8c8a8"}
+    ],
+    "props": [
+      {"id": "sofa", "ph": "ph_sofa", "x": 150},
+      {"id": "tv", "ph": "ph_tv", "x": 262}
+    ],
+    "actors": [
+      {"id": "harin", "char": "harin", "x": 200, "speaker": "하린", "facing": 1},
+      {"id": "mom", "char": "harin_mom", "x": 500, "speaker": "엄마(잔상)", "facing": -1, "visible": false, "anim": "ladle", "phase": "corrupt", "level": 0.5}
+    ],
+    "effects": [
+      {"name": "whiteWindow", "x": 290, "y": 70, "w": 110, "h": 76},
+      {"name": "tvStatic", "x": 243, "y": 193, "w": 38, "h": 25}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 200},
+    {"type": "fade", "to": "none", "ms": 1000},
+    {"type": "narration", "text": "거실. 같은 소파, 같은 TV. TV는 여전히 지직거린다."},
+    {"type": "actor", "id": "mom", "action": "show", "x": 500, "anim": "ladle"},
+    {"type": "actor", "id": "mom", "action": "move", "x": 380, "face": -1, "anim": "ladle"},
+    {"type": "narration", "text": "부엌에서 엄마가 나온다. 국자를 들고."},
+    {"type": "say", "speaker": "엄마(잔상)", "text": "하린아, 밥 먹어. 하린아, 밥 먹어.", "face": 2},
+    {"type": "narration", "text": "엄마의 얼굴이 흐릿하다. 눈, 코, 입이 있는데 초점이 맞지 않는다."},
+    {"type": "say", "speaker": "엄마(잔상)", "text": "하린아, 밥 먹어. 손님 왔네? 하린아, 밥 먹어.", "face": 2},
+    {"type": "say", "speaker": "하린", "text": "…엄마?", "face": 3},
+    {"type": "actor", "id": "mom", "action": "phase", "phase": "corrupt", "level": 0.6},
+    {"type": "say", "speaker": "엄마(잔상)", "text": "하린아, 밥 먹어.", "face": 2},
+    {"type": "say", "speaker": "하린", "text": "엄마, 왜 그래? 왜 같은 말만 해?", "face": 5},
+    {"type": "actor", "id": "mom", "action": "phase", "phase": "corrupt", "level": 0.7},
+    {"type": "say", "speaker": "엄마(잔상)", "text": "하린아, 밥— 하린아, 밥 먹어.", "face": 2},
+    {"type": "parallel", "steps": [{"type": "actor", "id": "mom", "action": "move", "x": 500, "speed": 36}, {"type": "sfx", "name": "humBroken"}]},
+    {"type": "actor", "id": "mom", "action": "hide"},
+    {"type": "narration", "text": "엄마가 부엌으로 돌아간다. 콧노래가 들린다. 그런데 음이 군데군데 끊긴다."},
+    {"type": "sfx", "name": "humBroken"},
+    {"type": "actor", "id": "harin", "action": "face", "dir": -1},
+    {"type": "actor", "id": "harin", "action": "anim", "name": "surprised"},
+    {"type": "say", "speaker": "하린", "text": "(도윤을 본다. 겁먹은 얼굴) 봤어요? 엄마 이상하죠?", "face": 5},
+    {"type": "say", "speaker": "도윤", "text": "…네.", "face": 2},
+    {"type": "actor", "id": "harin", "action": "anim", "name": "idle"},
+    {"type": "say", "speaker": "하린", "text": "아까는 안 그랬는데. 당신이 왔을 때는 멀쩡했는데.", "face": 5},
+    {"type": "say", "speaker": "하린", "text": "혹시 열쇠 써서 그런 걸까요? 열쇠 쓰면 뭔가가 망가지는 건가?", "face": 6},
+    {"type": "parallel", "steps": [{"type": "sfxSeq", "name": "thud", "count": 4, "interval": 520, "from": 0.35, "to": 0.5}, {"type": "narration", "text": "도윤의 심장이 뛴다."}]},
+    {"type": "say", "speaker": "하린", "text": "(고개를 젓는다) 아니다. 그럴 리가 없어. 열쇠 쓰니까 문이 열렸잖아요. 그건 좋은 거잖아요.", "face": 4},
+    {"type": "say", "speaker": "하린", "text": "아마 이 공간 자체가 점점 이상해지는 걸 거예요. 그러니까 빨리 나가야 해요.", "face": 6},
+    {"type": "thought", "speaker": "도윤(속마음)", "text": "…말해야 한다.", "face": 2},
+    {"type": "thought", "speaker": "도윤(속마음)", "text": "말하면 결정이 깨진다. 이 사람도 다친다.", "face": 2},
+    {"type": "thought", "speaker": "도윤(속마음)", "text": "말하면 안 된다.", "face": 4},
+    {"type": "say", "speaker": "도윤", "text": "…빨리 나가요. 같이.", "face": 1},
+    {"type": "say", "speaker": "하린", "text": "네!", "face": 1},
+    {"type": "fade", "to": "black", "ms": 900}
+  ]
+}

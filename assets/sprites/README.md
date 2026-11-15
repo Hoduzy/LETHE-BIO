@@ -157,6 +157,117 @@ python3 tools/process_sprites.py diver_run    # 일부만
 - **void** (공백): idle→enemy_void_small.ripple, emerge→enemy_void_small.emerge, slide→enemy_void_small.slide, hit→enemy_void_small.hit, vanish→enemy_void_small.vanish
 - **mannequin** (시뮬레이션 마네킹 (그림은 왼쪽을 봄)): idle→enemy_mannequin.sway, windup→enemy_mannequin.windup, strike→enemy_mannequin.strike, parried→enemy_mannequin.parried, fall→enemy_mannequin.fall, down→enemy_mannequin.down
 
+## 1장 「저녁 식탁」 그림 (아직 없음 → 임시 도형)
+
+1장 그림은 아직 프롬프트 문서가 없어서 모두 임시 도형으로 나옵니다. 아래 이름·칸 크기대로 PNG 를 넣으면 바로 바뀝니다. 인물은 128×128 칸, 키 약 96px(열 살 하준은 약 70px), 발은 칸 맨 아래 줄.
+
+### 인물·적 시트
+
+| 파일 | 칸 크기 | 칸 수 | 동작 (프레임 범위) |
+|---|---|---|---|
+| `harin_actions.png` | 128×128 | 16 | idle(1), walk(2~7), run(8~11), jump(12), cast(13~14), umbrella(15), wave(16) |
+| `harin_moods.png` | 128×128 | 6 | sit(1), hold_hand(2), cry(3), surprised(4), point(5), hair_touch(6) |
+| `harin_loose_actions.png` | 128×128 | 16 | idle(1), walk(2~7), run(8~11), jump(12), cast(13~14), umbrella(15), wave(16) |
+| `harin_mom_actions.png` | 128×128 | 10 | idle(1), walk(2~5), ladle(6), reach(7), tie_hair(8~9), wave(10) |
+| `harin_dad_actions.png` | 128×128 | 8 | idle(1), walk(2~5), sit(6), newspaper(7), wave(8) |
+| `hajun_actions.png` | 128×128 | 8 | idle(1), walk(2~5), sit_eat(6), party(7), wave(8) |
+| `butcher_actions.png` | 128×128 | 4 | idle(1), talk(2~3), wrap(4) |
+| `enemy_shade.png` | 128×128 | 8 | idle(1~2), walk(3~6), reach(7), vanish(8) |
+
+- `harin_actions`: 하린(1장, 머리 묶음). 1 idle, 2~7 walk, 8~11 run, 12 jump, 13~14 cast(빛 구슬·등불 손 모으기), 15 umbrella(우산 겨눔), 16 wave
+- `harin_moods`: 하린 자세. 1 sit(식탁·거울 앞), 2 hold_hand(손 잡고 끌기), 3 cry, 4 surprised, 5 point, 6 hair_touch
+- `harin_loose_actions`: 하린(머리 풀림, #1-21 부터). harin_actions 와 같은 칸 구성
+- `harin_mom_actions`: 하린 엄마 잔상(젊은 엄마, 앞치마). 1 idle, 2~5 walk, 6 ladle(국자), 7 reach(손 뻗기), 8~9 tie_hair(머리 묶기), 10 wave
+- `harin_dad_actions`: 하린 아빠 잔상. 1 idle, 2~5 walk, 6 sit(식탁), 7 newspaper, 8 wave
+- `hajun_actions`: 열 살 하준 잔상 (키 약 70). 1 idle, 2~5 walk, 6 sit_eat(계란말이 집기), 7 party(고깔모자, 노래), 8 wave
+- `butcher_actions`: 정육점 사장. 1 idle, 2~3 talk, 4 wrap(고기 싸기)
+- `enemy_shade`: 형태를 가진 공백(사람 모양 그림자). 1~2 idle, 3~6 walk, 7 reach(팔 뻗기), 8 vanish
+
+### 대화창 초상화 (원본 그대로: `_original/portrait_<이름>.png` → `python3 tools/make_portraits.py`)
+
+| 파일 | 칸 × 표정 수 | 표정 |
+|---|---|---|
+| `portrait_harin` | 96×96 × 6 | 1 밝게 웃음, 2 경계(우산을 든 얼굴), 3 놀람, 4 작게 웃음(안도), 5 겁먹음, 6 멍함(무언가 잊은 얼굴) |
+| `portrait_harin_mom` | 96×96 × 3 | 1 다정한 웃음, 2 얼굴이 흐림(변질), 3 얼굴이 거의 안 보임 |
+| `portrait_harin_dad` | 96×96 × 2 | 1 잘 웃는 얼굴, 2 흐릿한 웃음 |
+| `portrait_hajun` | 96×96 × 3 | 1 장난스러운 웃음, 2 고깔모자, 신난 얼굴, 3 흐릿한 얼굴 |
+| `portrait_butcher` | 96×96 × 1 | 1 무뚝뚝한 정육점 사장 |
+
+### 배경 (480×270)
+
+| 파일 | 쓰는 곳 |
+|---|---|
+| `bg_harin_entrance.png` | 1-2, 1-13, 1-21 하린의 집 현관 |
+| `bg_harin_living.png` | 1-3, 1-14, 1-24 거실 (1-22 끝없는 거실은 이 그림 + 바뀐 가구) |
+| `bg_harin_dining.png` | 1-4, 1-15 식탁·부엌 |
+| `bg_harin_kitchen.png` | 1-7 부엌(가족 없음, 첫 번째 결정) |
+| `bg_harin_room.png` | 1-5, 1-23 하린의 방 |
+| `bg_harin_corridor.png` | 1-6 길어진 복도 |
+| `bg_harin_bath.png` | 1-6 화장실(거울) |
+| `bg_harin_veranda.png` | 1-6 베란다 |
+| `bg_harin_parents_room.png` | 1-6 안방 |
+| `bg_hajun_room.png` | 1-6 하준의 방, 1-17 생일 장식 |
+| `bg_harin_wet.png` | 1-16 젖은 집 |
+| `bg_butcher.png` | 1-9 정육점 |
+| `bg_lethe_breakroom.png` | 1-20 휴게실 |
+| `bg_lethe_restroom.png` | 1-18 화장실 |
+
+1-6(복도 미로)과 1-22(끝없는 거실)는 한 장면에 방(구역)이 여러 개라 구역마다 배경을 한 장씩 그립니다(`areas[].bg`, 없으면 `stage.bg`). 1-22 의 뒤집힌 소파·엎어진 TV(`ph_sofa_flipped`, `ph_tv_floor`)는 배경 그림이 있어도 위에 그립니다.
+
+### 스킬 아이콘
+
+| 파일 | 크기 | 쓰는 곳 |
+|---|---|---|
+| `icon_skill_orb.png` | 24×24 | 하린 스킬 칸: 빛 구슬 |
+| `icon_skill_lamp.png` | 24×24 | 하린 스킬 칸: 따뜻한 등불 |
+
+### 소품 (`obj_ch1.png`: 64×64 칸, 8칸×3줄 = 24칸, 왼쪽→오른쪽·위→아래)
+
+| 물건 | 칸 | 임시 도형 크기 |
+|---|---|---|
+| shoe_rack_4 | 1 | 56×30 |
+| shoe_rack_3 | 2 | 56×30 |
+| shoe_rack_3b | 3 | 56×30 |
+| photo_family_4 | 4 | 36×26 |
+| photo_family_4_blur | 5 | 36×26 |
+| photo_family_3 | 6 | 36×26 |
+| height_marks | 7 | 14×60 |
+| height_marks_last | 8 | 14×60 |
+| notebook | 9 | 20×6 |
+| cake | 10 | 34×18 |
+| party_hat | 11 | 10×12 |
+| umbrella | 12 | 3×40 |
+| grad_photo | 13 | 26×20 |
+| hair_tie | 14 | 8×4 |
+| wallet | 15 | 16×10 |
+| business_card | 16 | 14×8 |
+| supplement | 17 | 8×12 |
+| blanket | 18 | 30×10 |
+| rice_bag | 19 | 22×20 |
+| meat_pack | 20 | 18×8 |
+| hair_crystal | 21 | 6×10 |
+| crystal_ch1 | 22 | 14×20 |
+| lego_pile | 23 | 20×6 |
+| grill_meat | 24 | 20×6 |
+
+1장 소품은 장면에서 `"scale": 1` 로 놓습니다 (64 칸 그대로 = 화면 64px).
+
+### 인물 동작 연결
+
+- **harin** (한하린 (꿈속, 머리 묶음). 키 약 94): idle→harin_actions.idle, walk→harin_actions.walk, run→harin_actions.run, jump→harin_actions.jump, cast→harin_actions.cast, umbrella→harin_actions.umbrella, wave→harin_actions.wave, sit→harin_moods.sit, hold_hand→harin_moods.hold_hand, cry→harin_moods.cry, surprised→harin_moods.surprised, point→harin_moods.point, hair_touch→harin_moods.hair_touch
+- **harin_loose** (한하린 (머리 풀림, #1-21 부터)): idle→harin_loose_actions.idle, walk→harin_loose_actions.walk, run→harin_loose_actions.run, jump→harin_loose_actions.jump, cast→harin_loose_actions.cast, umbrella→harin_loose_actions.umbrella, wave→harin_loose_actions.wave, sit→harin_moods.sit, hold_hand→harin_moods.hold_hand, cry→harin_moods.cry, surprised→harin_moods.surprised, point→harin_moods.point, hair_touch→harin_moods.hair_touch
+- **harin_mom** (하린 엄마 잔상 (젊은 엄마, 앞치마). 키 약 92): idle→harin_mom_actions.idle, walk→harin_mom_actions.walk, ladle→harin_mom_actions.ladle, reach→harin_mom_actions.reach, tie_hair→harin_mom_actions.tie_hair, wave→harin_mom_actions.wave
+- **harin_dad** (하린 아빠 잔상. 키 약 100): idle→harin_dad_actions.idle, walk→harin_dad_actions.walk, sit→harin_dad_actions.sit, newspaper→harin_dad_actions.newspaper, wave→harin_dad_actions.wave
+- **hajun10** (열 살 하준 잔상. 키 약 70): idle→hajun_actions.idle, walk→hajun_actions.walk, sit→hajun_actions.sit_eat, eat→hajun_actions.sit_eat, party→hajun_actions.party, wave→hajun_actions.wave
+- **butcher** (정육점 사장): idle→butcher_actions.idle, talk→butcher_actions.talk, wrap→butcher_actions.wrap
+- **shade** (형태를 가진 공백 (사람 모양 그림자, 느림)): idle→enemy_shade.idle, walk→enemy_shade.walk, reach→enemy_shade.reach, vanish→enemy_shade.vanish
+
+### 1장 가구 임시 도형 (배경 그림 속 가구, 배경 PNG 가 생기면 쓰지 않음)
+
+`ph_sofa` 96×36, `ph_sofa_flipped` 96×30, `ph_tv` 46×44, `ph_tv_floor` 42×14, `ph_dining_table` 150×34, `ph_chair` 22×46, `ph_kitchen_counter` 120×56, `ph_pot` 22×12, `ph_desk_harin` 80×40, `ph_bed` 110×30, `ph_poster` 30×40, `ph_bookshelf` 44×90, `ph_door_home` 40×92, `ph_bunk_bed` 70×96, `ph_mirror` 34×44, `ph_sink` 40×36, `ph_toilet` 26×30, `ph_veranda_rail` 200×40, `ph_wardrobe` 64×100, `ph_frame_wall` 28×22, `ph_meat_case` 160×56, `ph_vending` 40×90, `ph_break_table` 60×32, `ph_trash` 18×24, `ph_restroom_sink` 120×40, `ph_low_table_round` 70×16, `ph_burner` 24×10, `ph_door_light` 40×92
+
+`ph_door_light` 는 결정을 수확하면 열리는 현관문의 하얀 빛 (배경 그림이 있어도 그림).
+
 ## 프롬프트 파일에 없는 것 (임시 도형만)
 
 - `ph_*` — 배경 그림 속 가구의 임시 도형 (배경 PNG가 생기면 쓰이지 않음), `ph_harin_photo` — harin_photo.png 가 없을 때의 임시 사진

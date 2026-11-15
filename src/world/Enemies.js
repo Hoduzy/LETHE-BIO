@@ -57,7 +57,11 @@ export class VoidEnemy {
       if (this.knockT <= 0) this.body.setVelocityX(0);
       return;
     }
-    const dx = player.x - this.x;
+    // 연출로 다른 대상(하린)에게 미끄러져 갈 수도 있다
+    const tgt = this.forceTarget && this.forceTarget.sprite && this.forceTarget.sprite.active ? this.forceTarget : player;
+    const dx = tgt.x - this.x;
+    // 체력이 있는 장면이면 닿을 때 피해 (느리고 약하다)
+    if (player.maxHp && !this.emerging && Math.abs(player.x - this.x) < 16 * this.u && Math.abs(player.y - this.y) < 30 * this.u) player.damage(1, player.x < this.x ? -1 : 1);
     const moving = Math.abs(dx) < 220 * this.u && Math.abs(dx) > 22 * this.u && !this.emerging;
     this.body.setVelocityX(moving ? Math.sign(dx) * this.speed : 0);
     if (moving) this.cs.face(Math.sign(dx));
@@ -373,5 +377,97 @@ export class Mannequin {
     // 뒤로 넘어진다 (임시 도형)
     this.scene.tweens.add({ targets: this.sprite, angle: dir * 90, x: this.sprite.x + dir * 14 * this.u, duration: 420, ease: 'Quad.in' });
     if (this.arm) this.scene.tweens.add({ targets: this.arm, alpha: 0, duration: 200 });
+  }
+}
+
+// 형태를 가진 공백 — 사람 모양의 그림자. 느리다. 팔을 뻗어 하린의 머리카락 쪽으로 다가간다 (#1-22)
+// 쓰러지면 아주 작게 '…가만히…' 하고 흩어진다
+export class ShadeEnemy {
+  constructor(scene, x, y, opts = {}) {
+    this.scene = scene;
+    this.kind = 'shade';
+    this.hp = opts.hp || 7;
+    this.dead = false;
+    this.cs = new CharSprite(scene, x, y, 'shade', { physics: true, depth: DEPTH.enemy });
+    this.sprite = this.cs.sprite;
+    this.body = this.cs.body;
+    this.body.setAllowGravity(false);
+    this.body.setImmovable(true);
+    this.k = this.cs.k;
+    this.u = this.cs.u;
+    this.speed = (opts.speed || 12) * this.u;
+    this.emerging = true;
+    this.knockT = 0;
+    this.t = Math.random() * 10;
+    this.sprite.setAlpha(0);
+    scene.tweens.add({ targets: this.sprite, alpha: 0.88, duration: 1200, onComplete: () => { this.emerging = false; } });
+    this.armG = scene.add.graphics().setDepth(DEPTH.enemy + 1);
+    this.whisper = opts.whisper || '…가만히…';
+  }
+
+  get x() { return this.cs.x; }
+  get y() { return this.cs.y; }
+
+  // 하린이 있으면 하린 쪽으로 (머리카락을 향해 팔을 뻗음), 없으면 도윤 쪽으로
+  target(player) {
+    const c = this.scene.companion;
+    return c && c.cs.visible ? c.cs : player;
+  }
+
+  update(dt, player) {
+    if (this.dead) return;
+    this.t += dt / 1000;
+    const s = this.sprite;
+    s.setAlpha(0.8 + Math.sin(this.t * 6) * 0.08);
+    const tg = this.target(player);
+    const dx = tg.x - this.x;
+    const dir = dx < 0 ? -1 : 1;
+    this.cs.face(dir);
+    if (player.maxHp && !this.emerging && Math.abs(player.x - this.x) < 18 * this.u) player.damage(1, player.x < this.x ? -1 : 1);
+    if (this.knockT > 0) {
+      this.knockT -= dt;
+      if (this.knockT <= 0) this.body.setVelocityX(0);
+    } else {
+      this.body.setVelocityX(this.emerging || Math.abs(dx) < 26 * this.u ? 0 : dir * this.speed);
+    }
+    // 뻗은 팔 (머리 높이로)
+    const g = this.armG;
+    g.clear();
+    const reach = Math.min(1, Math.max(0, 1 - Math.abs(dx) / (120 * this.u)));
+    const sx = this.x + dir * 8 * this.cs.sk;
+    const sy = this.y - 70 * this.cs.sk;
+    const len = (14 + reach * 26) * this.cs.sk;
+    g.lineStyle(Math.max(2, 3 * this.cs.sk), 0x050507, 0.85);
+    g.lineBetween(sx, sy, sx + dir * len, sy - reach * 8 * this.cs.sk);
+    g.fillStyle(0x050507, 0.85);
+    g.fillCircle(sx + dir * len, sy - reach * 8 * this.cs.sk, 2.5 * this.cs.sk);
+  }
+
+  hit(dir, step, dmg = 1) {
+    if (this.dead || this.emerging) return false;
+    this.hp -= dmg;
+    this.knockT = 160;
+    this.body.setVelocityX(dir * (step === 3 ? 140 : 60) * this.u);
+    this.cs.flash(110);
+    if (this.hp <= 0) this.die();
+    return true;
+  }
+
+  die() {
+    if (this.dead) return;
+    this.dead = true;
+    this.body.enable = false;
+    this.cs.detached = true;
+    this.armG.clear();
+    Audio.sfx('vanish');
+    const sc = this.scene;
+    // 아주 작은 소리로
+    if (sc.bubbles) sc.bubbles.say({ x: this.x, y: this.y - 104 * this.cs.sk }, this.whisper, { faint: true, alpha: 0.7, voice: 'shade', volMul: 0.25, ms: 2200 });
+    const s = this.sprite;
+    for (let i = 0; i < 22; i++) {
+      const p = sc.add.rectangle(s.x + (Math.random() - 0.5) * 30 * this.k, s.y - Math.random() * 90 * this.k, 2, 2, 0x000000).setDepth(DEPTH.fx);
+      sc.tweens.add({ targets: p, x: p.x + (Math.random() - 0.5) * 50, y: p.y - 20 - Math.random() * 30, alpha: 0, duration: 700 + Math.random() * 500, onComplete: () => p.destroy() });
+    }
+    sc.tweens.add({ targets: s, alpha: 0, scaleY: s.scaleY * 0.2, duration: 600, onComplete: () => { this.cs.destroy(); this.armG.destroy(); } });
   }
 }

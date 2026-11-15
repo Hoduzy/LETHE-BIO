@@ -67,6 +67,23 @@ export class Player {
       this.swingAngle = 0;
     }
     this.fx = scene.add.graphics().setDepth(DEPTH.fx);
+    // 체력: 장면이 정할 때만 (1장 전투 다이브). 프롤로그는 없음
+    this.maxHp = opts.hp || 0;
+    this.hp = this.maxHp;
+    this.invuln = 0;
+  }
+
+  // 맞음: 체력이 있는 장면에서만. 잠깐 무적, 깜빡임
+  damage(n, dir) {
+    if (!this.maxHp || this.invuln > 0 || this.hp <= 0) return false;
+    this.hp = Math.max(0, this.hp - n);
+    this.invuln = 900;
+    this.knock(dir);
+    this.cs.flash(80);
+    const s = this.sprite;
+    this.scene.tweens.add({ targets: s, alpha: 0.35, duration: 90, yoyo: true, repeat: 4, onComplete: () => s.setAlpha(1) });
+    if (this.hp <= 0) this.scene.events.emit('player-down');
+    return true;
   }
 
   get x() { return this.cs.x; }
@@ -148,6 +165,7 @@ export class Player {
     this.stun = Math.max(0, this.stun - dt);
     this.actionLock = Math.max(0, this.actionLock - dt);
     this.landT = Math.max(0, this.landT - dt);
+    this.invuln = Math.max(0, this.invuln - dt);
     const grounded = this.grounded;
     if (grounded) this.airDashUsed = false;
     if (grounded && !this.wasGrounded && this.dive) {

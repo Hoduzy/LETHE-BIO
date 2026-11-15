@@ -1,0 +1,69 @@
+{
+  "id": "1-13",
+  "title": "두 번째 다이브 / 하린의 집 / 현관",
+  "heading": "#1-13 두 번째 다이브 / 현관",
+  "startColor": "#f2a35a",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_harin_entrance",
+    "width": 480,
+    "floorY": 232,
+    "charScale": 1.0,
+    "charTint": "#fff1e2",
+    "charBrightness": 1.0,
+    "bgColor": "#000000",
+    "ambience": ["stew"],
+    "abilities": ["move", "jump", "dash"],
+    "player": {"x": 80, "facing": 1, "char": "diver"},
+    "backdrop": [
+      {"rect": [0, 0, 480, 232], "color": "#efe2c8"},
+      {"vlines": [10, 18, 206, 22, 22], "color": "#e6d6b8"},
+      {"rect": [0, 0, 480, 18], "color": "#d9c9a8"},
+      {"line": [0, 18, 480, 18], "color": "#c2b08c"},
+      {"rect": [0, 226, 480, 6], "color": "#8a6744"},
+      {"rect": [0, 232, 480, 38], "color": "#a8835a"},
+      {"hlines": [0, 240, 480, 9, 4], "color": "#97744d"},
+      {"rect": [0, 232, 150, 38], "color": "#bdb3a2"},
+      {"vlines": [0, 232, 38, 15, 10], "color": "#a89e8c"},
+      {"hlines": [0, 250, 150, 20, 1], "color": "#a89e8c"},
+      {"rect": [150, 228, 330, 4], "color": "#7a5a3a"},
+      {"rect": [417, 125, 56, 107], "color": "#8a6a48"},
+      {"rect": [420, 128, 50, 104], "color": "#8a7258"},
+      {"rect": [96, 186, 10, 10], "color": "#a8603a"},
+      {"ellipse": [101, 182, 14, 10], "color": "#4f8a4a"}
+    ],
+    "props": [
+      {"id": "front_door", "ph": "ph_door_home", "x": 34, "label": "현관문", "range": 26, "interact": {"steps": []}, "examine": {"lines": ["문손잡이를 돌리면 문이 열린다.", "문 밖은 다시 이 현관이다."]}},
+      {"id": "shoe", "obj": "shoe_rack_3b", "x": 100, "scale": 1, "label": "신발장", "range": 30, "examine": {"steps": [{"type": "examine", "label": "신발장", "lines": ["운동화 세 켤레.", "아빠 신발이 없다."]}, {"type": "prop", "id": "shoe", "action": "obj", "obj": "shoe_rack_4"}, {"type": "sfx", "name": "pop"}, {"type": "examine", "label": "신발장", "lines": ["…아니다. 아빠 신발은 있다. 이상하다. 방금은 분명 없었는데."]}]}},
+      {"id": "photo", "obj": "photo_family_4_blur", "x": 220, "y": 150, "scale": 1, "label": "가족사진", "range": 30, "sparkleY": 126, "examine": {"lines": ["아빠, 엄마, 고등학생 여자아이, 초등학생 남자아이.", "엄마의 얼굴이 조금 흐릿하다. 물에 젖었다 마른 사진처럼."]}}
+    ],
+    "actors": [
+      {"id": "harin", "char": "harin", "x": 520, "speaker": "하린", "facing": -1, "visible": false}
+    ]
+  },
+  "steps": [
+    {"type": "wait", "ms": 300},
+    {"type": "fade", "to": "none", "ms": 2000},
+    {"type": "narration", "text": "같은 현관. 같은 신발장. 같은 가족사진."},
+    {"type": "narration", "text": "그런데 조금 다르다."},
+    {"type": "explore", "require": ["shoe", "photo"]},
+    {"type": "narration", "text": "된장찌개 냄새가 난다. 그런데 아까보다 옅다."},
+    {"type": "actor", "id": "harin", "action": "show", "x": 500},
+    {"type": "actor", "id": "harin", "action": "move", "x": 300, "speed": 90, "face": -1},
+    {"type": "narration", "text": "거실에서 하린이 뛰어나온다."},
+    {"type": "say", "speaker": "하린", "text": "왔어요?! 어디 갔었어요!", "face": 3},
+    {"type": "say", "speaker": "도윤", "text": "(당황) 아, 그게…", "face": 3},
+    {"type": "say", "speaker": "하린", "text": "문 열려서 같이 나갔잖아요. 근데 눈 떠 보니까 또 여기더라고요. 당신은 없고. 얼마나 놀랐는지 알아요?", "face": 5},
+    {"type": "say", "speaker": "하린", "text": "열쇠, 가짜였나 봐요. 아니면 문이 하나 더 있거나.", "face": 6},
+    {"type": "say", "speaker": "도윤", "text": "…저도 눈 떠 보니까 딴 데 있었어요.", "face": 5},
+    {"type": "say", "speaker": "하린", "text": "딴 데요? 어딘데요?", "face": 3},
+    {"type": "say", "speaker": "도윤", "text": "(잠깐 멈춘다) …그냥 하얀 데요. 아무것도 없는.", "face": 5},
+    {"type": "say", "speaker": "하린", "text": "(진지하게) 그럼 여기 말고 다른 공간도 있다는 거네요. 우리가 거기로 갈 수도 있다는 거고.", "face": 6},
+    {"type": "say", "speaker": "하린", "text": "(노트를 꺼낸다) 적어 놔야지."},
+    {"type": "card", "style": "note", "lines": [{"t": "7. 열쇠 쓰면 문 열림 → 근데 다시 돌아옴"}, {"t": "8. 도윤은 하얀 데로 감 (??)"}]},
+    {"type": "say", "speaker": "하린", "text": "그래도 다행이다. 또 와서.", "face": 4},
+    {"type": "say", "speaker": "도윤", "text": "…", "face": 2},
+    {"type": "say", "speaker": "하린", "text": "아니, 또 '갇혀서' 다행이라는 게 아니라. 아 몰라요. 그냥 다행이라고요.", "face": 1},
+    {"type": "fade", "to": "black", "ms": 900}
+  ]
+}

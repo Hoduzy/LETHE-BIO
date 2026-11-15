@@ -1,3 +1,4 @@
+import { G } from './state.js';
 // 키보드 + 터치(가상 패드/버튼) + 캔버스 포인터를 하나의 입력 상태로 합친다.
 //
 // 행동(action) 이름: left right up down attack dash parry interact menu
@@ -84,6 +85,7 @@ class InputState {
 
   install(canvas) {
     window.addEventListener('keydown', (e) => {
+      if (G.touchOnly) return;
       const a = KEYMAP[e.code] || FALLBACK_KEYMAP[e.key];
       if (!a) return;
       e.preventDefault();
@@ -125,3 +127,4 @@ class InputState {
 }
 
 export const Input = new InputState();
+if (typeof window !== 'undefined') window.__Input = Input; // 디버그·자동 테스트용

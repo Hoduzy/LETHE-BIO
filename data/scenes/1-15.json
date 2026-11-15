@@ -1,0 +1,78 @@
+{
+  "id": "1-15",
+  "title": "하린의 집 / 식탁",
+  "heading": "#1-15 식탁",
+  "startBlack": true,
+  "stage": {
+    "bg": "bg_harin_dining",
+    "width": 480,
+    "floorY": 232,
+    "charScale": 1.0,
+    "charTint": "#fff1e2",
+    "charBrightness": 1.0,
+    "bgColor": "#000000",
+    "ambience": ["stew"],
+    "abilities": ["move", "jump", "dash"],
+    "player": {"x": 120, "facing": 1, "char": "diver"},
+    "backdrop": [
+      {"rect": [0, 0, 480, 232], "color": "#efe2c8"},
+      {"vlines": [10, 18, 206, 22, 22], "color": "#e6d6b8"},
+      {"rect": [0, 0, 480, 18], "color": "#d9c9a8"},
+      {"line": [0, 18, 480, 18], "color": "#c2b08c"},
+      {"rect": [0, 226, 480, 6], "color": "#8a6744"},
+      {"rect": [0, 232, 480, 38], "color": "#a8835a"},
+      {"hlines": [0, 240, 480, 9, 4], "color": "#97744d"},
+      {"rect": [360, 120, 120, 70], "color": "#e8ecef"},
+      {"hlines": [360, 128, 120, 10, 7], "color": "#d4dade"},
+      {"vlines": [366, 120, 70, 12, 10], "color": "#d4dade"},
+      {"rect": [360, 186, 120, 46], "color": "#c8bfae"},
+      {"rect": [360, 182, 120, 6], "color": "#a89e8c"},
+      {"rect": [400, 176, 36, 6], "color": "#2a2a2e"},
+      {"rect": [30, 40, 60, 40], "color": "#c8b896"},
+      {"rect": [34, 44, 52, 32], "color": "#ffffff"},
+      {"rect": [170, 24, 2, 40], "color": "#6a5a48"},
+      {"ellipse": [171, 70, 30, 12], "color": "#f2e4b8"},
+      {"ellipse": [171, 76, 60, 14], "color": "#fff2c8", "alpha": 0.25}
+    ],
+    "props": [
+      {"id": "table", "ph": "ph_dining_table", "x": 287, "depth": 18},
+      {"id": "chair0", "ph": "ph_chair", "x": 214, "y": 226, "depth": 4},
+      {"id": "chair1", "ph": "ph_chair", "x": 250, "y": 226, "depth": 4},
+      {"id": "chair2", "ph": "ph_chair", "x": 286, "y": 226, "depth": 4},
+      {"id": "chair3", "ph": "ph_chair", "x": 322, "y": 226, "depth": 4}
+    ],
+    "actors": [
+      {"id": "dad", "char": "harin_dad", "x": 196, "speaker": "아빠(잔상)", "facing": 1, "phase": "corrupt", "level": 0.35},
+      {"id": "hajun", "char": "hajun10", "x": 250, "speaker": "하준(잔상)", "facing": 1, "lane": "table", "phase": "corrupt", "level": 0.3},
+      {"id": "harin", "char": "harin", "x": 322, "speaker": "하린", "facing": -1, "lane": "table"}
+    ],
+    "lanes": {"table": {"y": 224, "scale": 0.95, "depth": -15}},
+    "decor": [
+      {"depth": 19, "keep": true, "shapes": [{"ellipse": [240, 197, 22, 6], "color": "#f4f0e8"}, {"ellipse": [240, 195, 14, 3], "color": "#ffd75a"}, {"ellipse": [318, 197, 20, 6], "color": "#f4f0e8"}, {"ellipse": [318, 195, 12, 3], "color": "#a8885a"}]}
+    ],
+    "effects": []
+  },
+  "steps": [
+    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit", "lift": -10},
+    {"type": "actor", "id": "harin", "action": "anim", "name": "sit", "lift": -10},
+    {"type": "player", "action": "move", "x": 388, "face": -1},
+    {"type": "wait", "ms": 200},
+    {"type": "fade", "to": "none", "ms": 1000},
+    {"type": "narration", "text": "식탁. 의자가 네 개다. 다섯 번째 의자가 없다. 도윤이 앉을 자리가 없다."},
+    {"type": "narration", "text": "아니, 자세히 보면 의자는 네 개인데 아빠 자리가 비어 있다. 아빠는 식탁 옆에 서 있다."},
+    {"type": "say", "speaker": "아빠(잔상)", "text": "많이 드세요. 많이 드세요.", "face": 2},
+    {"type": "say", "speaker": "하준(잔상)", "text": "누나 남자친구야? 누나 남자친구야?", "face": 3},
+    {"type": "narration", "text": "식탁 위 반찬. 계란말이와 멸치볶음. 찌개가 없다."},
+    {"type": "say", "speaker": "하린", "text": "오늘은 찌개 안 끓였나 봐요.", "face": 6},
+    {"type": "say", "speaker": "하린", "text": "…근데 우리 지난번에 저녁 뭐 먹었었죠?", "face": 6},
+    {"type": "say", "speaker": "도윤", "text": "(멈칫)", "face": 3},
+    {"type": "say", "speaker": "하린", "text": "같이 먹었잖아요, 여기서. 근데 뭐 먹었는지 기억이 안 나요. 이상하다. 엄청 맛있었던 것 같은데.", "face": 6},
+    {"type": "say", "speaker": "도윤", "text": "…", "face": 2},
+    {"type": "say", "speaker": "하린", "text": "뭐였어요? 기억나요?", "face": 1},
+    {"type": "say", "speaker": "도윤", "text": "(한참 있다가) …된장찌개요.", "face": 2},
+    {"type": "say", "speaker": "하린", "text": "아, 맞다! 엄마 찌개. (웃는다) 내가 그걸 왜 까먹었지. 제일 좋아하는 건데.", "face": 1},
+    {"type": "parallel", "steps": [{"type": "vignette", "side": "right", "alpha": 0.3, "ms": 3000}, {"type": "say", "speaker": "하린", "text": "근데 이상하다. 생각해도 맛이 기억 안 나요. 무슨 맛이었더라.", "face": 1}]},
+    {"type": "wait", "ms": 800},
+    {"type": "fade", "to": "black", "ms": 1000}
+  ]
+}

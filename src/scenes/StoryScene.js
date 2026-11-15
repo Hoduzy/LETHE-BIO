@@ -18,7 +18,9 @@ import { UNIT } from '../world/CharSprite.js';
 import { objTexture } from '../core/sprites.js';
 import { Editor } from '../editor/Editor.js';
 import { Player } from '../world/Player.js';
-import { VoidEnemy, Mannequin } from '../world/Enemies.js';
+import { VoidEnemy, Mannequin, ShadeEnemy } from '../world/Enemies.js';
+import { installStorySteps1 } from './StorySteps1.js';
+import { Skills } from '../core/skills.js';
 
 const ABORT = Symbol('abort');
 
@@ -84,7 +86,7 @@ export class StoryScene extends Phaser.Scene {
     this.lightTargets = [];
     this.stage = new Stage(this, st);
     const p = st.player || {};
-    this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char });
+    this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char, hp: st.playerHp });
     this.physics.add.collider(this.player.cs.zone, this.stage.solidGroup);
     this.setLane(this.player.cs, p.lane || 'floor', 0);
     if (p.visible === false) this.player.setVisible(false);
@@ -109,6 +111,7 @@ export class StoryScene extends Phaser.Scene {
     this.panels = new Panels(this);
     this.fadeRect = this.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.fade);
     if (def.startColor === 'white') this.fadeRect.setFillStyle(0xffffff, 1);
+    else if (def.startColor && def.startColor[0] === '#') this.fadeRect.setFillStyle(Phaser.Display.Color.HexStringToColor(def.startColor).color, 1);
     if (!def.startBlack) {
       this.tweens.add({ targets: this.fadeRect, alpha: 0, duration: 700 });
     }
@@ -122,6 +125,9 @@ export class StoryScene extends Phaser.Scene {
 
     // 장면 제목 (잠깐)
     if (def.heading) this.showHeading(def.heading);
+    // 1장부터: 하린 동료, 말풍선, 스킬·체력 표시, 구역
+    this.setupCh1(st);
+    this.speakCount = {};
 
     // 공격 판정
     this.events.on('player-attack', (a) => this.onPlayerAttack(a));
@@ -270,7 +276,22 @@ export class StoryScene extends Phaser.Scene {
     if (kind === 'none' || kind === 'in') {
       return new Promise((res) => this.tweens.add({ targets: r, alpha: 0, duration: G.auto ? 50 : ms, onComplete: res }));
     }
-    r.setFillStyle(kind === 'white' ? 0xffffff : 0x000000, 1);
+    // 'white' / 'black' / '#rrggbb' (예: 하얗게 번진 뒤 따뜻한 주황색으로)
+    const color = kind === 'white' ? 0xffffff : kind && kind[0] === '#' ? Phaser.Display.Color.HexStringToColor(kind).color : 0x000000;
+    if (r.alpha > 0.99 && r.fillColor !== color) {
+      // 이미 덮여 있으면 색만 천천히 바꾼다
+      const from = Phaser.Display.Color.IntegerToColor(r.fillColor);
+      const to = Phaser.Display.Color.IntegerToColor(color);
+      return new Promise((res) => this.tweens.addCounter({
+        from: 0, to: 100, duration: G.auto ? 50 : ms,
+        onUpdate: (tw) => {
+          const c = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 100, tw.getValue());
+          r.setFillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1);
+        },
+        onComplete: res
+      }));
+    }
+    r.setFillStyle(color, 1);
     return new Promise((res) => this.tweens.add({ targets: r, alpha: 1, duration: G.auto ? 50 : ms, onComplete: res }));
   }
 
@@ -297,7 +318,16 @@ export class StoryScene extends Phaser.Scene {
         if (a) a.cs.play(s.anim);
       }
     }
-    return this.dialogue.show({ style: 'say', speaker: s.speaker, text: s.text, face: s.face });
+    // 변질된 잔상의 반복 대사: 말할 때마다 음이 조금씩 더 끊기고 늦어진다
+    let glitch = s.glitch;
+    if (glitch == null) {
+      const a = this.stage.actorBySpeaker(s.speaker);
+      if (a && a.cs.afterFx && a.cs.afterFx.active) {
+        const n = (this.speakCount[s.speaker] = (this.speakCount[s.speaker] || 0) + 1);
+        glitch = Math.min(1, a.cs.afterFx.level * (0.45 + 0.2 * n));
+      }
+    }
+    return this.dialogue.show({ style: 'say', speaker: s.speaker, text: s.text, face: s.face, glitch });
   }
 
   step_thought(s) {
@@ -378,7 +408,24 @@ export class StoryScene extends Phaser.Scene {
   }
 
   async step_settlement(s) {
+    // 누적 정산 금액·유대 지수 저장 (amount: 이번 금액, bond: 유대 지수)
+    if (!G.edit && (s.amount || s.bond != null)) {
+      const sv = Save.load() || {};
+      const extra = {};
+      if (s.amount) {
+        const paid = new Set(sv.paid || []);
+        const key = this.sceneId + ':' + s.amount;
+        if (!paid.has(key)) {
+          paid.add(key);
+          extra.money = (sv.money || 0) + s.amount;
+          extra.paid = Array.from(paid);
+        }
+      }
+      if (s.bond != null) extra.bond = s.bond;
+      Save.saveProgress(this.sceneId, extra);
+    }
     this.panels.settlement(s);
+    if (s.bondFlash != null) this.step_bond({ value: s.bondFlash, lines: [`유대 지수: ${s.bondFlash}`] });
     await this.wait(500);
     await this.waitAdvance();
     this.panels.hideSettlement();
@@ -553,7 +600,59 @@ export class StoryScene extends Phaser.Scene {
     }
     const cs = a.cs;
     const o = cs.sprite;
+    // 다른 동작이 오면 되풀이(loop)는 멈춘다
+    if (s.action !== 'loop' && s.action !== 'phase') cs.loopToken = null;
     switch (s.action) {
+      // 같은 자리까지 와서 손을 뻗고 멈췄다가 돌아가기를 되풀이 (#1-21 엄마) — 다음 단계는 기다리지 않는다
+      case 'loop': {
+        const token = {};
+        cs.loopToken = token;
+        const go = async () => {
+          while (cs.loopToken === token && this.alive) {
+            cs.setVisible(true);
+            await this.moveChar(cs, s.to, s.speed || 30, 'idle');
+            if (cs.loopToken !== token) break;
+            if (cs.has(s.reach || 'reach')) cs.play(s.reach || 'reach');
+            else cs.applyPose('lean');
+            await this.wait(s.pause || 1600);
+            if (cs.loopToken !== token) break;
+            cs.clearPose();
+            await this.moveChar(cs, s.from, s.speed || 30, 'idle');
+            if (cs.loopToken !== token) break;
+            await this.wait(s.rest || 700);
+          }
+        };
+        go();
+        break;
+      }
+      case 'phase':
+        if (cs.afterFx) cs.afterFx.set(s.phase, s.level);
+        break;
+      case 'wave':
+        if (cs.has('wave')) cs.play('wave');
+        else {
+          cs.applyPose('raise');
+          cs.poseTweens.push(this.tweens.add({ targets: o, angle: { from: -6, to: 6 }, duration: 260, yoyo: true, repeat: -1 }));
+        }
+        break;
+      case 'stop':
+        cs.clearPose();
+        cs.play(s.anim || 'idle');
+        break;
+      // 모래처럼 흩어진다 (손을 뻗은 자세 그대로 굳었다가)
+      case 'dissolve': {
+        const b = o.getBounds();
+        for (let i = 0; i < 70; i++) {
+          const px = b.x + 6 + Math.random() * (b.width - 12);
+          const py = b.y + 30 + Math.random() * (b.height - 30);
+          const p = this.add.rectangle(px, py, 2, 2, [0xe2bfa3, 0xc88a6a, 0xf2ece0, 0x2e2420][i % 4], 1).setDepth(o.depth + 1);
+          this.tweens.add({ targets: p, x: px + (Math.random() - 0.3) * 30, y: py + 20 + Math.random() * 40, alpha: 0, delay: Math.random() * 600, duration: 900 + Math.random() * 700, onComplete: () => p.destroy() });
+        }
+        await new Promise((r) => this.tweens.add({ targets: o, alpha: 0, duration: G.auto ? 30 : 1200, onComplete: r }));
+        cs.setVisible(false);
+        o.setAlpha(1);
+        break;
+      }
       case 'show':
         cs.setVisible(true);
         if (s.x != null) cs.setPosition(s.x);
@@ -882,6 +981,8 @@ export class StoryScene extends Phaser.Scene {
   step_explore(s) {
     this.exploreCfg = s;
     this.mode = 'play';
+    // freeze: 자리에 앉은 채 살펴보기만 (식탁의 찌개 등)
+    if (s.freeze) this.player.frozen = true;
     if (s.tutorial) this.panels.banner(s.tutorial.title, s.tutorial.lines);
     return new Promise((res) => {
       this.exploreResolve = res;
@@ -892,6 +993,7 @@ export class StoryScene extends Phaser.Scene {
       this.mode = 'cutscene';
       this.player.body.setVelocityX(0);
       if (s.tutorial) this.panels.hideBanner();
+      if (s.freeze) this.player.frozen = false;
     });
   }
 
@@ -942,8 +1044,10 @@ export class StoryScene extends Phaser.Scene {
       if (this.exploreCfg && this.exploreCfg.only && !this.exploreCfg.only.includes(e.id)) return;
       if (this.exploreCfg && e.id === this.exploreCfg.exit && !this.exploreRequirementsMet()) return;
       const range = (e.def.range || 20) * this.unit;
-      const d = Math.abs(e.obj.x - px);
-      if (d <= range && d < bestD) {
+      let d = Math.abs(e.obj.x - px);
+      // 앉은 채 살펴보기(freeze): 움직일 수 없으니 아직 안 본 것부터 차례로
+      if (d <= range && this.exploreCfg && this.exploreCfg.freeze && this.examined.has(e.id)) d += 10000;
+      if (Math.abs(e.obj.x - px) <= range && d < bestD) {
         best = e;
         bestD = d;
       }
@@ -1008,6 +1112,7 @@ export class StoryScene extends Phaser.Scene {
       const y = this.stage.floorY;
       let en;
       if (e.kind === 'mannequin') en = new Mannequin(this, e.x, y, e);
+      else if (e.kind === 'shade') en = new ShadeEnemy(this, e.x, y, e);
       else en = new VoidEnemy(this, e.x, y, e);
       this.physics.add.collider(en.cs.zone, this.stage.solidGroup);
       this.physics.add.collider(this.player.cs.zone, en.cs.zone);
@@ -1018,6 +1123,16 @@ export class StoryScene extends Phaser.Scene {
 
   async step_clear(s) {
     if (s.guide && this.guide) this.guide.start(s.guide);
+    // 전투 중 연출: { after: ms, steps: [...] } — 그동안 전투를 멈춘다
+    (s.events || []).forEach((ev) => {
+      this.time.delayedCall(G.auto ? 30 : ev.after, async () => {
+        if (!this.alive || this.mode !== 'play') return;
+        this.mode = 'busy';
+        this.player.body.setVelocityX(0);
+        try { await this.runSteps(ev.steps || []); } catch (e) { return; }
+        if (this.alive) this.mode = 'play';
+      });
+    });
     this.mode = 'play';
     this.exploreCfg = { combat: true };
     if (s.tutorial) this.panels.banner(s.tutorial.title, s.tutorial.lines);
@@ -1029,7 +1144,8 @@ export class StoryScene extends Phaser.Scene {
         } else e.die();
       });
     }
-    await this.waitUntil(() => this.enemies.every((e) => e.dead));
+    // leave: 그만큼 남으면 끝 (나머지는 다음 연출에서)
+    await this.waitUntil(() => this.enemies.filter((e) => !e.dead).length <= (s.leave || 0) && this.mode === 'play');
     if (s.guide && this.guide && this.guide.cur) this.guide.success();
     await this.wait(600);
     this.exploreCfg = null;
@@ -1148,11 +1264,24 @@ export class StoryScene extends Phaser.Scene {
     const target = this.stage.get(s.target);
     const o = target.obj;
     if (s.tutorial) this.panels.banner(s.tutorial.title, s.tutorial.lines);
+    // 누르는 동안 잔상의 목소리: holdLines [{ at: 0~1, speaker, text, vol }] — 그 진행도를 넘을 때 한 번씩
+    const holdLines = (s.holdLines || []).map((l) => Object.assign({ said: false }, l));
+    const quietUntilDone = holdLines.length > 0 || s.silence === 'done';
     const hp = new HoldPress(this, {
       x: o.x,
       y: o.getBounds().top - 14,
       duration: s.duration || 2000,
       decay: s.decay != null ? s.decay : 0.35,
+      onProgress: (pr, held) => {
+        if (!held) return;
+        holdLines.forEach((l) => {
+          if (l.said || pr < (l.at || 0)) return;
+          l.said = true;
+          const a = this.stage.actorBySpeaker(l.speaker);
+          const sp = (G.speakers && G.speakers[l.speaker]) || {};
+          this.bubbles.say(a ? a.cs : { x: o.x, y: o.y - 40 }, l.text, { voice: sp.voice || 'default', volMul: l.vol != null ? l.vol : 0.5, ms: l.ms || 1900, alpha: l.alpha, faint: !!l.faint });
+        });
+      },
       onHoldChange: (held) => {
         this.player.frozen = held;
         // diver_harvest: 리퍼를 뻗고(2) → 떨며 당기기(3~5). 손을 떼면 원래대로
@@ -1164,7 +1293,7 @@ export class StoryScene extends Phaser.Scene {
           this.player.setOverride(null);
           this.events.emit('harvest-release');
         }
-        if (held && !this.harvestSilenced) {
+        if (held && !this.harvestSilenced && !quietUntilDone) {
           // 수확하는 순간: 모든 소리를 끊고 정적
           this.harvestSilenced = true;
           Audio.silence();
@@ -1176,6 +1305,10 @@ export class StoryScene extends Phaser.Scene {
     this.harvest = { hp, target };
     if (G.auto) this.player.setX(o.x - 20 * this.unit);
     await hp.run();
+    // 수확 순간: 케이크 초 등이 동시에 꺼지고, 이 장의 수확 횟수가 늘어난다 (스킬이 조용히 사라질 수 있음)
+    this.events.emit('harvest-done', s.target);
+    const ch = chapterOf(this.sceneId);
+    if (ch && s.count !== false) Skills.onHarvest(ch.id);
     if (s.guide && this.guide && this.guide.cur) this.guide.success();
     this.harvest = null;
     this.player.frozen = false;
@@ -1313,6 +1446,7 @@ export class StoryScene extends Phaser.Scene {
     this.player.update(gdt, playing || (this.mode === 'play' && this.harvest && !this.harvest.hp.holding));
     if (playing) this.keepInLane();
     this.stage.update(dt);
+    this.updateCh1(dt, gdt);
     this.updateConveyorSound();
     if (this.guide) {
       this.guide.update(dt);
@@ -1379,3 +1513,5 @@ export class StoryScene extends Phaser.Scene {
     }
   }
 }
+
+installStorySteps1(StoryScene);
