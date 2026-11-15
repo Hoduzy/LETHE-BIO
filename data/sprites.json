@@ -7,6 +7,7 @@
     "파일이 없으면 placeholder(임시 도형)로 그리고, 동작은 ph(임시 움직임)로 대신한다."
   ],
 
+  "capsule_crop": { "_설명": "bg_dive_room 의 도윤이 눕는 캡슐(왼쪽에서 두 번째). 모니터 기둥 빼고 몸체·받침만. 원래 크기 assets/sprites/ref/capsule_crop.png, 최근접 4배 capsule_crop_x4.png", "bg": "bg_dive_room", "x": 172, "y": 162, "w": 95, "h": 39 },
   "sheets": {
     "doyun_idle_breath": { "cell": [128, 128], "frames": 4,  "anims": { "idle": [1, 1], "breath": [1, 4, 3, "loop"] } },
     "doyun_walk":        { "cell": [128, 128], "frames": 7,  "anims": { "idle": [1, 1], "walk": [2, 7, 9, "loop"] } },

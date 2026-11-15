@@ -32,16 +32,7 @@
       {"text": "DIVE-03", "x": 327, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
       {"text": "DIVE-04", "x": 435, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
     ],
-    "props": [
-      {"id": "cap1", "obj": "capsule", "x": 107, "y": 202, "frame": 1, "scale": 1},
-      {"id": "cap2", "obj": "capsule", "x": 217, "y": 202, "frame": 3, "scale": 1, "keep": true},
-      {"id": "cap3", "obj": "capsule", "x": 327, "y": 202, "frame": 3, "scale": 1, "keep": true},
-      {"id": "cap4", "obj": "capsule", "x": 435, "y": 202, "frame": 1, "scale": 1},
-      {"id": "mon1", "ph": "ph_monitor", "x": 63, "y": 160},
-      {"id": "mon2", "ph": "ph_monitor", "x": 173, "y": 160},
-      {"id": "mon3", "ph": "ph_monitor", "x": 283, "y": 160},
-      {"id": "mon4", "ph": "ph_monitor", "x": 391, "y": 160}
-    ],
+    "props": [],
     "actors": [
       {"id": "instructor", "char": "npc_staff", "x": 160, "speaker": "교육 직원", "facing": 1, "anim": "look"},
       {"id": "jaehee", "char": "jaehee", "x": 327, "lane": "capsule", "speaker": "재희", "facing": 1, "anim": "lie"}
@@ -50,7 +41,6 @@
   "steps": [
     {"type": "wait", "ms": 800},
     {"type": "fade", "to": "none", "ms": 1600},
-    {"type": "prop", "id": "cap2", "action": "anim", "name": "obj_capsule.reopen", "wait": true},
     {"type": "sfx", "name": "thud"},
     {"type": "player", "action": "anim", "name": "capsule_gasp"},
     {"type": "sfx", "name": "breath"},
@@ -62,7 +52,6 @@
     {"type": "player", "action": "stand"},
     {"type": "player", "action": "lane", "lane": "floor"},
     {"type": "player", "action": "move", "x": 245, "face": 1},
-    {"type": "prop", "id": "cap3", "action": "anim", "name": "obj_capsule.reopen", "wait": true},
     {"type": "actor", "id": "jaehee", "action": "anim", "name": "sit_up", "wait": true},
     {"type": "actor", "id": "jaehee", "action": "stand", "lane": "floor"},
     {"type": "narration", "text": "옆 캡슐에서 재희가 일어난다. 실제 다이브를 하고 나온 참이다. 얼굴에 아무 표정이 없다."},

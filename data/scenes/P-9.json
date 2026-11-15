@@ -31,16 +31,7 @@
       {"text": "DIVE-03", "x": 327, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
       {"text": "DIVE-04", "x": 435, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
     ],
-    "props": [
-      {"id": "cap1", "obj": "capsule", "x": 107, "y": 202, "frame": 1, "scale": 1},
-      {"id": "cap2", "obj": "capsule", "x": 217, "y": 202, "frame": 1, "scale": 1, "keep": true},
-      {"id": "cap3", "obj": "capsule", "x": 327, "y": 202, "frame": 1, "scale": 1},
-      {"id": "cap4", "obj": "capsule", "x": 435, "y": 202, "frame": 1, "scale": 1},
-      {"id": "mon1", "ph": "ph_monitor", "x": 63, "y": 160},
-      {"id": "mon2", "ph": "ph_monitor", "x": 173, "y": 160},
-      {"id": "mon3", "ph": "ph_monitor", "x": 283, "y": 160},
-      {"id": "mon4", "ph": "ph_monitor", "x": 391, "y": 160}
-    ],
+    "props": [],
     "actors": [
       {"id": "instructor", "char": "npc_staff", "x": 272, "speaker": "교육 직원", "facing": -1, "anim": "look"}
     ]
@@ -56,8 +47,6 @@
     {"type": "player", "action": "move", "x": 205, "face": 1},
     {"type": "player", "action": "lane", "lane": "capsule"},
     {"type": "player", "action": "lie", "x": 217, "anim": "capsule_lie"},
-    {"type": "prop", "id": "cap2", "action": "anim", "name": "obj_capsule.close", "wait": true},
-    {"type": "prop", "id": "cap2", "action": "anim", "name": "obj_capsule.blink"},
     {"type": "sfx", "name": "thud"},
     {"type": "narration", "text": "도윤이 캡슐에 눕는다. 뚜껑이 닫힌다. 숨소리가 크게 들린다."},
     {"type": "ambience", "set": []},
