@@ -12,6 +12,7 @@ import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
 import { G } from '../core/state.js';
 import { DEPTH, FONT, txt, isSilentChar } from '../core/gfx.js';
+import { PortraitLayer } from './PortraitLayer.js';
 
 // 배치 (480x270 화면 기준): 대화창은 좌우 여백 8, 높이 76.
 // 초상화 테두리는 대화창 안쪽 왼쪽에 대화창 높이와 같은 정사각형, 이름표는 위쪽 테두리에 걸쳐 초상화 오른쪽 위
@@ -90,6 +91,11 @@ export class DialogueBox {
     this.measure = scene.add.text(0, 0, '', { fontFamily: FONT, fontSize: '12px', lineSpacing: 3 }).setVisible(false);
     this.arrowT = 0;
     this.parts = [this.bg, this.boxImg, this.portraitImg, this.frameG, this.frameImg, this.nameBg, this.nameImg, this.nameText, this.body, this.arrow].filter(Boolean);
+    // 초상화는 원본 그림을 HTML 레이어로 (도트로 뭉개지지 않게). 그림이 없으면 게임 안 임시 초상화
+    this.htmlPortrait = null;
+    PortraitLayer.register(this);
+    scene.events.once('shutdown', () => PortraitLayer.unregister(this));
+    scene.events.once('destroy', () => PortraitLayer.unregister(this));
     this.setVisible(false);
   }
 
@@ -97,7 +103,7 @@ export class DialogueBox {
     this.visible = v;
     this.parts.forEach((o) => o.setVisible(v));
     if (v) {
-      this.portraitImg.setVisible(!!this.hasPortrait);
+      this.portraitImg.setVisible(!!this.hasPortrait && !this.htmlPortrait);
       this.frameG.setVisible(!!this.hasPortrait);
       if (this.frameImg) this.frameImg.setVisible(!!this.hasPortrait);
       const showName = !!this.nameText.text;
@@ -174,6 +180,7 @@ export class DialogueBox {
 
     const portrait = (style === 'say' || style === 'thought') ? this.portraitFor(sp, entry) : null;
     this.hasPortrait = !!portrait;
+    if (!portrait) this.htmlPortrait = null;
     this.layout(this.positionFn(), this.hasPortrait);
     const B = this.box;
 
@@ -205,6 +212,10 @@ export class DialogueBox {
       const fw = this.portraitImg.frame.width;
       this.portraitImg.setScale(inner / fw).setPosition(P.x + P.size / 2, P.y + P.size / 2);
       this.portraitImg.setAlpha(style === 'thought' ? 0.7 : 1);
+      // 원본 초상화가 있으면 HTML 레이어로, 게임 안 그림은 숨긴다
+      const face = entry.face || sp.face || 1;
+      this.htmlPortrait = PortraitLayer.has(sp.portrait, face) ? { url: PortraitLayer.url(sp.portrait, face), alpha: style === 'thought' ? 0.7 : 1 } : null;
+      this.portraitImg.setVisible(!this.htmlPortrait);
       if (this.frameImg) {
         this.frameImg.setPosition(P.x, P.y);
         if (this.frameImg.type === 'NineSlice') this.frameImg.setSize(P.size, P.size);
@@ -347,7 +358,15 @@ export class DialogueBox {
     this.setVisible(false);
   }
 
+  // 초상화 테두리의 안쪽 구멍 (게임 좌표). 테두리 그림은 바깥 1px 선 + 3px 어두운 띠
+  portraitInner() {
+    const P = this.portraitPos || { x: 0, y: 0, size: 0 };
+    const pad = this.skin.frame ? 4 : 1;
+    return { x: P.x + pad, y: P.y + pad, size: P.size - pad * 2 };
+  }
+
   destroy() {
+    PortraitLayer.unregister(this);
     this.parts.forEach((o) => o.destroy());
     this.measure.destroy();
   }

@@ -4,6 +4,7 @@ import { G } from './core/state.js';
 import { Input } from './core/input.js';
 import { Audio } from './core/audio.js';
 import { setupTouch, syncTouchVisibility, layoutTouch } from './core/touch.js';
+import { PortraitLayer } from './ui/PortraitLayer.js';
 import { BootScene } from './scenes/BootScene.js';
 import { MenuScene } from './scenes/MenuScene.js';
 import { StoryScene } from './scenes/StoryScene.js';
@@ -73,6 +74,11 @@ async function start() {
   game.events.on('poststep', () => {
     Input.endFrame();
     syncTouchVisibility();
+  });
+  // 초상화 HTML 레이어: 렌더가 끝난 뒤 위치·그림을 맞춘다
+  PortraitLayer.init();
+  game.events.on('postrender', () => {
+    PortraitLayer.sync();
   });
 
   Audio.installUnlock();
