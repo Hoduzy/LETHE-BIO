@@ -9,13 +9,7 @@
     "charScale": 1.0,
     "charTint": "#e7efff",
     "charBrightness": 0.81,
-    "lanes": {"capsule": {"y": 190, "scale": 0.83}},
-    "occluders": [
-      {"id": "capsule1", "poly": [[59, 183], [63, 180], [151, 180], [156, 183], [156, 199], [59, 199]], "png": "fg/bg_dive_room__capsule1__2310e4.png"},
-      {"id": "capsule2", "poly": [[169, 183], [173, 180], [261, 180], [266, 183], [266, 199], [169, 199]], "png": "fg/bg_dive_room__capsule2__50e303.png"},
-      {"id": "capsule3", "poly": [[279, 183], [283, 180], [371, 180], [376, 183], [376, 199], [279, 199]], "png": "fg/bg_dive_room__capsule3__021542.png"},
-      {"id": "capsule4", "poly": [[387, 183], [391, 180], [479, 180], [484, 183], [484, 199], [387, 199]], "png": "fg/bg_dive_room__capsule4__639c39.png"}
-    ],
+    "lanes": {"capsule": {"y": 184, "scale": 0.76}},
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
@@ -31,6 +25,10 @@
       {"text": "DIVE-03", "x": 327, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
       {"text": "DIVE-04", "x": 435, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
     ],
+    "capsules": [
+      {"id": "cap2", "x": 172, "y": 162},
+      {"id": "cap3", "x": 282, "y": 162}
+    ],
     "props": [],
     "actors": [
       {"id": "instructor", "char": "npc_staff", "x": 272, "speaker": "교육 직원", "facing": -1, "anim": "look"}
@@ -45,10 +43,11 @@
     {"type": "actor", "id": "instructor", "action": "anim", "name": "tap"},
     {"type": "say", "speaker": "교육 직원", "text": "캡슐에 누우시면 신경 링크가 연결돼요. 잠드는 것처럼 느껴질 거예요. 무서우면 눈 감고 숫자 세세요."},
     {"type": "player", "action": "move", "x": 205, "face": 1},
+    {"type": "capsule", "id": "cap2", "action": "open"},
     {"type": "player", "action": "lane", "lane": "capsule"},
-    {"type": "player", "action": "lie", "x": 217, "anim": "capsule_lie"},
+    {"type": "player", "action": "lie", "x": 215, "anim": "capsule_lie"},
     {"type": "sfx", "name": "thud"},
-    {"type": "narration", "text": "도윤이 캡슐에 눕는다. 뚜껑이 닫힌다. 숨소리가 크게 들린다."},
+    {"type": "parallel", "steps": [{"type": "narration", "text": "도윤이 캡슐에 눕는다. 뚜껑이 닫힌다. 숨소리가 크게 들린다."}, {"type": "sequence", "steps": [{"type": "wait", "ms": 500}, {"type": "capsule", "id": "cap2", "action": "close"}]}]},
     {"type": "ambience", "set": []},
     {"type": "sfx", "name": "breath", "wait": 2600},
     {"type": "player", "action": "anim", "name": "capsule_sleep"},

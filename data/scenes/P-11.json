@@ -10,17 +10,11 @@
     "charScale": 1.0,
     "charTint": "#e7efff",
     "charBrightness": 0.81,
-    "lanes": {"capsule": {"y": 190, "scale": 0.83}},
-    "occluders": [
-      {"id": "capsule1", "poly": [[59, 183], [63, 180], [151, 180], [156, 183], [156, 199], [59, 199]], "png": "fg/bg_dive_room__capsule1__2310e4.png"},
-      {"id": "capsule2", "poly": [[169, 183], [173, 180], [261, 180], [266, 183], [266, 199], [169, 199]], "png": "fg/bg_dive_room__capsule2__50e303.png"},
-      {"id": "capsule3", "poly": [[279, 183], [283, 180], [371, 180], [376, 183], [376, 199], [279, 199]], "png": "fg/bg_dive_room__capsule3__021542.png"},
-      {"id": "capsule4", "poly": [[387, 183], [391, 180], [479, 180], [484, 183], [484, 199], [387, 199]], "png": "fg/bg_dive_room__capsule4__639c39.png"}
-    ],
+    "lanes": {"capsule": {"y": 184, "scale": 0.76}},
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
-    "player": {"x": 217, "facing": 1, "anim": "capsule_sleep", "lane": "capsule"},
+    "player": {"x": 215, "facing": 1, "anim": "capsule_sleep", "lane": "capsule"},
     "backdrop": [
       {"rect": [0, 0, 480, 216], "color": "#e9edf0"},
       {"rect": [0, 0, 480, 18], "color": "#d9dee3"},
@@ -32,16 +26,20 @@
       {"text": "DIVE-03", "x": 327, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]},
       {"text": "DIVE-04", "x": 435, "y": 150, "color": "#9aa3ad", "origin": [0.5, 0]}
     ],
+    "capsules": [
+      {"id": "cap2", "x": 172, "y": 162},
+      {"id": "cap3", "x": 282, "y": 162}
+    ],
     "props": [],
     "actors": [
       {"id": "instructor", "char": "npc_staff", "x": 160, "speaker": "교육 직원", "facing": 1, "anim": "look"},
-      {"id": "jaehee", "char": "jaehee", "x": 327, "lane": "capsule", "speaker": "재희", "facing": 1, "anim": "lie"}
+      {"id": "jaehee", "char": "jaehee", "x": 325, "lane": "capsule", "speaker": "재희", "facing": 1, "anim": "lie"}
     ]
   },
   "steps": [
     {"type": "wait", "ms": 800},
     {"type": "fade", "to": "none", "ms": 1600},
-    {"type": "sfx", "name": "thud"},
+    {"type": "capsule", "id": "cap2", "action": "open"},
     {"type": "player", "action": "anim", "name": "capsule_gasp"},
     {"type": "sfx", "name": "breath"},
     {"type": "narration", "text": "캡슐 뚜껑이 열린다. 도윤이 숨을 몰아쉰다."},
@@ -52,6 +50,7 @@
     {"type": "player", "action": "stand"},
     {"type": "player", "action": "lane", "lane": "floor"},
     {"type": "player", "action": "move", "x": 245, "face": 1},
+    {"type": "capsule", "id": "cap3", "action": "open"},
     {"type": "actor", "id": "jaehee", "action": "anim", "name": "sit_up", "wait": true},
     {"type": "actor", "id": "jaehee", "action": "stand", "lane": "floor"},
     {"type": "narration", "text": "옆 캡슐에서 재희가 일어난다. 실제 다이브를 하고 나온 참이다. 얼굴에 아무 표정이 없다."},

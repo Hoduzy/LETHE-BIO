@@ -65,6 +65,7 @@ python3 tools/process_sprites.py diver_run    # 일부만
 | `obj_crystal_amber.png` | 32×32 | 6 | glow(1~6 반복) |
 | `obj_crystal_gray.png` | 32×32 | 8 | float(1~3 반복), pulled(4~6), empty(7~8) |
 | `obj_capsule.png` | 96×48 | 4 | open(1), close(1~3), closed(3), blink(3~4 반복), reopen(3~1) |
+| `capsule_anim.png` | 95×87 | 4 | 다이브 캡슐 뚜껑 open(1~4), close(4~1). 칸 아래 39줄 = `capsule_crop`(배경 속 캡슐) 자리, 위는 열린 뚜껑. 4프레임 앞쪽 벽(칸 y66, 높이 21)을 누운 사람 앞 가림막으로 |
 | `obj_conveyor.png` | 96×48 (2줄×6칸) | 12 | 1줄 벨트 윗부분(1 왼쪽 끝, 2~5 가운데 4프레임, 6 오른쪽 끝), 2줄 같은 칸의 다리·틀. 실제 조각 폭은 sprites.json `tileW`(65), 다리 위치 `legOffset`(37) |
 | `obj_parcels.png` | 48×48 | 6 | 택배 상자 6종류 (무작위, 같은 종류 세 번 연속 없음) |
 | `obj_truck_inside.png` | 160×128 | 1 | 트럭 짐칸 (상하차 미니게임) |

@@ -14,6 +14,7 @@
 //    lane 에 dim(0~1) 을 주면 그 줄 인물을 그만큼 어둡게
 
 import { G } from '../core/state.js';
+import { Audio } from '../core/audio.js';
 import { objTexture } from '../core/sprites.js';
 import { CharSprite, UNIT } from './CharSprite.js';
 import { Conveyor } from './Conveyor.js';
@@ -64,6 +65,7 @@ export class Stage {
     this.buildActors();
     this.buildEffects();
     this.buildConveyors();
+    this.buildCapsules();
     this.walkers = [];
     this.walkerT = 600;
     this.buildOccluders();
@@ -592,6 +594,69 @@ export class Stage {
     (this.updaters || []).forEach((f) => f(dt));
     Object.values(this.conveyors || {}).forEach((c) => c.update(dt));
     this.updateWalkers(dt);
+    this.updateCapsules();
+  }
+
+  // ---------- 다이브 캡슐 뚜껑 (capsule_anim) ----------
+  // def.capsules: [{ id, x, y }]  x, y = 배경 속 그 캡슐의 capsule_crop 왼쪽 위 (data/sprites.json capsule_crop 크기)
+  buildCapsules() {
+    const s = this.scene;
+    this.capsules = {};
+    const sheet = (G.spriteData.sheets || {}).capsule_anim;
+    if (!sheet || !G.realSprites.has('capsule_anim')) return;
+    const crop = G.spriteData.capsule_crop || { h: 39 };
+    const [cw, ch] = sheet.cell;
+    (this.def.capsules || []).forEach((cd) => {
+      const top = cd.y + crop.h - ch;
+      const spr = s.add.sprite(cd.x, top, 'capsule_anim', 0).setOrigin(0).setDepth(DEPTH.prop);
+      const front = s.add.image(cd.x, top + sheet.frontWall[0], 'capsule_anim', 'front').setOrigin(0).setDepth(OCC_DEPTH).setVisible(false);
+      this.capsules[cd.id] = { def: cd, spr, front, cx: cd.x + cw / 2 };
+    });
+  }
+
+  // 누가 들어 있으면: 닫혀 있는 동안(1~3프레임)은 캡슐이 사람 위, 다 열리면(4) 사람이 캡슐 위 + 앞쪽 벽만 사람 위
+  updateCapsules() {
+    const all = Object.values(this.capsules || {});
+    if (!all.length) return;
+    const people = [this.scene.player && this.scene.player.cs, ...Object.values(this.actors).map((a) => a.cs)].filter((c) => c && c.visible);
+    // 캡슐에서 나온 사람은 다시 보이게
+    people.forEach((p) => { p.capSeen = false; });
+    all.forEach((c) => {
+      const inside = people.filter((p) => p.laneName === 'capsule' && Math.abs(p.x - c.cx) < 40);
+      const occupied = inside.length > 0;
+      const f = Number(c.spr.frame.name);
+      const open = f === 3;
+      // 뚜껑이 덜 열려 있으면 안에 누운 사람은 보이지 않게 (닫힌 뚜껑 위로 머리카락이 삐져나오지 않게)
+      inside.forEach((p) => {
+        p.sprite.setAlpha(open ? 1 : 0);
+        p.capHidden = !open;
+        p.capSeen = true;
+      });
+      c.spr.setDepth(occupied && !open ? DEPTH.player + 1 : DEPTH.prop);
+      c.front.setVisible(occupied && open);
+    });
+    people.forEach((p) => {
+      if (p.capHidden && !p.capSeen) {
+        p.capHidden = false;
+        p.sprite.setAlpha(1);
+      }
+    });
+  }
+
+  // 뚜껑 열기(1→4) / 닫기(4→1) + 소리
+  capsuleAnim(id, action) {
+    const c = (this.capsules || {})[id];
+    if (!c) return Promise.resolve();
+    const key = 'capsule_anim.' + action;
+    if (!this.scene.anims.exists(key)) return Promise.resolve();
+    Audio.sfx('capsuleHiss');
+    return new Promise((res) => {
+      c.spr.play(key);
+      c.spr.once('animationcomplete', () => {
+        if (action === 'close') Audio.sfx('capsuleLock');
+        res();
+      });
+    });
   }
 
   // ---------- 행인 ----------

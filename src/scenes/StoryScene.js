@@ -846,6 +846,12 @@ export class StoryScene extends Phaser.Scene {
     });
   }
 
+  // 다이브 캡슐 뚜껑: { type: 'capsule', id, action: 'open' | 'close' }
+  step_capsule(s) {
+    const pr = this.stage.capsuleAnim(s.id, s.action);
+    return s.wait === false ? Promise.resolve() : pr;
+  }
+
   // 컨베이어 멈추기 / 다시 돌리기: { type: 'conveyor', id, action: 'stop' | 'start' }
   step_conveyor(s) {
     const list = s.id ? [this.stage.conveyors[s.id]] : Object.values(this.stage.conveyors);

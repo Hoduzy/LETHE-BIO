@@ -780,6 +780,32 @@ def process_single(name, sheet):
     return Image.fromarray(cell, 'RGBA')
 
 
+def process_capsule_anim(name, sheet):
+    """캡슐 뚜껑 4프레임: capsule_crop(배경에서 잘라 낸 캡슐) 크기에 맞춰 최근접으로 줄이고,
+    1프레임을 배경과 픽셀 비교해 찾은 배율·위치(가로 ×1.02, 아래로 1px)로 맞춘다.
+    칸 아래 39줄이 capsule_crop 과 같은 자리, 그 위는 열린 뚜껑 자리"""
+    crop = DATA['capsule_crop']
+    a = load_rgba(name)
+    cw, ch = sheet['cell']
+    segs = split(a[..., 3], 1, sheet['frames'], name)
+    if segs is None:
+        return None
+    first = None
+    out = np.zeros((ch, cw * len(segs), 4), np.uint8)
+    for i, (x0, x1) in enumerate(segs):
+        p = a[:, x0:x1]
+        b = bbox(p[..., 3])
+        p = p[b[1]:b[3], b[0]:b[2]]
+        if first is None:
+            first = p.shape[1]
+        s = crop['w'] / first * 1.02
+        small = scale_nearest(p, s)
+        cell = np.zeros((ch, cw, 4), np.uint8)
+        place(cell, small, 0, ch - small.shape[0] + 1, f'{name} {i + 1}번 칸')
+        out[:, i * cw:(i + 1) * cw] = cell
+    return Image.fromarray(out, 'RGBA')
+
+
 def kind(name):
     if name in UNIFORM_ITEMS:
         return 'items'
@@ -787,6 +813,8 @@ def kind(name):
         return 'conveyor'
     if name == 'obj_truck_inside':
         return 'single'
+    if name == 'capsule_anim':
+        return 'capsule'
     if name in IMAGES:
         return 'image'
     if name == 'obj_prologue':
@@ -818,7 +846,8 @@ def main():
         sheet = SHEETS.get(name)
         fn = {'char': process_char, 'obj': process_obj_row, 'grid': process_obj_grid,
               'portrait': process_portrait, 'ui': process_ui_row, 'collapse': process_collapse,
-              'items': process_items, 'conveyor': process_conveyor, 'single': process_single}.get(k)
+              'items': process_items, 'conveyor': process_conveyor, 'single': process_single,
+              'capsule': process_capsule_anim}.get(k)
         img = process_image(name, IMAGES[name]) if k == 'image' else fn(name, sheet)
         if img is None:
             REPORT['notes'].append(f'{name}: 처리 못 함 (원본 유지)')

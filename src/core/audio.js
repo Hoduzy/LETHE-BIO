@@ -371,6 +371,28 @@ class AudioEngine {
       // 종이 상자: 들기(가벼운 바스락+퍽), 놓기(둔탁한 쿵)
       case 'boxPick': noise(0.06, 0.25, 1400, 0.7); tone('sine', 180, 120, 0.06, 0.2); break;
       case 'boxPut': tone('sine', 120, 55, 0.16, 0.55); noise(0.1, 0.35, 380, 0.7); noise(0.05, 0.12, 1800, 1); break;
+      // 캡슐 뚜껑: 공기 빠지는 짧은 소리 / 잠기는 딸깍
+      case 'capsuleHiss': {
+        const n = ctx.createBufferSource();
+        n.buffer = this.noiseBuffer;
+        const f = ctx.createBiquadFilter();
+        f.type = 'bandpass';
+        f.Q.value = 0.9;
+        f.frequency.setValueAtTime(5200, t);
+        f.frequency.exponentialRampToValueAtTime(900, t + 0.45);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.32, t + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+        n.connect(f);
+        f.connect(g);
+        g.connect(this.sfxBus);
+        n.start(t, Math.random());
+        n.stop(t + 0.55);
+        break;
+      }
+      case 'capsuleLock': tone('square', 1800, 1200, 0.025, 0.12, 5000); setTimeout(() => this.sfx('capsuleLock2'), 70); break;
+      case 'capsuleLock2': tone('square', 1300, 900, 0.03, 0.14, 4000); tone('sine', 160, 90, 0.08, 0.25); break;
       // 튜토리얼 단계 성공
       case 'success': tone('triangle', 660, null, 0.09, 0.14); setTimeout(() => this.sfx('success2'), 90); break;
       case 'success2': tone('triangle', 990, null, 0.16, 0.14); break;
