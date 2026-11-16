@@ -53,6 +53,7 @@ const methods = {
     if (this.bubbles) this.bubbles.update(dt);
     if (this.companion) this.companion.update(gdt);
     if (this.hud) this.hud.update(this.player);
+    if (this.cg) this.updateCg(dt);
     if (this.area && this.mode === 'play') this.updateAreas();
     this.updateHints(dt);
   },
@@ -289,7 +290,21 @@ const methods = {
       }
       const line = (s.lines || {})[String(ev.n)];
       if (line) {
-        if (line.bubble) {
+        if (line.bubble && this.cg && s.cg) {
+          // CG 위: 확대한 채 말하는 사람 쪽으로 천천히 옮겨 가고, 그 사람 얼굴 위에 대사를 띄운다
+          const cgo = s.cg === true ? {} : s.cg;
+          const pt = this.cg.points[line.speaker] || [W / 2, H / 2];
+          const z = cgo.zoom || 1.15;
+          this.cgPanTo(pt[0], pt[1], z, cgo.ms || 900);
+          const sp = (G.speakers && G.speakers[line.speaker]) || {};
+          // 말풍선은 팬이 끝났을 때의 얼굴 자리 (화면 좌표) 위에
+          const [ccx, ccy] = this.cgClamp(pt[0], pt[1], z);
+          const bx = W / 2 + (pt[0] - ccx) * z;
+          const by2 = H / 2 + (pt[1] - ccy) * z - (cgo.above != null ? cgo.above : 26) * z;
+          if (this.cgBubbleTarget) this.cgBubbleTarget.dead = true;
+          this.cgBubbleTarget = { x: Math.min(W - 80, Math.max(80, bx)), y: Math.max(28, by2) };
+          this.bubbles.say(this.cgBubbleTarget, line.text, { voice: sp.voice || 'default', volMul: 0.5, fixed: true, depth: DEPTH.panel + 2, clear: true });
+        } else if (line.bubble) {
           const e = this.stage.actorBySpeaker(line.speaker);
           const sp = (G.speakers && G.speakers[line.speaker]) || {};
           this.bubbles.say(e ? e.cs : { x: W / 2, y: 120 }, line.text, { voice: sp.voice || 'default', volMul: 0.5 });

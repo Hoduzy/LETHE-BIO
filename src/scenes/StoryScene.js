@@ -20,6 +20,7 @@ import { Editor } from '../editor/Editor.js';
 import { Player } from '../world/Player.js';
 import { VoidEnemy, Mannequin, ShadeEnemy } from '../world/Enemies.js';
 import { installStorySteps1 } from './StorySteps1.js';
+import { installStoryCg } from './StoryCg.js';
 import { Skills } from '../core/skills.js';
 import { Progress } from '../core/progress.js';
 
@@ -119,7 +120,10 @@ export class StoryScene extends Phaser.Scene {
     this.markerT = 0;
 
     // UI
-    this.dialogue = new DialogueBox(this, { position: () => (this.panels && this.panels.anyVisible()) ? 'bottom' : 'top' });
+    this.dialogue = new DialogueBox(this, { position: () => this.dialoguePos || ((this.panels && this.panels.anyVisible()) ? 'bottom' : 'top') });
+    // 대화창 자리 고정 (장면 JSON 의 dialoguePos, 또는 CG 가 열려 있는 동안 cg.dialogue)
+    this.dialoguePos = def.dialoguePos || null;
+    this.cg = null;
     this.phone = new Phone(this);
     this.panels = new Panels(this);
     this.fadeRect = this.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.fade);
@@ -329,6 +333,7 @@ export class StoryScene extends Phaser.Scene {
   // 대사: face = 초상화 표정 번호, anim = 말하는 사람이 할 동작 (선택)
   step_say(s) {
     this.bounceSpeaker(s.speaker);
+    if (this.cg) this.cgOnSay(s.speaker);
     if (s.anim) {
       if (s.speaker === '도윤') this.player.setOverride(s.anim);
       else {
@@ -1591,7 +1596,8 @@ export class StoryScene extends Phaser.Scene {
     if (this.phone.visible) this.phone.setLowered(this.dialogue.visible);
     // 터치 패드·버튼은 직접 움직일 때만 보인다
     const settle = this.panels.groups && this.panels.groups.settle && this.panels.groups.settle.length;
-    G.controls = this.mode === 'play' && !this.dialogue.visible && !this.phone.visible && !settle;
+    // CG 살펴보기 중에도 상호작용 버튼을 쓸 수 있게 보인다
+    G.controls = (this.mode === 'play' || this.mode === 'cgExplore') && !this.dialogue.visible && !this.phone.visible && !settle;
 
     // 구덩이에 떨어지면 마지막 안전 지점으로 (페널티 없음)
     if (this.player.grounded && this.player.body.enable) this.lastSafeX = this.player.x;
@@ -1636,3 +1642,4 @@ export class StoryScene extends Phaser.Scene {
 }
 
 installStorySteps1(StoryScene);
+installStoryCg(StoryScene);

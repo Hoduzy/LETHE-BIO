@@ -435,6 +435,9 @@ class AudioEngine {
       case 'jump': tone('triangle', 260, 420, 0.08, 0.15); break;
       case 'parry': tone('square', 1200, 900, 0.18, 0.18, 4000); tone('sine', 2400, 2000, 0.25, 0.12); break;
       case 'parryReady': tone('sine', 900, 1100, 0.05, 0.08); break;
+      // 숟가락이 그릇에 닿는 소리 / 식탁 아래에서 발을 툭
+      case 'spoon': tone('triangle', 2300 + Math.random() * 500, 1900, 0.05, 0.1); tone('sine', 3400, 3000, 0.09, 0.05); noise(0.02, 0.06, 5000, 2); break;
+      case 'tuk': tone('sine', 150, 70, 0.07, 0.3); noise(0.03, 0.1, 500); break;
       case 'thud': tone('sine', 120, 50, 0.15, 0.5); noise(0.08, 0.25, 300); break;
       case 'pick': tone('triangle', 400, 600, 0.06, 0.15); break;
       case 'select': tone('square', 700, null, 0.04, 0.08, 2500); break;

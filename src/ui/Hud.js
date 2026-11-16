@@ -89,7 +89,7 @@ export class Hud {
 
   update(player) {
     const sc = this.scene;
-    const hide = !!(this.hidden || (sc.dialogue && sc.dialogue.visible) || sc.crumbleUnder);
+    const hide = !!(this.hidden || (sc.dialogue && sc.dialogue.visible) || sc.crumbleUnder || sc.cg);
     const key = Skills.list().map((s) => s.id + ':' + s.state).join(',');
     if (key !== this.lastKey) {
       this.lastKey = key;

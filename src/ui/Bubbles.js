@@ -24,7 +24,7 @@ export class Bubbles {
       align: 'center',
       origin: [0.5, 1],
       fixed: !!opts.fixed,
-      depth: DEPTH.worldUi + 6,
+      depth: opts.depth != null ? opts.depth : DEPTH.worldUi + 6,
       lineSpacing: 2
     });
     t.setPadding(4, 2, 4, 2);
@@ -32,6 +32,8 @@ export class Bubbles {
     t.setAlpha(0);
     const life = opts.ms || Math.max(1800, text.length * 95 + 900);
     const b = { t, target, life, age: 0, fixed: !!opts.fixed, dy: opts.dy || 0, alpha: faint ? (opts.alpha || 0.55) : 1 };
+    // clear: 다른 말풍선을 모두 치우고 이것만 (CG 위의 대사)
+    if (opts.clear) this.list.forEach((o) => { o.age = Math.max(o.age, o.life - 150); });
     // 같은 사람의 이전 말풍선은 치운다
     this.list.filter((o) => o.target === target).forEach((o) => { o.age = Math.max(o.age, o.life - 150); });
     this.list.push(b);

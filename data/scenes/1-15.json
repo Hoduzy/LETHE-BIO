@@ -10,14 +10,10 @@
     "charScale": 1.6,
     "charTint": "#ffd0c3",
     "charBrightness": 0.74,
-    "lanes": {"table": {"y": 243, "scale": 1.0, "depth": -15}, "table_back": {"y": 239, "scale": 0.95, "depth": -16, "dim": 0.86}},
-    "occluders": [
-      {"id": "table", "poly": [[182, 177], [320, 177], [320, 246], [182, 246]], "png": "fg/bg_harin_dining__table__b614a0.png"}
-    ],
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
-    "player": {"x": 354, "facing": -1, "char": "diver", "seat": "R_back", "anim": "sit", "armed": false},
+    "player": {"x": 458, "facing": -1, "char": "diver", "armed": false},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#efe2c8"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#e6d6b8"},
@@ -38,26 +34,21 @@
       {"ellipse": [171, 70, 30, 12], "color": "#f2e4b8"},
       {"ellipse": [171, 76, 60, 14], "color": "#fff2c8", "alpha": 0.25}
     ],
-    "props": [
-      {"id": "no_stew", "crop": [226, 147, 58, 1], "x": 226, "y": 147, "scaleY": 26, "depth": 0.9}
-    ],
+    "props": [],
     "actors": [
-      {"id": "dad", "char": "harin_dad", "x": 132, "speaker": "아빠(잔상)", "facing": 1, "phase": "corrupt", "level": 0.35},
-      {"id": "hajun", "char": "hajun10", "x": 191, "speaker": "하준(잔상)", "facing": 1, "seat": "L_front", "anim": "sit", "phase": "corrupt", "level": 0.3},
-      {"id": "harin", "char": "harin", "x": 306, "speaker": "하린", "facing": -1, "seat": "R_front", "anim": "chair"}
+      {"id": "dad", "char": "harin_dad", "x": 118, "speaker": "아빠(잔상)", "facing": 1, "phase": "corrupt", "level": 0.35},
+      {"id": "hajun", "char": "hajun10", "x": 158, "speaker": "하준(잔상)", "facing": 1, "phase": "corrupt", "level": 0.3},
+      {"id": "harin", "char": "harin", "x": 428, "speaker": "하린", "facing": -1}
     ],
     "windowBreath": true,
-    "effects": [],
-    "seats": [
-      {"id": "L_back", "x": 156, "y": 200, "lane": "table_back", "face": 1},
-      {"id": "L_front", "x": 191, "y": 201, "lane": "table", "face": 1, "raise": 14},
-      {"id": "R_front", "x": 306, "y": 201, "lane": "table", "face": -1},
-      {"id": "R_back", "x": 354, "y": 200, "lane": "table_back", "face": -1}
-    ]
+    "occluders": [],
+    "lanes": {}
   },
   "steps": [
     {"type": "wait", "ms": 200},
     {"type": "fade", "to": "none", "ms": 1000},
+    {"type": "parallel", "steps": [{"type": "actor", "id": "harin", "action": "move", "x": 336, "face": -1}, {"type": "player", "action": "move", "x": 372, "face": -1}]},
+    {"type": "cg", "action": "open", "file": "cg_dinner_2", "ms": 400, "points": {"아빠(잔상)": [88, 75], "하준(잔상)": [148, 152], "하린": [312, 145], "도윤": [380, 132]}, "dialogue": "bottom", "glitchSpeakers": ["아빠(잔상)", "하준(잔상)"]},
     {"type": "narration", "text": "식탁. 의자가 네 개다. 다섯 번째 의자가 없다. 도윤이 앉을 자리가 없다."},
     {"type": "narration", "text": "아니, 자세히 보면 의자는 네 개인데 아빠 자리가 비어 있다. 아빠는 식탁 옆에 서 있다."},
     {"type": "say", "speaker": "아빠(잔상)", "text": "많이 드세요. 많이 드세요.", "face": 2},
@@ -71,8 +62,9 @@
     {"type": "say", "speaker": "하린", "text": "뭐였어요? 기억나요?", "face": 1},
     {"type": "say", "speaker": "도윤", "text": "(한참 있다가) …된장찌개요.", "face": 2},
     {"type": "say", "speaker": "하린", "text": "아, 맞다! 엄마 찌개. (웃는다) 내가 그걸 왜 까먹었지. 제일 좋아하는 건데.", "face": 1},
-    {"type": "parallel", "steps": [{"type": "vignette", "side": "right", "alpha": 0.3, "ms": 3000}, {"type": "say", "speaker": "하린", "text": "근데 이상하다. 생각해도 맛이 기억 안 나요. 무슨 맛이었더라.", "face": 1}]},
+    {"type": "parallel", "steps": [{"type": "cg", "action": "effect", "name": "vignette", "alpha": 0.75, "ms": 3000}, {"type": "say", "speaker": "하린", "text": "근데 이상하다. 생각해도 맛이 기억 안 나요. 무슨 맛이었더라.", "face": 1}]},
     {"type": "wait", "ms": 800},
-    {"type": "fade", "to": "black", "ms": 1000}
+    {"type": "fade", "to": "black", "ms": 1000},
+    {"type": "cg", "action": "close", "ms": 0}
   ]
 }

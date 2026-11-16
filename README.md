@@ -152,7 +152,7 @@ python3 -m http.server 8000
 
 - **반복 재생**: 반복되는 동작은 idle·walk·run·breath 뿐. 나머지 몸짓은 한 번 재생하고 idle 로 돌아간다. 장면 JSON 의 동작에 `"loop": true` 를 줄 때만 반복(멈춰 있게 하려면 `"hold": true`). 시트 정의의 `"loop"` 표시는 쓰지 않는다.
 - **잔상 얼굴**: `tools/make_faces.py` 가 그림에서 프레임마다 얼굴 영역을 재서 `data/sprites.json` 시트의 `faces` 에 넣는다(위 1/4, 하준 1/3). 변질된 잔상은 그 영역의 **그림 픽셀 자체**를 덩어리로 뭉개고 노이즈를 섞는다 — 원래 불투명 픽셀 모양 밖으로는 안 나가고, 반전·배율·앉은 자세를 따라가며, 인물이 숨으면 같이 사라진다. `?edit=1` 에서 주황 상자로 고치고 '얼굴 영역 복사'.
-- **의자(seats)**: `stage.seats: { 이름: { x, y(엉덩이 높이), lane, face, raise } }`. `actors[].seat`·`player.seat` 로 처음부터 앉히거나, `{ type: "actor", action: "sit", seat }` 로 걸어가서 도착한 뒤 앉는다(`standup` 으로 일어남). 안쪽 줄(`table_back`)은 조금 위·작게·어둡게(lane `dim`). 캐릭터 `seatLap` = 앉은 그림에서 엉덩이~발끝 높이.
+- **의자(seats)** (엔진 기능은 남아 있지만 식탁 장면은 CG 로 바꿔 지금은 쓰는 장면이 없다): `stage.seats: { 이름: { x, y(엉덩이 높이), lane, face, raise } }`. `actors[].seat`·`player.seat` 로 처음부터 앉히거나, `{ type: "actor", action: "sit", seat }` 로 걸어가서 도착한 뒤 앉는다(`standup` 으로 일어남). 안쪽 줄(`table_back`)은 조금 위·작게·어둡게(lane `dim`). 캐릭터 `seatLap` = 앉은 그림에서 엉덩이~발끝 높이.
 - **도윤 맨손(`player.armed`)**: 장면 JSON 의 `stage.player.armed` 가 `false` 면 다이브복 도윤의 서기·걷기·달리기·점프가 전부 `diver_unarmed` 시트(리퍼 없음). `true` 는 전투가 있는 던전 구간(1-16, 1-22). 수확하는 동안은 엔진이 잠깐 리퍼 그림으로 바꾼다. 도중에 바꾸려면 `{ type: "player", action: "armed", value: true }`.
 - **소품 배율**: 소품은 놓이는 가구 기준. 장면 생성기의 `FURNITURE`(배경 속 가구 윗면 x0~x1·높이·실제 폭 cm)와 `OBJ_CM`(소품 실제 폭)으로 `배율 = 소품 cm × (가구 px / 가구 cm) ÷ 소품 그림 폭`, `y = 가구 윗면`. 소품 JSON 에 `"on": "가구 이름"`(바닥은 `"floor"`), 쌓을 때 `"above": 아래 소품 높이 cm`. 자리표시 가구(`ph_*`)도 `scale`/`scaleX`/`scaleY` 를 받는다.
 - **화면 효과 영역**: TV 지직거림은 배경 속 TV 화면 사각형(`stage.tvScreen: [x, y, w, h]`) 안에만. 편집 모드에서 끌어서 고친다.
@@ -164,6 +164,20 @@ python3 -m http.server 8000
 - **캡슐 안 재희**: `jaehee_capsule` 시트 (`lie` 눈 감음, `cap_open` 눈 뜨고 멍함, `cap_turn` 고개 돌림, `sit_up` 일어나 앉음).
 - **캡슐**: `capsule` 줄에 누우면 누운 그림의 불투명 길이를 침대 길이(`capsule_anim.bed`)에 맞추고 침대 가운데, 머리는 머리받침(경첩 쪽) 방향. 몸 아래쪽은 앞벽 가림막 뒤로 들어간다. 뚜껑이 다 닫히면 유리창(`capsule_anim.glass`) 모양으로만 어둡게 비친다.
 - **손바닥 클로즈업(closeup)**: `fx_palm.png` 가 화면 가운데 아래에서 천천히 떠오르고, 머리카락 감촉은 아주 약한 화면 흔들림으로만.
+
+### CG 단계 (`type: "cg"`, `src/scenes/StoryCg.js`)
+
+한 장 그림을 화면 가득 띄우는 연출. 그림은 `assets/cg/<file>.png` (480x270, `python3 tools/process_cg.py` 가 원본을 `assets/cg/_original/` 에 두고 크기를 맞춘다. 마젠타 처리 없음). 대사·초상화는 CG 위에 그대로 나오고, 열려 있는 동안 HUD 는 숨는다.
+
+| action | 설명 |
+|---|---|
+| `open` | `file`, `ms`(겹쳐 넘기는 시간, 기본 400), `zoom`, `pan: [x, y]`, `points: { "말하는 사람": [x, y] }`(얼굴 자리), `hotspots: [{ id, rect: [x, y, w, h], label, examine }]`, `effects: [...]`, `glitchSpeakers: [...]`(이 사람이 말할 때마다 CG 전체가 가로로 지직), `dialogue: "bottom"`(대화창이 얼굴을 가리는 CG 만 아래로) |
+| `pan` | `to: [x, y]` 또는 `focus: "말하는 사람"`, `zoom`, `ms` — 확대한 채 천천히 옮겨 간다 |
+| `explore` | `require: [hotspot id]` — 그 자리를 터치하거나 상호작용 버튼으로 살펴보기 |
+| `effect` | `name`: `steam`(김, `x, y, w`), `glitch`, `vignette`(어두운 테두리가 서서히, `alpha, ms`), `shakeBottom`(화면 아래쪽만 짧게 흔들림), `tint`(옅은 색 빛) |
+| `close` | `ms` |
+
+좌표는 모두 CG 그림 좌표(480x270). `press` 단계에 `"cg": { "zoom": 1.15, "ms": 900 }` 를 주면 누를 때마다 말하는 사람(`points`) 쪽으로 옮겨 가며 그 얼굴 위에 대사를 띄운다. 식탁 장면(1-4 `cg_dinner_1`, 1-15 `cg_dinner_2`)이 이 방식: 식탁까지 걸어가는 데까지만 스프라이트, 앉는 순간 CG. 의자(seats)·식탁 가림막은 이 두 장면에서 쓰지 않는다. 효과음 `spoon`(숟가락), `tuk`(발을 툭).
 
 ### 1장 효과(effects)
 
