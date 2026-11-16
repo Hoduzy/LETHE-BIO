@@ -72,6 +72,7 @@ export class Player {
     // 리퍼는 던전·전투·수확 때만: 공격 능력이 없으면 서 있을 때 빈손 (stage.player.armed 로 바꿀 수 있음)
     this.unarmed = opts.armed != null ? !opts.armed : (this.dive && !this.abilities.has('attack'));
     this.cs.variant = this.unarmed ? 'free_' : null;
+    if (this.unarmed) { this.cs.current = null; this.cs.play('idle'); }
     this.hp = this.maxHp;
     this.invuln = 0;
   }
