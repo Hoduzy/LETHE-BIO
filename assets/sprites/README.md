@@ -157,9 +157,18 @@ python3 tools/process_sprites.py diver_run    # 일부만
 - **void** (공백): idle→enemy_void_small.ripple, emerge→enemy_void_small.emerge, slide→enemy_void_small.slide, hit→enemy_void_small.hit, vanish→enemy_void_small.vanish
 - **mannequin** (시뮬레이션 마네킹 (그림은 왼쪽을 봄)): idle→enemy_mannequin.sway, windup→enemy_mannequin.windup, strike→enemy_mannequin.strike, parried→enemy_mannequin.parried, fall→enemy_mannequin.fall, down→enemy_mannequin.down
 
-## 1장 「저녁 식탁」 그림 (아직 없음 → 임시 도형)
+## 1장 「저녁 식탁」 그림
 
-1장 그림은 아직 프롬프트 문서가 없어서 모두 임시 도형으로 나옵니다. 아래 이름·칸 크기대로 PNG 를 넣으면 바로 바뀝니다. 인물은 128×128 칸, 키 약 96px(열 살 하준은 약 70px), 발은 칸 맨 아래 줄.
+기준 문서: 레포 맨 위 `09 1장 이미지 프롬프트.md`. 33장 모두 들어와 있습니다 (원본은 `_original/`, 기준 시트 `char_harin_ref`·`char_harin_family_ref`·`char_butcher_ref` 는 `ref/`).
+인물은 128×128 칸, 키 약 96px(열 살 하준 70, 엄마 92, 아빠 100, 사장 98), 발은 칸 맨 아래 줄. 다시 뽑은 그림은 `_original/<이름>.png` 에 넣고 `python3 tools/process_sprites.py <이름>` (초상화는 `tools/make_portraits.py`).
+
+- `harin_actions`, `harin_loose_actions` 는 **8칸 × 2줄** (윗줄 1~8, 아랫줄 9~16). `data/sprites.json` 의 `"columns": 8` 로 이 순서대로 읽는다.
+- `harin_moods` 는 1칸이 앉은 자세라 키를 2칸(서 있는 자세)으로 잰다.
+- `enemy_shade` 그림은 왼쪽을 본다 (`"faces": "left"`).
+- `obj_ch1`: 64×64 칸 8칸 × 3줄, 모든 물건을 같은 배율로 줄임. 장면에서 `"scale"` 로 물건마다 크기를 맞춘다 (신발장 1.0, 가족사진 0.6, 키 재기 눈금 0.8, 결정 0.45~0.85 등).
+- `icon_skill_*`: 원본의 둥근 네모 부분만 잘라 면적 평균으로 24×24.
+- 배경: 480×270 으로 줄임. `bg_harin_corridor`, `bg_harin_wet` 은 이어 붙일 때 양 끝 이음매 차이를 재서 크면 양 끝 10px 을 섞는다 (wet 8.7 → 0.9, corridor 3.3 은 그대로).
+- 꿈속 배경의 창밖 흰 부분은 게임이 흰 픽셀만 골라 숨 쉬듯 살짝 어두워졌다 밝아지게 한다 (`stage.windowBreath`).
 
 ### 인물·적 시트
 
@@ -267,6 +276,11 @@ python3 tools/process_sprites.py diver_run    # 일부만
 `ph_sofa` 96×36, `ph_sofa_flipped` 96×30, `ph_tv` 46×44, `ph_tv_floor` 42×14, `ph_dining_table` 150×34, `ph_chair` 22×46, `ph_kitchen_counter` 120×56, `ph_pot` 22×12, `ph_desk_harin` 80×40, `ph_bed` 110×30, `ph_poster` 30×40, `ph_bookshelf` 44×90, `ph_door_home` 40×92, `ph_bunk_bed` 70×96, `ph_mirror` 34×44, `ph_sink` 40×36, `ph_toilet` 26×30, `ph_veranda_rail` 200×40, `ph_wardrobe` 64×100, `ph_frame_wall` 28×22, `ph_meat_case` 160×56, `ph_vending` 40×90, `ph_break_table` 60×32, `ph_trash` 18×24, `ph_restroom_sink` 120×40, `ph_low_table_round` 70×16, `ph_burner` 24×10, `ph_door_light` 40×92
 
 `ph_door_light` 는 결정을 수확하면 열리는 현관문의 하얀 빛 (배경 그림이 있어도 그림).
+
+배경 그림 안에 이미 있는 가구(소파·TV·식탁·의자·이층침대·레고·고깔모자 장식·정육점 진열장 등)는 임시 도형을 그리지 않는다. 다이브마다 바뀌는 신발장·가족사진·키 재기 눈금·케이크·결정·고깔모자(떨어짐)만 obj_ch1 으로 그 자리에 얹는다.
+케이크는 `obj_ch1` 10번 칸에서 불꽃 위를 잘라 낸 조각(`crop`) + 코드 촛불이라, 수확 순간 촛불이 동시에 꺼진다.
+1-22 끝없는 거실의 뒤집힌 소파·엎어진 TV 는 배경 그림 조각을 위아래로 뒤집어 그 자리에 얹은 것 (`props[].crop`, `flipY`).
+1-15 의 '찌개가 없다' 는 냄비 뒤 벽 한 줄을 세로로 늘려 냄비를 지운 것.
 
 ## 프롬프트 파일에 없는 것 (임시 도형만)
 

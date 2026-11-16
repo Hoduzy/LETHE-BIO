@@ -7,10 +7,10 @@
   "stage": {
     "bg": "bg_harin_entrance",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 242,
+    "charScale": 1.5,
+    "charTint": "#ffcdbd",
+    "charBrightness": 0.73,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -33,13 +33,14 @@
       {"ellipse": [101, 182, 14, 10], "color": "#4f8a4a"}
     ],
     "props": [
-      {"id": "front_door", "ph": "ph_door_home", "x": 34, "label": "현관문", "range": 26, "interact": {"steps": []}, "examine": {"lines": ["문손잡이를 돌리면 문이 열린다.", "문 밖은 다시 이 현관이다."]}},
-      {"id": "shoe", "obj": "shoe_rack_4", "x": 100, "scale": 1, "label": "신발장", "range": 30, "examine": {"lines": ["운동화 네 켤레. 어른 남자, 어른 여자, 여자 대학생, 작은 아이.", "아이 운동화에는 불빛이 들어오는 장식이 붙어 있다."]}},
-      {"id": "photo", "obj": "photo_family_4", "x": 220, "y": 150, "scale": 1, "label": "가족사진", "range": 30, "sparkleY": 126, "examine": {"lines": ["아빠, 엄마, 고등학생쯤 된 여자아이, 초등학생 남자아이.", "다들 웃고 있다. 여자아이는 혀를 내밀고 있다."]}}
+      {"id": "front_door", "ph": "ph_door_home", "x": 48, "label": "현관문", "range": 14, "interact": {"steps": []}, "examine": {"lines": ["문손잡이를 돌리면 문이 열린다.", "문 밖은 다시 이 현관이다."]}},
+      {"id": "shoe", "obj": "shoe_rack_4", "x": 118, "y": 236, "scale": 1.0, "keep": true, "depth": 6, "label": "신발장", "range": 16, "examine": {"lines": ["운동화 네 켤레. 어른 남자, 어른 여자, 여자 대학생, 작은 아이.", "아이 운동화에는 불빛이 들어오는 장식이 붙어 있다."]}},
+      {"id": "photo", "obj": "photo_family_4", "x": 262, "y": 116, "scale": 0.6, "keep": true, "depth": 6, "label": "가족사진", "range": 16, "sparkleY": 82, "examine": {"lines": ["아빠, 엄마, 고등학생쯤 된 여자아이, 초등학생 남자아이.", "다들 웃고 있다. 여자아이는 혀를 내밀고 있다."]}}
     ],
     "actors": [
       {"id": "harin", "char": "harin", "x": 250, "speaker": "하린", "facing": 1, "visible": false}
-    ]
+    ],
+    "windowBreath": true
   },
   "steps": [
     {"type": "wait", "ms": 300},

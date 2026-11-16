@@ -6,8 +6,8 @@
   "stage": {
     "bg": "bg_harin_wet",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
+    "floorY": 238,
+    "charScale": 1.4,
     "charTint": "#d8e0f0",
     "charBrightness": 0.85,
     "bgColor": "#000000",
@@ -38,12 +38,13 @@
       {"rect": [424, 128, 48, 104], "color": "#3a3a44"}
     ],
     "props": [
-      {"id": "wet_wall", "x": 320, "y": 150, "w": 40, "h": 60, "label": "젖은 벽", "range": 30, "sparkleY": 96, "examine": {"lines": ["벽지가 늘어져 그 아래 콘크리트가 보인다.", "콘크리트에 글씨가 긁혀 있다.", "'하린이 생일 축하해' — 누군가 아주 오래전에 쓴 것 같다."]}},
-      {"id": "hajun_door", "x": 448, "y": 232, "w": 48, "h": 104, "label": "하준의 방", "range": 26, "interact": {"steps": []}}
+      {"id": "wet_wall", "x": 330, "y": 150, "w": 60, "h": 90, "label": "젖은 벽", "range": 16, "sparkleY": 90, "examine": {"lines": ["벽지가 늘어져 그 아래 콘크리트가 보인다.", "콘크리트에 글씨가 긁혀 있다.", "'하린이 생일 축하해' — 누군가 아주 오래전에 쓴 것 같다."]}},
+      {"id": "hajun_door", "x": 415, "y": 220, "w": 66, "h": 150, "label": "하준의 방", "range": 16, "interact": {"steps": []}}
     ],
     "actors": [
       {"id": "harin", "char": "harin", "x": 30, "speaker": "하린", "facing": 1}
     ],
+    "windowBreath": true,
     "playerHp": 6,
     "skills": {"orb": "locked"},
     "companion": {"id": "harin", "follow": true, "hud": true, "combatLines": ["오른쪽!", "맞혔다!", "조심해요!", "우리 잘하는데?"]},

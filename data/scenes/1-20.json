@@ -6,10 +6,10 @@
   "stage": {
     "bg": "bg_lethe_breakroom",
     "width": 480,
-    "floorY": 240,
-    "charScale": 1.0,
-    "charTint": "#eef2f6",
-    "charBrightness": 0.92,
+    "floorY": 246,
+    "charScale": 1.4,
+    "charTint": "#fbf8ff",
+    "charBrightness": 0.83,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
@@ -28,19 +28,16 @@
       {"rect": [0, 232, 480, 38], "color": "#c8ccd0"}
     ],
     "props": [
-      {"id": "vending", "ph": "ph_vending", "x": 140, "depth": 3},
-      {"id": "table", "ph": "ph_break_table", "x": 300, "depth": 3},
-      {"id": "trash", "ph": "ph_trash", "x": 420, "depth": 3},
-      {"id": "can", "obj": "can_coffee", "x": 200, "y": 190, "depth": 24, "visible": false, "keep": true}
+      {"id": "can", "obj": "can_coffee", "x": 160, "y": 176, "depth": 24, "visible": false, "keep": true}
     ],
     "actors": [
-      {"id": "jaehee", "char": "jaehee", "x": 176, "speaker": "재희", "facing": -1, "anim": "idle"}
+      {"id": "jaehee", "char": "jaehee", "x": 150, "speaker": "재희", "facing": -1, "anim": "idle"}
     ]
   },
   "steps": [
     {"type": "wait", "ms": 200},
     {"type": "fade", "to": "none", "ms": 900},
-    {"type": "player", "action": "move", "x": 110, "face": 1},
+    {"type": "player", "action": "move", "x": 210, "face": -1},
     {"type": "sfx", "name": "pick"},
     {"type": "narration", "text": "자판기 앞. 재희가 캔커피를 뽑고 있다. 도윤도 같이 뽑는다."},
     {"type": "actor", "id": "jaehee", "action": "anim", "name": "drink"},
@@ -58,7 +55,7 @@
     {"type": "actor", "id": "jaehee", "action": "face", "dir": 1},
     {"type": "actor", "id": "jaehee", "action": "anim", "name": "toss"},
     {"type": "prop", "id": "can", "action": "show"},
-    {"type": "prop", "id": "can", "action": "move", "x": 420, "speed": 220},
+    {"type": "prop", "id": "can", "action": "move", "x": 456, "speed": 220},
     {"type": "prop", "id": "can", "action": "hide"},
     {"type": "sfx", "name": "thud"},
     {"type": "narration", "text": "재희가 캔을 비우고 휴지통에 던진다. 들어간다."},

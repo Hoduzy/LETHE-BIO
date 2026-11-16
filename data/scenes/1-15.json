@@ -6,10 +6,14 @@
   "stage": {
     "bg": "bg_harin_dining",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 244,
+    "charScale": 1.6,
+    "charTint": "#ffd0c3",
+    "charBrightness": 0.74,
+    "lanes": {"table": {"y": 243, "scale": 1.0, "depth": -15}, "table_back": {"y": 239, "scale": 0.95, "depth": -16}},
+    "occluders": [
+      {"id": "table", "poly": [[182, 175], [320, 175], [320, 246], [182, 246]], "png": "fg/bg_harin_dining__table__e38658.png"}
+    ],
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -35,27 +39,20 @@
       {"ellipse": [171, 76, 60, 14], "color": "#fff2c8", "alpha": 0.25}
     ],
     "props": [
-      {"id": "table", "ph": "ph_dining_table", "x": 287, "depth": 18},
-      {"id": "chair0", "ph": "ph_chair", "x": 214, "y": 226, "depth": 4},
-      {"id": "chair1", "ph": "ph_chair", "x": 250, "y": 226, "depth": 4},
-      {"id": "chair2", "ph": "ph_chair", "x": 286, "y": 226, "depth": 4},
-      {"id": "chair3", "ph": "ph_chair", "x": 322, "y": 226, "depth": 4}
+      {"id": "no_stew", "crop": [226, 147, 58, 1], "x": 226, "y": 147, "scaleY": 26, "depth": 0.9}
     ],
     "actors": [
-      {"id": "dad", "char": "harin_dad", "x": 196, "speaker": "아빠(잔상)", "facing": 1, "phase": "corrupt", "level": 0.35},
-      {"id": "hajun", "char": "hajun10", "x": 250, "speaker": "하준(잔상)", "facing": 1, "lane": "table", "phase": "corrupt", "level": 0.3},
-      {"id": "harin", "char": "harin", "x": 322, "speaker": "하린", "facing": -1, "lane": "table"}
+      {"id": "dad", "char": "harin_dad", "x": 132, "speaker": "아빠(잔상)", "facing": 1, "phase": "corrupt", "level": 0.35},
+      {"id": "hajun", "char": "hajun10", "x": 196, "speaker": "하준(잔상)", "facing": 1, "lane": "table", "anim": "sit", "phase": "corrupt", "level": 0.3},
+      {"id": "harin", "char": "harin", "x": 330, "speaker": "하린", "facing": -1, "lane": "table_back", "anim": "sit"}
     ],
-    "lanes": {"table": {"y": 224, "scale": 0.95, "depth": -15}},
-    "decor": [
-      {"depth": 19, "keep": true, "shapes": [{"ellipse": [240, 197, 22, 6], "color": "#f4f0e8"}, {"ellipse": [240, 195, 14, 3], "color": "#ffd75a"}, {"ellipse": [318, 197, 20, 6], "color": "#f4f0e8"}, {"ellipse": [318, 195, 12, 3], "color": "#a8885a"}]}
-    ],
+    "windowBreath": true,
     "effects": []
   },
   "steps": [
-    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit", "lift": -10},
-    {"type": "actor", "id": "harin", "action": "anim", "name": "sit", "lift": -10},
-    {"type": "player", "action": "move", "x": 388, "face": -1},
+    {"type": "actor", "id": "harin", "action": "anim", "name": "sit", "lift": 20},
+    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit", "lift": 12},
+    {"type": "player", "action": "move", "x": 372, "face": -1},
     {"type": "wait", "ms": 200},
     {"type": "fade", "to": "none", "ms": 1000},
     {"type": "narration", "text": "식탁. 의자가 네 개다. 다섯 번째 의자가 없다. 도윤이 앉을 자리가 없다."},

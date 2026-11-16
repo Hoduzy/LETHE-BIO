@@ -7,10 +7,10 @@
   "stage": {
     "bg": "bg_harin_entrance",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 242,
+    "charScale": 1.5,
+    "charTint": "#ffcdbd",
+    "charBrightness": 0.73,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -33,14 +33,15 @@
       {"ellipse": [101, 182, 14, 10], "color": "#4f8a4a"}
     ],
     "props": [
-      {"id": "front_door", "ph": "ph_door_home", "x": 34, "label": "현관문", "range": 26, "interact": {"steps": []}, "examine": {"lines": ["문손잡이를 돌리면 문이 열린다.", "문 밖은 다시 이 현관이다."]}},
-      {"id": "shoe", "obj": "shoe_rack_3", "x": 100, "scale": 1, "label": "신발장", "range": 30, "examine": {"lines": ["운동화 세 켤레.", "작은 운동화가 있던 자리에 먼지 자국만 남아 있다."]}},
-      {"id": "photo", "obj": "photo_family_3", "x": 220, "y": 150, "scale": 1, "label": "가족사진", "range": 30, "sparkleY": 126, "examine": {"lines": ["아빠, 엄마, 고등학생 여자아이.", "남자아이가 서 있던 자리가 비어 있다. 하린의 어깨에 얹혀 있던 작은 손만 남아 있다."]}}
+      {"id": "front_door", "ph": "ph_door_home", "x": 48, "label": "현관문", "range": 14, "interact": {"steps": []}, "examine": {"lines": ["문손잡이를 돌리면 문이 열린다.", "문 밖은 다시 이 현관이다."]}},
+      {"id": "shoe", "obj": "shoe_rack_3b", "x": 118, "y": 236, "scale": 1.0, "keep": true, "depth": 6, "label": "신발장", "range": 16, "examine": {"lines": ["운동화 세 켤레.", "작은 운동화가 있던 자리에 먼지 자국만 남아 있다."]}},
+      {"id": "photo", "obj": "photo_family_3", "x": 262, "y": 116, "scale": 0.6, "keep": true, "depth": 6, "label": "가족사진", "range": 16, "sparkleY": 82, "examine": {"lines": ["아빠, 엄마, 고등학생 여자아이.", "남자아이가 서 있던 자리가 비어 있다. 하린의 어깨에 얹혀 있던 작은 손만 남아 있다."]}}
     ],
     "actors": [
       {"id": "harin", "char": "harin_loose", "x": 520, "speaker": "하린", "facing": -1, "visible": false, "label": "하린", "examine": {"lines": ["머리가 풀려 있다. 지난번엔 묶여 있었다."]}},
       {"id": "mom", "char": "harin_mom", "x": 520, "speaker": "엄마(잔상)", "facing": -1, "visible": false, "phase": "corrupt", "level": 0.95}
-    ]
+    ],
+    "windowBreath": true
   },
   "steps": [
     {"type": "wait", "ms": 300},

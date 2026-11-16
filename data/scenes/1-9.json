@@ -6,15 +6,18 @@
   "stage": {
     "bg": "bg_butcher",
     "width": 480,
-    "floorY": 244,
-    "charScale": 1.0,
-    "charTint": "#ffe8dc",
-    "charBrightness": 0.85,
+    "floorY": 252,
+    "charScale": 1.45,
+    "charTint": "#ffc5cc",
+    "charBrightness": 0.69,
+    "lanes": {"behind": {"y": 230, "scale": 0.93, "depth": -15}},
+    "occluders": [
+      {"id": "case", "poly": [[124, 146], [132, 138], [412, 138], [422, 146], [422, 237], [124, 237]], "png": "fg/bg_butcher__case__c0d52e.png"}
+    ],
     "bgColor": "#000000",
     "ambience": ["street"],
     "abilities": ["move"],
     "player": {"x": 40, "facing": 1},
-    "lanes": {"behind": {"y": 222, "scale": 0.92, "depth": -15}},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#3a3634"},
       {"rect": [0, 0, 480, 24], "color": "#2a2624"},
@@ -28,12 +31,11 @@
       {"rect": [0, 232, 480, 38], "color": "#2a2826"}
     ],
     "props": [
-      {"id": "meat_case", "ph": "ph_meat_case", "x": 260, "depth": 18},
-      {"id": "meat", "obj": "meat_pack", "x": 228, "y": 188, "scale": 1, "depth": 19, "visible": false, "keep": true},
-      {"id": "wallet", "obj": "wallet", "x": 196, "y": 190, "scale": 1, "depth": 19, "visible": false, "label": "지갑", "range": 30, "examine": {"lines": ["처음으로 지갑에 만 원짜리가 여러 장 들어 있다."]}, "keep": true}
+      {"id": "meat", "obj": "meat_pack", "x": 236, "y": 141, "scale": 0.5, "depth": 19, "visible": false, "keep": true},
+      {"id": "wallet", "obj": "wallet", "x": 204, "y": 142, "scale": 0.4, "depth": 19, "visible": false, "label": "지갑", "range": 14, "examine": {"lines": ["처음으로 지갑에 만 원짜리가 여러 장 들어 있다."]}, "keep": true}
     ],
     "actors": [
-      {"id": "butcher", "char": "butcher", "x": 270, "lane": "behind", "speaker": "사장", "facing": -1}
+      {"id": "butcher", "char": "butcher", "x": 262, "lane": "behind", "speaker": "사장", "facing": -1}
     ]
   },
   "steps": [

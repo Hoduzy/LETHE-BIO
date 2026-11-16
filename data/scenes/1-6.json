@@ -7,14 +7,14 @@
   "stage": {
     "bg": "bg_harin_corridor",
     "width": 3840,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 238,
+    "charScale": 1.4,
+    "charTint": "#ffc1b3",
+    "charBrightness": 0.68,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
-    "player": {"x": 40, "facing": 1, "char": "diver"},
+    "player": {"x": 60, "facing": 1, "char": "diver"},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#ecdcc2"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#e0cdb0"},
@@ -102,33 +102,27 @@
       {"rect": [3554, 120, 92, 4], "color": "#b8a684"}
     ],
     "props": [
-      {"id": "C1_a", "ph": "ph_door_home", "x": 120, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "bath", "x": 40, "face": 1}]}},
-      {"id": "C1_b", "ph": "ph_door_home", "x": 240, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C2", "x": 40, "face": 1}]}},
-      {"id": "C1_c", "ph": "ph_door_home", "x": 360, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "veranda", "x": 40, "face": 1}]}},
-      {"id": "C2_a", "ph": "ph_door_home", "x": 600, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "hajun", "x": 40, "face": 1}]}},
-      {"id": "C2_b", "ph": "ph_door_home", "x": 720, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "parents", "x": 40, "face": 1}]}},
-      {"id": "C2_c", "ph": "ph_door_home", "x": 840, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C3", "x": 40, "face": 1}]}},
-      {"id": "C3_a", "ph": "ph_door_home", "x": 1080, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "END", "x": 40, "face": 1}]}},
-      {"id": "C3_b", "ph": "ph_door_home", "x": 1200, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "bath", "x": 40, "face": 1}]}},
-      {"id": "C3_c", "ph": "ph_door_home", "x": 1320, "label": "문", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "hajun", "x": 40, "face": 1}]}},
-      {"id": "grad", "obj": "grad_photo", "x": 780, "y": 150, "scale": 1, "label": "복도 중간의 액자", "range": 26, "sparkleY": 128, "examine": {"steps": [{"type": "examine", "label": "복도 중간의 액자", "lines": ["하린의 초등학교 졸업 사진.", "꽃다발을 들고 울고 있다. 아빠가 옆에서 웃고 있다."]}, {"type": "say", "speaker": "하린", "text": "아, 이거. 저 졸업식 때 운 거예요. 친구들이랑 헤어지기 싫어서. 아빠가 사진 찍는다고 계속 웃으래서 더 울었어요.", "face": 4}]}},
-      {"id": "kitchen_door", "ph": "ph_door_home", "x": 1860, "label": "부엌으로 가는 문", "range": 26, "depth": 2, "interact": {"steps": []}},
-      {"id": "bath_sink", "ph": "ph_sink", "x": 2160, "depth": 3},
-      {"id": "bath_mirror", "ph": "ph_mirror", "x": 2160, "y": 160, "label": "화장실 거울", "range": 30, "depth": 3, "sparkleY": 124, "examine": {"lines": ["거울에 도윤만 비친다.", "뒤에 서 있는 하린은 비치지 않는다.", "다시 보면, 하린도 비친다. 잘못 본 걸까."]}},
-      {"id": "bath_toilet", "ph": "ph_toilet", "x": 2250, "depth": 3},
-      {"id": "rail", "ph": "ph_veranda_rail", "x": 2660, "depth": 3},
-      {"id": "hj_bunk", "ph": "ph_bunk_bed", "x": 3040, "depth": 3},
-      {"id": "hj_lego", "obj": "lego_pile", "x": 3160, "scale": 1, "depth": 3},
-      {"id": "pr_wardrobe", "ph": "ph_wardrobe", "x": 3540, "depth": 3},
-      {"id": "pr_bed", "ph": "ph_bed", "x": 3680, "depth": 3},
-      {"id": "bath_exit", "ph": "ph_door_home", "x": 1980, "label": "복도로", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 40, "face": 1}]}},
-      {"id": "veranda_exit", "ph": "ph_door_home", "x": 2460, "label": "복도로", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 40, "face": 1}]}},
-      {"id": "hajun_exit", "ph": "ph_door_home", "x": 2940, "label": "복도로", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 40, "face": 1}]}},
-      {"id": "parents_exit", "ph": "ph_door_home", "x": 3420, "label": "복도로", "range": 22, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 40, "face": 1}]}}
+      {"id": "C1_a", "ph": "ph_door_home", "x": 70, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "bath", "x": 60, "face": 1}]}},
+      {"id": "C1_b", "ph": "ph_door_home", "x": 245, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C2", "x": 60, "face": 1}]}},
+      {"id": "C1_c", "ph": "ph_door_home", "x": 415, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "veranda", "x": 60, "face": 1}]}},
+      {"id": "C2_a", "ph": "ph_door_home", "x": 550, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "hajun", "x": 60, "face": 1}]}},
+      {"id": "C2_b", "ph": "ph_door_home", "x": 725, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "parents", "x": 60, "face": 1}]}},
+      {"id": "C2_c", "ph": "ph_door_home", "x": 895, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C3", "x": 60, "face": 1}]}},
+      {"id": "C3_a", "ph": "ph_door_home", "x": 1030, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "END", "x": 60, "face": 1}]}},
+      {"id": "C3_b", "ph": "ph_door_home", "x": 1205, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "bath", "x": 60, "face": 1}]}},
+      {"id": "C3_c", "ph": "ph_door_home", "x": 1375, "y": 218, "label": "문", "range": 14, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "hajun", "x": 60, "face": 1}]}},
+      {"id": "grad", "obj": "grad_photo", "x": 640, "y": 128, "w": 40, "h": 36, "label": "복도 중간의 액자", "range": 16, "sparkleY": 96, "examine": {"steps": [{"type": "examine", "label": "복도 중간의 액자", "lines": ["하린의 초등학교 졸업 사진.", "꽃다발을 들고 울고 있다. 아빠가 옆에서 웃고 있다."]}, {"type": "say", "speaker": "하린", "text": "아, 이거. 저 졸업식 때 운 거예요. 친구들이랑 헤어지기 싫어서. 아빠가 사진 찍는다고 계속 웃으래서 더 울었어요.", "face": 4}]}},
+      {"id": "kitchen_door", "ph": "ph_door_home", "x": 1855, "y": 218, "label": "부엌으로 가는 문", "range": 16, "depth": 2, "interact": {"steps": []}},
+      {"id": "bath_mirror", "x": 2130, "y": 132, "w": 70, "h": 76, "label": "화장실 거울", "range": 16, "sparkleY": 70, "examine": {"lines": ["거울에 도윤만 비친다.", "뒤에 서 있는 하린은 비치지 않는다.", "다시 보면, 하린도 비친다. 잘못 본 걸까."]}},
+      {"id": "bath_exit", "ph": "ph_door_home", "x": 1936, "label": "복도로", "range": 16, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 60, "face": 1}]}},
+      {"id": "veranda_exit", "ph": "ph_door_home", "x": 2422, "label": "복도로", "range": 16, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 60, "face": 1}]}},
+      {"id": "hajun_exit", "ph": "ph_door_home", "x": 2902, "label": "복도로", "range": 16, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 60, "face": 1}]}},
+      {"id": "parents_exit", "ph": "ph_door_home", "x": 3382, "label": "복도로", "range": 16, "depth": 2, "interact": {"steps": [{"type": "sfx", "name": "door"}, {"type": "warp", "to": "C1", "x": 60, "face": 1}]}}
     ],
     "actors": [
       {"id": "harin", "char": "harin", "x": 10, "speaker": "하린", "facing": 1}
     ],
+    "windowBreath": true,
     "areas": [
       {"id": "C1", "x0": 0},
       {"id": "C2", "x0": 480},
@@ -138,6 +132,9 @@
       {"id": "veranda", "x0": 2400, "bg": "bg_harin_veranda"},
       {"id": "hajun", "x0": 2880, "bg": "bg_hajun_room"},
       {"id": "parents", "x0": 3360, "bg": "bg_harin_parents_room"}
+    ],
+    "decor": [
+      {"depth": 1, "keep": true, "shapes": [{"rect": [215, 215, 60, 3], "color": "#ffe9b0", "alpha": 0.95}, {"rect": [209, 218, 72, 7], "color": "#ffe9b0", "alpha": 0.28}, {"rect": [221, 225, 48, 6], "color": "#ffe9b0", "alpha": 0.14}, {"rect": [865, 215, 60, 3], "color": "#ffe9b0", "alpha": 0.95}, {"rect": [859, 218, 72, 7], "color": "#ffe9b0", "alpha": 0.28}, {"rect": [871, 225, 48, 6], "color": "#ffe9b0", "alpha": 0.14}, {"rect": [1000, 215, 60, 3], "color": "#ffe9b0", "alpha": 0.95}, {"rect": [994, 218, 72, 7], "color": "#ffe9b0", "alpha": 0.28}, {"rect": [1006, 225, 48, 6], "color": "#ffe9b0", "alpha": 0.14}, {"rect": [1825, 215, 60, 3], "color": "#fff6dc", "alpha": 1}, {"rect": [1817, 218, 76, 9], "color": "#fff2c0", "alpha": 0.35}, {"rect": [1829, 227, 52, 8], "color": "#fff2c0", "alpha": 0.18}]}
     ],
     "companion": {"id": "harin", "follow": true, "every": [9000, 14000], "hud": true, "lines": ["여기 원래 안방이었는데. 왜 화장실이 있지.", "하준이 방 진짜 더럽다. 엄마한테 이를 거야.", "당신 진짜 편의점 알바예요? 걷는 게 군인 같아.", "배는 안 고픈데 찌개는 또 먹고 싶다. 이상하죠."]},
     "hints": [

@@ -6,10 +6,10 @@
   "stage": {
     "bg": "bg_harin_living",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 240,
+    "charScale": 1.5,
+    "charTint": "#ffd4cc",
+    "charBrightness": 0.74,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -30,17 +30,14 @@
       {"rect": [434, 128, 46, 104], "color": "#7a5e44"},
       {"rect": [20, 60, 2, 150], "color": "#d8c8a8"}
     ],
-    "props": [
-      {"id": "sofa", "ph": "ph_sofa", "x": 150},
-      {"id": "tv", "ph": "ph_tv", "x": 262}
-    ],
+    "props": [],
     "actors": [
       {"id": "harin", "char": "harin", "x": 200, "speaker": "하린", "facing": 1},
       {"id": "mom", "char": "harin_mom", "x": 500, "speaker": "엄마(잔상)", "facing": -1, "visible": false, "anim": "ladle", "phase": "corrupt", "level": 0.5}
     ],
+    "windowBreath": true,
     "effects": [
-      {"name": "whiteWindow", "x": 290, "y": 70, "w": 110, "h": 76},
-      {"name": "tvStatic", "x": 243, "y": 193, "w": 38, "h": 25}
+      {"name": "tvStatic", "x": 362, "y": 141, "w": 24, "h": 26, "alpha": 0.7}
     ]
   },
   "steps": [

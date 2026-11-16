@@ -6,10 +6,10 @@
   "stage": {
     "bg": "bg_harin_living",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 240,
+    "charScale": 1.5,
+    "charTint": "#ffd4cc",
+    "charBrightness": 0.74,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -31,17 +31,17 @@
       {"rect": [20, 60, 2, 150], "color": "#d8c8a8"}
     ],
     "props": [
-      {"id": "sofa", "ph": "ph_sofa", "x": 150, "label": "소파", "range": 40, "examine": {"lines": ["한쪽이 푹 꺼져 있다. 누군가 늘 같은 자리에 앉았던 것 같다."]}},
-      {"id": "tv", "ph": "ph_tv", "x": 262, "label": "TV", "range": 26, "examine": {"lines": ["켜져 있다. 화면에는 아무것도 나오지 않는다. 지직거리는 소리만."]}},
-      {"id": "marks", "obj": "height_marks", "x": 46, "y": 206, "scale": 1, "label": "키 재기 눈금", "range": 24, "sparkleY": 150, "examine": {"lines": ["벽지 위에 볼펜으로 그은 선들.", "'하린 7살', '하린 10살', '하린 13살'…", "그 옆에 '하준 5살', '하준 8살'.", "하린의 선은 고등학생 때 멈춰 있다. '더 안 큼 ㅋㅋ'라고 적혀 있다."]}}
+      {"id": "sofa", "x": 162, "y": 206, "w": 200, "h": 62, "label": "소파", "range": 12, "sparkleY": 160, "examine": {"lines": ["한쪽이 푹 꺼져 있다. 누군가 늘 같은 자리에 앉았던 것 같다."]}},
+      {"id": "tv", "x": 376, "y": 170, "w": 48, "h": 52, "label": "TV", "range": 10, "sparkleY": 134, "examine": {"lines": ["켜져 있다. 화면에는 아무것도 나오지 않는다. 지직거리는 소리만."]}},
+      {"id": "marks", "obj": "height_marks", "x": 42, "y": 166, "scale": 0.8, "keep": true, "depth": 6, "label": "키 재기 눈금", "range": 14, "sparkleY": 118, "examine": {"lines": ["벽지 위에 볼펜으로 그은 선들.", "'하린 7살', '하린 10살', '하린 13살'…", "그 옆에 '하준 5살', '하준 8살'.", "하린의 선은 고등학생 때 멈춰 있다. '더 안 큼 ㅋㅋ'라고 적혀 있다."]}}
     ],
     "actors": [
       {"id": "harin", "char": "harin", "x": 330, "speaker": "하린", "facing": -1},
       {"id": "mom", "char": "harin_mom", "x": 500, "speaker": "엄마(잔상)", "facing": -1, "visible": false, "anim": "ladle"}
     ],
+    "windowBreath": true,
     "effects": [
-      {"name": "whiteWindow", "x": 290, "y": 70, "w": 110, "h": 76},
-      {"name": "tvStatic", "x": 243, "y": 193, "w": 38, "h": 25}
+      {"name": "tvStatic", "x": 362, "y": 141, "w": 24, "h": 26, "alpha": 0.7}
     ]
   },
   "steps": [

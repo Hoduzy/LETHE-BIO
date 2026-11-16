@@ -6,14 +6,14 @@
   "stage": {
     "bg": "bg_harin_room",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 240,
+    "charScale": 1.45,
+    "charTint": "#ffd2c8",
+    "charBrightness": 0.77,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
-    "player": {"x": 420, "facing": -1, "char": "diver"},
+    "player": {"x": 300, "facing": -1, "char": "diver"},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#f2e2e6"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#e8d4da"},
@@ -30,18 +30,14 @@
       {"rect": [426, 128, 46, 104], "color": "#7a5e44"}
     ],
     "props": [
-      {"id": "bed", "ph": "ph_bed", "x": 120},
-      {"id": "poster", "ph": "ph_poster", "x": 200, "y": 150},
-      {"id": "bookshelf", "ph": "ph_bookshelf", "x": 362},
-      {"id": "desk", "ph": "ph_desk_harin", "x": 284},
-      {"id": "room_door", "ph": "ph_door_home", "x": 449, "depth": 2},
-      {"id": "notebook", "obj": "notebook", "x": 284, "y": 192, "scale": 1, "label": "노트", "range": 30, "depth": 12, "examine": {"steps": [{"type": "card", "style": "note", "lines": [{"t": "탈출 단서 목록", "size": 14, "after": 6}, {"t": "1. 창밖이 하얗다 → 안개 아님"}, {"t": "2. 현관문, 베란다 문 → 다시 집으로 돌아옴"}, {"t": "3. 엄마, 아빠, 하준 → 이상한 거 모름"}, {"t": "4. 배 안 고픔, 안 졸림"}, {"t": "5. 반짝이는 거 (??)"}, {"t": "6. 낯선 남자 (도윤) ← 방금 추가됨"}]}]}}
+      {"id": "notebook", "obj": "notebook", "x": 238, "y": 158, "w": 30, "h": 10, "label": "노트", "range": 18, "depth": 12, "examine": {"steps": [{"type": "card", "style": "note", "lines": [{"t": "탈출 단서 목록", "size": 14, "after": 6}, {"t": "1. 창밖이 하얗다 → 안개 아님"}, {"t": "2. 현관문, 베란다 문 → 다시 집으로 돌아옴"}, {"t": "3. 엄마, 아빠, 하준 → 이상한 거 모름"}, {"t": "4. 배 안 고픔, 안 졸림"}, {"t": "5. 반짝이는 거 (??)"}, {"t": "6. 낯선 남자 (도윤) ← 방금 추가됨"}]}]}}
     ],
     "actors": [
-      {"id": "harin", "char": "harin", "x": 250, "speaker": "하린", "facing": 1}
+      {"id": "harin", "char": "harin", "x": 170, "speaker": "하린", "facing": 1}
     ],
+    "windowBreath": true,
     "effects": [
-      {"name": "glimmer", "x": 470, "y": 168, "r": 3}
+      {"name": "glimmer", "x": 474, "y": 160, "r": 3}
     ]
   },
   "steps": [
@@ -59,7 +55,7 @@
     {"type": "say", "speaker": "하린", "text": "근데 당신이 오고 나서부터 집이 좀 이상해요.", "face": 5},
     {"type": "say", "speaker": "도윤", "text": "어떻게요?", "face": 1},
     {"type": "say", "speaker": "하린", "text": "복도가 좀 길어진 것 같아요. 원래 우리 집 이렇게 안 넓었거든요.", "face": 5},
-    {"type": "player", "action": "move", "x": 430, "face": 1},
+    {"type": "player", "action": "move", "x": 440, "face": 1},
     {"type": "narration", "text": "방문 밖을 보면, 복도가 끝없이 이어져 있다. 그 너머에서 희미한 빛이 깜빡인다."},
     {"type": "actor", "id": "harin", "action": "anim", "name": "point"},
     {"type": "say", "speaker": "하린", "text": "저거예요! 반짝이는 거!", "face": 3},

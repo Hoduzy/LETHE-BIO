@@ -6,14 +6,14 @@
   "stage": {
     "bg": "bg_harin_kitchen",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 244,
+    "charScale": 1.5,
+    "charTint": "#ffccbd",
+    "charBrightness": 0.75,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
-    "player": {"x": 110, "facing": 1, "char": "diver"},
+    "player": {"x": 360, "facing": -1, "char": "diver"},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#efe2c8"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#e6d6b8"},
@@ -36,22 +36,19 @@
       {"rect": [0, 70, 4, 162], "color": "#ffffff"}
     ],
     "props": [
-      {"id": "front_door", "ph": "ph_door_home", "x": 30, "depth": 2},
-      {"id": "light_door", "ph": "ph_door_light", "x": 30, "visible": false, "depth": 11, "glow": true},
-      {"id": "table", "ph": "ph_dining_table", "x": 250, "depth": 18},
-      {"id": "counter", "ph": "ph_kitchen_counter", "x": 420, "depth": 3},
-      {"id": "pot", "ph": "ph_pot", "x": 418, "y": 176, "depth": 4},
-      {"id": "crystal", "obj": "crystal_ch1", "x": 268, "y": 182, "scale": 1.3, "glow": true, "depth": 19, "label": "결정", "range": 36, "sparkleY": 150, "examine": {"lines": ["결정 안에 아까 그 저녁이 들어 있다.", "아니, 아까 그 저녁이 아니다. 훨씬 오래된 저녁이다.", "하린이 고등학생이었을 때의 어느 평범한 저녁."]}}
+      {"id": "light_door", "ph": "ph_door_light", "x": 468, "visible": false, "depth": 11, "glow": true, "keep": true},
+      {"id": "crystal", "obj": "crystal_ch1", "x": 72, "y": 160, "scale": 0.85, "glow": true, "keep": true, "depth": 19, "label": "결정", "range": 18, "sparkleY": 128, "examine": {"lines": ["결정 안에 아까 그 저녁이 들어 있다.", "아니, 아까 그 저녁이 아니다. 훨씬 오래된 저녁이다.", "하린이 고등학생이었을 때의 어느 평범한 저녁."]}}
     ],
     "actors": [
-      {"id": "harin", "char": "harin", "x": 80, "speaker": "하린", "facing": 1},
-      {"id": "mom", "char": "harin_mom", "x": 400, "speaker": "엄마(잔상)", "facing": -1, "visible": false},
-      {"id": "dad", "char": "harin_dad", "x": 436, "speaker": "아빠(잔상)", "facing": -1, "visible": false},
-      {"id": "hajun", "char": "hajun10", "x": 460, "speaker": "하준(잔상)", "facing": -1, "visible": false}
+      {"id": "harin", "char": "harin", "x": 400, "speaker": "하린", "facing": -1},
+      {"id": "mom", "char": "harin_mom", "x": 150, "speaker": "엄마(잔상)", "facing": 1, "visible": false},
+      {"id": "dad", "char": "harin_dad", "x": 190, "speaker": "아빠(잔상)", "facing": 1, "visible": false},
+      {"id": "hajun", "char": "hajun10", "x": 232, "speaker": "하준(잔상)", "facing": 1, "visible": false}
     ],
+    "windowBreath": true,
     "companion": {"id": "harin", "follow": true, "hud": true},
     "effects": [
-      {"name": "glimmer", "x": 268, "y": 160, "r": 5, "color": "#ffc870"}
+      {"name": "glimmer", "x": 72, "y": 136, "r": 6, "color": "#ffc870"}
     ]
   },
   "steps": [
@@ -61,14 +58,14 @@
     {"type": "glow", "color": "#ffb347", "alpha": 0.12, "ms": 1600},
     {"type": "narration", "text": "식탁 한가운데, 하린이 앉았던 자리 앞에 무언가가 떠 있다. 호박색으로 빛나는 결정. 주먹만 하다. 따뜻한 빛이 부엌을 채운다."},
     {"type": "companion", "action": "stay"},
-    {"type": "actor", "id": "harin", "action": "move", "x": 200, "face": 1, "anim": "point"},
+    {"type": "actor", "id": "harin", "action": "move", "x": 220, "face": -1, "anim": "point"},
     {"type": "say", "speaker": "하린", "text": "저거다…! 맞아, 저거예요!", "face": 3},
-    {"type": "actor", "id": "harin", "action": "move", "x": 222, "face": 1, "speed": 20},
+    {"type": "actor", "id": "harin", "action": "move", "x": 180, "face": -1, "speed": 20},
     {"type": "actor", "id": "harin", "action": "anim", "name": "idle"},
     {"type": "say", "speaker": "하린", "text": "(다가가려다 멈춘다) 근데 이상하다. 가까이 가니까 따뜻해요. 왠지… 집에 온 것 같은 느낌이에요.", "face": 6},
-    {"type": "actor", "id": "harin", "action": "face", "dir": -1},
+    {"type": "actor", "id": "harin", "action": "face", "dir": 1},
     {"type": "say", "speaker": "하린", "text": "당신이 가져가 봐요. 나는 손이 안 닿아요. 아까도 해 봤는데 손이 통과해요.", "face": 5},
-    {"type": "player", "action": "move", "x": 240, "face": 1},
+    {"type": "player", "action": "move", "x": 124, "face": -1},
     {"type": "narration", "text": "도윤이 결정 앞에 선다. 결정 안에서 무언가가 움직인다. 자세히 보면 아까 그 식탁이다. 웃는 가족, 하준이 계란말이를 집는 손, 아빠의 웃음."},
     {"type": "explore", "only": ["crystal"], "require": ["crystal"]},
     {"type": "thought", "speaker": "도윤(속마음)", "text": "들어가서, 줍고, 나오면 된다.", "face": 1},
@@ -82,15 +79,15 @@
     {"type": "crumble", "wait": false, "rowDelay": 520},
     {"type": "narration", "text": "식탁에 금이 간다. 벽지가 벗겨진다. 창밖의 하얀 빛이 안으로 스며든다."},
     {"type": "prop", "id": "light_door", "action": "show"},
-    {"type": "actor", "id": "harin", "action": "face", "dir": -1},
+    {"type": "actor", "id": "harin", "action": "face", "dir": 1},
     {"type": "actor", "id": "harin", "action": "anim", "name": "point"},
     {"type": "say", "speaker": "하린", "text": "문이… 열렸어요!", "face": 3},
     {"type": "narration", "text": "거실 쪽 현관문이 활짝 열려 있다. 문 너머로 하얀 빛."},
     {"type": "say", "speaker": "하린", "text": "봐요! 진짜 열쇠였어! 나가자! 빨리!", "face": 1},
     {"type": "actor", "id": "harin", "action": "anim", "name": "hold_hand"},
     {"type": "narration", "text": "하린이 도윤의 손을 잡는다. 처음으로. 하린의 손은 따뜻하다."},
-    {"type": "parallel", "steps": [{"type": "escape", "to": 60, "speed": 34, "wave": ["mom", "dad", "hajun"]}, {"type": "sequence", "steps": [{"type": "wait", "ms": 600}, {"type": "say", "speaker": "하린", "text": "엄마! 아빠! 하준아! 같이 가!", "face": 5}]}]},
-    {"type": "actor", "id": "harin", "action": "face", "dir": 1},
+    {"type": "parallel", "steps": [{"type": "escape", "to": 420, "speed": 34, "wave": ["mom", "dad", "hajun"]}, {"type": "sequence", "steps": [{"type": "wait", "ms": 600}, {"type": "say", "speaker": "하린", "text": "엄마! 아빠! 하준아! 같이 가!", "face": 5}]}]},
+    {"type": "actor", "id": "harin", "action": "face", "dir": -1},
     {"type": "narration", "text": "하린이 뒤를 돌아본다. 가족들은 부엌에 서서 손을 흔들고 있다. 웃으며."},
     {"type": "say", "speaker": "하린", "text": "…왜 안 와?", "face": 6},
     {"type": "fade", "to": "white", "ms": 2200},

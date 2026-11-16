@@ -6,10 +6,14 @@
   "stage": {
     "bg": "bg_harin_dining",
     "width": 480,
-    "floorY": 232,
-    "charScale": 1.0,
-    "charTint": "#fff1e2",
-    "charBrightness": 1.0,
+    "floorY": 244,
+    "charScale": 1.6,
+    "charTint": "#ffd0c3",
+    "charBrightness": 0.74,
+    "lanes": {"table": {"y": 243, "scale": 1.0, "depth": -15}, "table_back": {"y": 239, "scale": 0.95, "depth": -16}},
+    "occluders": [
+      {"id": "table", "poly": [[182, 175], [320, 175], [320, 246], [182, 246]], "png": "fg/bg_harin_dining__table__e38658.png"}
+    ],
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -35,38 +39,28 @@
       {"ellipse": [171, 76, 60, 14], "color": "#fff2c8", "alpha": 0.25}
     ],
     "props": [
-      {"id": "table", "ph": "ph_dining_table", "x": 287, "depth": 18},
-      {"id": "chair0", "ph": "ph_chair", "x": 214, "y": 226, "depth": 4},
-      {"id": "chair1", "ph": "ph_chair", "x": 250, "y": 226, "depth": 4},
-      {"id": "chair2", "ph": "ph_chair", "x": 286, "y": 226, "depth": 4},
-      {"id": "chair3", "ph": "ph_chair", "x": 322, "y": 226, "depth": 4},
-      {"id": "chair4", "ph": "ph_chair", "x": 358, "y": 226, "depth": 4},
-      {"id": "stew", "ph": "ph_pot", "x": 287, "y": 198, "depth": 19, "label": "된장찌개", "range": 140, "examine": {"lines": ["두부, 애호박, 감자. 멸치 육수 냄새.", "…엄마 찌개랑 똑같은 냄새가 난다."]}}
+      {"id": "stew", "x": 254, "y": 176, "w": 52, "h": 28, "label": "된장찌개", "range": 120, "sparkleY": 150, "examine": {"lines": ["두부, 애호박, 감자. 멸치 육수 냄새.", "…엄마 찌개랑 똑같은 냄새가 난다."]}}
     ],
     "actors": [
-      {"id": "dad", "char": "harin_dad", "x": 150, "speaker": "아빠(잔상)", "facing": 1, "anim": "newspaper"},
-      {"id": "hajun", "char": "hajun10", "x": 250, "speaker": "하준(잔상)", "facing": 1, "lane": "table"},
-      {"id": "mom", "char": "harin_mom", "x": 286, "speaker": "엄마(잔상)", "facing": -1, "lane": "table"},
-      {"id": "harin", "char": "harin", "x": 322, "speaker": "하린", "facing": -1, "lane": "table"}
+      {"id": "dad", "char": "harin_dad", "x": 120, "speaker": "아빠(잔상)", "facing": 1, "anim": "newspaper"},
+      {"id": "hajun", "char": "hajun10", "x": 196, "speaker": "하준(잔상)", "facing": 1, "lane": "table", "anim": "sit"},
+      {"id": "mom", "char": "harin_mom", "x": 404, "speaker": "엄마(잔상)", "facing": -1, "anim": "ladle"},
+      {"id": "harin", "char": "harin", "x": 330, "speaker": "하린", "facing": -1, "lane": "table_back", "anim": "sit"}
     ],
-    "lanes": {"table": {"y": 224, "scale": 0.95, "depth": -15}},
-    "decor": [
-      {"depth": 19, "keep": true, "shapes": [{"ellipse": [240, 197, 22, 6], "color": "#f4f0e8"}, {"ellipse": [240, 195, 14, 3], "color": "#ffd75a"}, {"ellipse": [270, 197, 20, 6], "color": "#f4f0e8"}, {"ellipse": [270, 195, 12, 3], "color": "#c84a3a"}, {"ellipse": [318, 197, 20, 6], "color": "#f4f0e8"}, {"ellipse": [318, 195, 12, 3], "color": "#a8885a"}, {"rect": [208, 196, 6, 2], "color": "#ffffff"}, {"rect": [244, 196, 6, 2], "color": "#ffffff"}, {"rect": [352, 196, 6, 2], "color": "#ffffff"}, {"ellipse": [287, 192, 26, 10], "color": "#5a3a2a"}, {"ellipse": [287, 189, 22, 5], "color": "#b0702a"}, {"rect": [281, 187, 4, 2], "color": "#f4f0e0"}, {"rect": [290, 188, 3, 2], "color": "#7ab04a"}]}
-    ],
+    "windowBreath": true,
     "effects": []
   },
   "steps": [
-    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit", "lift": -10},
-    {"type": "actor", "id": "mom", "action": "anim", "name": "idle", "lift": -10},
-    {"type": "actor", "id": "harin", "action": "anim", "name": "sit", "lift": -10},
+    {"type": "actor", "id": "harin", "action": "anim", "name": "sit", "lift": 20},
+    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit", "lift": 12},
     {"type": "player", "action": "lane", "lane": "table"},
-    {"type": "player", "action": "move", "x": 358, "face": -1, "lift": -10},
+    {"type": "player", "action": "move", "x": 314, "face": -1, "anim": "land"},
     {"type": "wait", "ms": 200},
     {"type": "fade", "to": "none", "ms": 1200},
     {"type": "narration", "text": "작은 식탁. 의자 네 개에 하나를 더 끌어와 다섯 자리. 된장찌개, 계란말이, 김치, 멸치볶음."},
-    {"type": "actor", "id": "dad", "action": "move", "x": 214, "face": 1, "anim": "sit", "lift": -10, "lane": "table"},
+    {"type": "actor", "id": "dad", "action": "move", "x": 170, "face": 1, "anim": "sit", "lane": "table_back"},
     {"type": "narration", "text": "아빠가 신문을 접으며 앉는다. 말이 적고 잘 웃는 얼굴."},
-    {"type": "actor", "id": "hajun", "action": "anim", "name": "eat", "lift": -10},
+    {"type": "actor", "id": "hajun", "action": "anim", "name": "eat"},
     {"type": "narration", "text": "하준은 열 살쯤. 젓가락으로 계란말이를 먼저 집는다."},
     {"type": "say", "speaker": "아빠(잔상)", "text": "어서 와요. 많이 드세요.", "face": 1},
     {"type": "say", "speaker": "하준(잔상)", "text": "누나 남자친구야?", "face": 1},
@@ -74,7 +68,7 @@
     {"type": "say", "speaker": "하준(잔상)", "text": "그럼 왜 데려왔는데?", "face": 1},
     {"type": "say", "speaker": "하린", "text": "친구라고! 친구!", "face": 3},
     {"type": "say", "speaker": "엄마(잔상)", "text": "하준아, 손님 앞에서. 계란말이 내려놔, 손님 먼저 드려야지.", "face": 1},
-    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit", "lift": -10},
+    {"type": "actor", "id": "hajun", "action": "anim", "name": "sit"},
     {"type": "say", "speaker": "하준(잔상)", "text": "아 엄마아.", "face": 1},
     {"type": "narration", "text": "도윤은 숟가락을 든 채 가만히 있다. 이런 식탁이 너무 오랜만이다."},
     {"type": "explore", "only": ["stew"], "require": ["stew"], "freeze": true},
@@ -90,7 +84,7 @@
     {"type": "say", "speaker": "하린", "text": "(작게) 이상하죠. 이렇게 멀쩡한데 밖은 하얗다니.", "face": 6},
     {"type": "say", "speaker": "도윤", "text": "(작게) …네.", "face": 1},
     {"type": "say", "speaker": "하린", "text": "(작게) 근데 이 순간은 좋다. 엄마 찌개는 진짜 맛있어요.", "face": 1},
-    {"type": "press", "count": 10, "button": "한 숟가락", "sfx": "chew", "anim": {"who": "player", "name": "eat"}, "lines": {"1": {"speaker": "아빠(잔상)", "text": "오늘 회사에서 김 과장이 또 도시락 두고 왔더라.", "bubble": true}, "2": {"speaker": "하준(잔상)", "text": "엄마, 나 오늘 받아쓰기 백 점!", "bubble": true}, "3": {"speaker": "엄마(잔상)", "text": "시장 생선 가게 아저씨가 고등어 하나 더 줬어.", "bubble": true}, "4": {"speaker": "아빠(잔상)", "text": "점심은 짜장면 먹었어. 곱빼기로.", "bubble": true}, "5": {"speaker": "하준(잔상)", "text": "우리 반 민수가 개구리 잡아 왔어.", "bubble": true}, "6": {"speaker": "엄마(잔상)", "text": "콩나물값이 또 올랐더라.", "bubble": true}, "7": {"speaker": "하준(잔상)", "text": "계란말이 하나만 더!", "bubble": true}, "8": {"speaker": "아빠(잔상)", "text": "하린이는 학교 재밌어?", "bubble": true}, "9": {"speaker": "엄마(잔상)", "text": "애호박은 시장 입구 할머니한테 샀어.", "bubble": true}, "10": {"speaker": "하준(잔상)", "text": "나 내일 소풍 가도 돼?", "bubble": true}}},
+    {"type": "press", "count": 10, "button": "한 숟가락", "sfx": "chew", "anim": {"who": "player", "name": "eat", "end": "land"}, "lines": {"1": {"speaker": "아빠(잔상)", "text": "오늘 회사에서 김 과장이 또 도시락 두고 왔더라.", "bubble": true}, "2": {"speaker": "하준(잔상)", "text": "엄마, 나 오늘 받아쓰기 백 점!", "bubble": true}, "3": {"speaker": "엄마(잔상)", "text": "시장 생선 가게 아저씨가 고등어 하나 더 줬어.", "bubble": true}, "4": {"speaker": "아빠(잔상)", "text": "점심은 짜장면 먹었어. 곱빼기로.", "bubble": true}, "5": {"speaker": "하준(잔상)", "text": "우리 반 민수가 개구리 잡아 왔어.", "bubble": true}, "6": {"speaker": "엄마(잔상)", "text": "콩나물값이 또 올랐더라.", "bubble": true}, "7": {"speaker": "하준(잔상)", "text": "계란말이 하나만 더!", "bubble": true}, "8": {"speaker": "아빠(잔상)", "text": "하린이는 학교 재밌어?", "bubble": true}, "9": {"speaker": "엄마(잔상)", "text": "애호박은 시장 입구 할머니한테 샀어.", "bubble": true}, "10": {"speaker": "하준(잔상)", "text": "나 내일 소풍 가도 돼?", "bubble": true}}},
     {"type": "say", "speaker": "엄마(잔상)", "text": "다 먹었으면 하린이 설거지.", "face": 1},
     {"type": "say", "speaker": "하린", "text": "손님 왔는데?!", "face": 3},
     {"type": "say", "speaker": "엄마(잔상)", "text": "손님 왔으니까 네가 하는 거지.", "face": 1},

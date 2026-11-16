@@ -7,10 +7,10 @@
   "stage": {
     "bg": "bg_lethe_restroom",
     "width": 480,
-    "floorY": 240,
-    "charScale": 1.0,
-    "charTint": "#eef4f8",
-    "charBrightness": 0.92,
+    "floorY": 244,
+    "charScale": 1.35,
+    "charTint": "#f4f6ff",
+    "charBrightness": 0.9,
     "bgColor": "#000000",
     "ambience": ["hum"],
     "abilities": ["move"],
@@ -29,9 +29,7 @@
       {"rect": [0, 232, 480, 38], "color": "#c8cfd4"}
     ],
     "props": [
-      {"id": "sink", "ph": "ph_restroom_sink", "x": 240, "depth": 3},
-      {"id": "mirror", "x": 240, "y": 160, "w": 190, "h": 66, "label": "거울", "range": 40, "sparkleY": 100, "examine": {"lines": ["내 얼굴이다.", "별로 달라진 건 없다."]}},
-      {"id": "stall", "ph": "ph_door_home", "x": 428, "depth": 2}
+      {"id": "mirror", "x": 232, "y": 146, "w": 136, "h": 80, "label": "거울", "range": 22, "sparkleY": 82, "examine": {"lines": ["내 얼굴이다.", "별로 달라진 건 없다."]}}
     ],
     "actors": []
   },

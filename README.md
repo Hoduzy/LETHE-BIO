@@ -131,7 +131,7 @@ python3 -m http.server 8000
 
 ### 1장 효과(effects)
 
-`candles`(케이크 초: 수확 순간 동시에 꺼짐), `tvStatic`, `whiteWindow`(창밖이 새하얗다), `stain`(천장 곰팡이), `glimmer`(멀리 깜빡이는 빛), `puddles`. 배경 소리 `stew`(된장찌개 끓는 소리), `grill`(고기 굽는 소리). `decor`: 가구 위 작은 것들(반찬, 고깔모자)을 도형으로.
+`candles`(케이크 초: 수확 순간 동시에 꺼짐), `stage.windowBreath`(배경의 흰 창밖이 숨 쉬듯 밝아졌다 어두워짐), `tvStatic`, `whiteWindow`(창밖이 새하얗다), `stain`(천장 곰팡이), `glimmer`(멀리 깜빡이는 빛), `puddles`. 배경 소리 `stew`(된장찌개 끓는 소리), `grill`(고기 굽는 소리). `decor`: 가구 위 작은 것들을 도형으로 (1-6 정답 문 아래로 새는 빛). `props[].crop: [x, y, w, h]`: 배경(또는 `cropBg`) 그림 한 조각을 `x, y` 에 얹기 — `flipX`/`flipY`/`angle`/`scale`/`scaleX`/`scaleY` (뒤집힌 소파, 냄비 지우기, 불꽃을 뺀 케이크).
 
 ---
 

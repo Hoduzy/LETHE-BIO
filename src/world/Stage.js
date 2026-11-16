@@ -75,6 +75,7 @@ export class Stage {
     this.walkers = [];
     this.walkerT = 600;
     this.buildOccluders();
+    if (def.windowBreath) this.buildWindowBreath(def.windowBreath === true ? {} : def.windowBreath);
     if (def.tint) {
       this.tint = scene.add.rectangle(0, 0, W, H, col(def.tint.color), def.tint.alpha)
         .setOrigin(0).setScrollFactor(0).setDepth(DEPTH.light);
@@ -322,10 +323,47 @@ export class Stage {
   // 소품 하나 만들기
   //  obj: data/sprites.json objects 의 이름 (양동이, 달력…) → obj_* 시트의 칸
   //  ph : 배경 속 가구 임시 도형 (bgPart) → 배경 PNG 가 있으면 그리지 않음
+  // 배경 그림 한 조각 (crop: [x, y, w, h], 기준 그림은 cropBg 또는 이 장면/구역 배경)
+  //  배경 속 가구를 뒤집거나 옮겨서 '조금씩 틀린 방'을 만든다 (1-22). x, y 는 조각의 왼쪽 위
+  cropTexture(bg, c) {
+    const s = this.scene;
+    const key = `crop:${bg}:${c.join(',')}`;
+    if (!s.textures.exists(key)) {
+      if (!G.realSprites.has(bg)) return null;
+      const tex = s.textures.createCanvas(key, c[2], c[3]);
+      const ctx = tex.getContext();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(s.textures.get(bg).getSourceImage(), c[0], c[1], c[2], c[3], 0, 0, c[2], c[3]);
+      tex.refresh();
+    }
+    return key;
+  }
+
   makeProp(p) {
     const s = this.scene;
     const y = p.y != null ? p.y : this.floorY;
     let img;
+    if (p.crop) {
+      const area = this.areas.find((a) => p.x >= a.x0 && p.x < a.x0 + a.w);
+      const key = this.cropTexture(p.cropBg || (area && area.bg) || this.def.bg, p.crop);
+      if (!key) {
+        img = s.add.image(p.x, p.y, 'px').setOrigin(0).setDisplaySize(p.crop[2], p.crop[3]).setAlpha(0);
+      } else {
+        img = s.add.image(p.x + p.crop[2] / 2, p.y + p.crop[3] / 2, key).setOrigin(0.5);
+        if (p.flipX) img.setFlipX(true);
+        if (p.flipY) img.setFlipY(true);
+        if (p.angle) img.setAngle(p.angle);
+        // scale 또는 scaleX/scaleY (한 줄을 세로로 늘려 벽을 메우는 등)
+        const sx = p.scaleX != null ? p.scaleX : (p.scale || 1);
+        const sy = p.scaleY != null ? p.scaleY : (p.scale || 1);
+        if (sx !== 1 || sy !== 1) {
+          img.setScale(sx, sy);
+          img.setPosition(p.x + (p.crop[2] * sx) / 2, p.y + (p.crop[3] * sy) / 2);
+        }
+      }
+      img.setDepth(p.depth != null ? p.depth : DEPTH.backdrop + 0.9);
+      return img;
+    }
     if (p.obj && this.bgReal && !p.keep) {
       // 배경 그림에 이미 그려진 물건: 그리지 않고 살펴보기 영역만 남긴다
       const t = objTexture(p.obj);
@@ -689,10 +727,52 @@ export class Stage {
     });
   }
 
-  // 아무것도 안 나오고 지직거리기만 하는 TV 화면
-  fxTvStatic({ x = 0, y = 0, w = 40, h = 26 }) {
+  // 꿈속 창밖의 하얀 부분이 숨 쉬듯 살짝 어두워졌다 밝아진다.
+  //  배경 그림에서 거의 흰 픽셀(창밖)만 골라 같은 모양의 따뜻한 회색 막을 얹고 그 투명도를 천천히 바꾼다.
+  //  { min: 흰색 기준(0~255), color, alpha: 가장 어두울 때, ms: 한 번 숨 쉬는 시간 }
+  buildWindowBreath(o) {
     const s = this.scene;
-    const g = s.add.graphics().setDepth(DEPTH.prop + 1);
+    const min = o.min || 236;
+    const list = this.areas.length ? this.areas.map((a) => ({ bg: a.bg || this.def.bg, x0: a.x0 })) : [{ bg: this.def.bg, x0: 0 }];
+    const imgs = [];
+    list.forEach(({ bg, x0 }) => {
+      if (!bg || !G.realSprites.has(bg)) return;
+      const key = `breath:${bg}:${min}`;
+      if (!s.textures.exists(key)) {
+        const src = s.textures.get(bg).getSourceImage();
+        const w = src.width;
+        const h = src.height;
+        const tex = s.textures.createCanvas(key, w, h);
+        const ctx = tex.getContext();
+        ctx.drawImage(src, 0, 0);
+        const d = ctx.getImageData(0, 0, w, h);
+        const px = d.data;
+        let n = 0;
+        for (let i = 0; i < px.length; i += 4) {
+          const lo = Math.min(px[i], px[i + 1], px[i + 2]);
+          if (lo >= min) {
+            px[i] = 255; px[i + 1] = 255; px[i + 2] = 255; px[i + 3] = 255;
+            n++;
+          } else px[i + 3] = 0;
+        }
+        ctx.putImageData(d, 0, 0);
+        tex.refresh();
+        tex.whiteCount = n;
+      }
+      if (!s.textures.get(key).whiteCount) return;
+      const img = s.add.image(x0, 0, key).setOrigin(0).setDepth(DEPTH.backdrop + 0.85).setTint(col(o.color || '#d9cdbb')).setAlpha(0);
+      imgs.push(img);
+    });
+    if (!imgs.length) return;
+    s.tweens.add({ targets: imgs, alpha: { from: 0, to: o.alpha != null ? o.alpha : 0.32 }, duration: o.ms || 2600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    this.breathImgs = imgs;
+  }
+
+  // 아무것도 안 나오고 지직거리기만 하는 TV 화면
+  fxTvStatic({ x = 0, y = 0, w = 40, h = 26, alpha = 1 }) {
+    const s = this.scene;
+    // 배경 그림 속 TV 화면 위에 얹을 때는 alpha 를 낮춰 그림의 화면과 섞는다
+    const g = s.add.graphics().setDepth(DEPTH.prop + 1).setAlpha(alpha);
     let t = 0;
     this.updaters = this.updaters || [];
     this.updaters.push((dt) => {

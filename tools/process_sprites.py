@@ -36,7 +36,13 @@ IMAGES = {k: v for k, v in DATA['images'].items() if not k.startswith('_')}
 # 인물 칸 128x128, 키 약 96 (프롬프트의 64칸 키 × 2). 공백은 칸 64x64, 크기 약 32
 CHAR_HEIGHT = {
     'mother_actions': 90, 'jaehee_actions': 98, 'enemy_mannequin': 96,
+    # 1장 (09 1장 이미지 프롬프트.md 의 키)
+    'harin_actions': 96, 'harin_loose_actions': 96, 'harin_moods': 96,
+    'harin_mom_actions': 92, 'harin_dad_actions': 100, 'hajun_actions': 70,
+    'butcher_actions': 98, 'enemy_shade': 96,
 }
+# 키를 잴 프레임 (첫 칸이 서 있는 자세가 아닌 시트): harin_moods 1칸은 앉은 자세 → 2칸(서서 손 뻗기)
+REF_FRAME = {'harin_moods': 1}
 BASE_HEIGHT = 96
 VOID_HEIGHT = 32
 # 여러 인물이 한 시트에 있는 것: 줄(또는 칸)마다 키가 다르므로 첫 프레임들의 중앙값을 96 으로
@@ -472,7 +478,7 @@ def process_char(name, sheet):
         ref_h = float(np.median(firsts))
     else:
         target = CHAR_HEIGHT.get(name, BASE_HEIGHT)
-        ref_h = frames[0].shape[0]
+        ref_h = frames[REF_FRAME.get(name, 0)].shape[0]
     s = target / ref_h
     rows = (n + cols - 1) // cols
     out = np.zeros((ch * rows, cw * cols, 4), np.uint8)
@@ -521,8 +527,50 @@ def process_obj_row(name, sheet):
     return Image.fromarray(out, 'RGBA')
 
 
-def process_obj_grid(name, sheet, row_counts=(8, 6, 8)):
-    """obj_prologue: 3줄(8, 6, 8개) 그림을 차례대로 22칸에"""
+GRID_ROWS = {'obj_prologue': (8, 6, 8), 'obj_ch1': (8, 8, 8)}
+ICONS = {'icon_skill_orb', 'icon_skill_lamp'}
+# 반복해서 이어 붙이는 배경: 양 끝 이음매를 섞는다
+SEAMLESS = {'bg_harin_corridor', 'bg_harin_wet'}
+
+
+def process_icon(name, spec):
+    """스킬 아이콘: 둥근 네모(어두운 바탕) 부분만 잘라 면적 평균으로 24x24"""
+    w, h = spec['size']
+    a = np.array(Image.open(os.path.join(ORIG, name + '.png')).convert('RGBA'))
+    rgb = a[..., :3].astype(int)
+    # 바깥 여백(밝은 회색·흰색·마젠타)이 아닌 곳 = 아이콘 판
+    inner = ~((rgb.min(axis=2) > 170) | magenta_mask(a))
+    b = bbox(inner.astype(np.uint8))
+    p = Image.fromarray(crop(a, b), 'RGBA').resize((w, h), Image.BOX)
+    out = np.array(p)
+    out[..., 3] = 255
+    # 네 귀퉁이 1px 은 투명 (둥근 모서리)
+    for (y, x) in ((0, 0), (0, w - 1), (h - 1, 0), (h - 1, w - 1)):
+        out[y, x, 3] = 0
+    return Image.fromarray(out, 'RGBA')
+
+
+def seamless_edges(img, k=10):
+    """오른쪽 끝 다음에 왼쪽 끝이 이어지도록 양 끝 k px 을 서로의 평균 쪽으로 섞는다"""
+    a = np.array(img).astype(np.float32)
+    L = a[:, 0].copy()
+    R = a[:, -1].copy()
+    mid = (L + R) / 2
+    for i in range(k):
+        t = (i + 1) / (k + 1)
+        a[:, i] = a[:, i] * t + mid * (1 - t)
+        a[:, -1 - i] = a[:, -1 - i] * t + mid * (1 - t)
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+
+
+def edge_diff(img):
+    a = np.array(img.convert('RGB')).astype(int)
+    return float(np.abs(a[:, 0] - a[:, -1]).mean())
+
+
+def process_obj_grid(name, sheet, row_counts=None):
+    """obj_prologue: 3줄(8, 6, 8개), obj_ch1: 3줄(8, 8, 8개) 그림을 차례대로 칸에"""
+    row_counts = row_counts or GRID_ROWS[name]
     a = load_rgba(name)
     cw, ch = sheet['cell']
     rows = split(a[..., 3], 0, len(row_counts), f'{name} 줄')
@@ -626,7 +674,13 @@ def process_image(name, spec):
         return im.resize((w, h), Image.NEAREST)
     if name.startswith('bg_') or name in ('title_logo', 'harin_photo'):
         im = Image.open(os.path.join(ORIG, name + '.png')).convert('RGBA')
-        return cover(im, w, h)
+        out = cover(im, w, h)
+        if name in SEAMLESS:
+            before = edge_diff(out)
+            if before > 6:
+                out = seamless_edges(out)
+            REPORT['notes'].append(f'{name}: 이음매 차이 {before:.1f} → {edge_diff(out):.1f}')
+        return out
     # 휴대폰 틀, 패드, 초상화 테두리: 마젠타를 지우고 그림 부분만 잘라서 맞춤
     a = load_rgba(name, chroma)
     b = bbox(a[..., 3])
@@ -807,6 +861,8 @@ def process_capsule_anim(name, sheet):
 
 
 def kind(name):
+    if name in ICONS:
+        return 'icon'
     if name in UNIFORM_ITEMS:
         return 'items'
     if name == 'obj_conveyor':
@@ -817,8 +873,10 @@ def kind(name):
         return 'capsule'
     if name in IMAGES:
         return 'image'
-    if name == 'obj_prologue':
+    if name in GRID_ROWS:
         return 'grid'
+    if name in ICONS:
+        return 'icon'
     if name in OBJ_ROWS:
         return 'obj'
     if name.startswith('portrait_'):
@@ -848,7 +906,10 @@ def main():
               'portrait': process_portrait, 'ui': process_ui_row, 'collapse': process_collapse,
               'items': process_items, 'conveyor': process_conveyor, 'single': process_single,
               'capsule': process_capsule_anim}.get(k)
-        img = process_image(name, IMAGES[name]) if k == 'image' else fn(name, sheet)
+        if k == 'icon':
+            img = process_icon(name, IMAGES[name])
+        else:
+            img = process_image(name, IMAGES[name]) if k == 'image' else fn(name, sheet)
         if img is None:
             REPORT['notes'].append(f'{name}: 처리 못 함 (원본 유지)')
             if os.path.exists(bak):
