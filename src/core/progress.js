@@ -119,9 +119,37 @@ export const Progress = {
 
   // 장 선택·장면 선택으로 시작: 저장을 그 상태로 바꾼다 (설정은 그대로)
   startAt(sceneId) {
+    const old = Save.load() || {};
     const s = this.stateAt(sceneId);
     s.savedAt = Date.now();
+    s.joinedAt = old.joinedAt || Date.now();
+    s.bondHist = this.bondSeries(s, true);
     return Save.replace(s);
+  },
+
+  // 다이브마다의 유대 지수 [{ id, v }]. 저장된 기록(bondHist)이 있으면 그것, 없으면 대본의 값으로
+  bondSeries(sv, derive) {
+    if (!derive && sv && sv.bondHist && sv.bondHist.length) return sv.bondHist;
+    const out = [];
+    const cleared = new Set((sv && sv.cleared) || []);
+    const cur = sv && sv.sceneId;
+    const curCh = cur ? chapterIdOfScene(cur) : null;
+    chapterList().forEach((c) => {
+      const done = cleared.has(c.id);
+      if (!done && c.id !== curCh) return;
+      const evs = (c.events || []).filter((e) => e.bond != null && (done || sceneBefore(e.scene, cur)));
+      evs.forEach((e) => out.push({ id: e.scene, v: e.bond }));
+      if (done && !evs.length && c.end && c.id !== 'prologue') out.push({ id: c.id, v: c.end.bond });
+    });
+    return out;
+  },
+
+  // 유대 지수가 바뀐 장면을 기록에 더한 새 목록
+  pushBond(sceneId, v) {
+    const sv = Save.load() || {};
+    const hist = (sv.bondHist && sv.bondHist.length ? sv.bondHist : this.bondSeries(sv, true)).filter((e) => e.id !== sceneId);
+    hist.push({ id: sceneId, v });
+    return hist;
   },
 
   // 정산 직후 기록
@@ -174,7 +202,9 @@ export const Progress = {
       k: sv.skills || {},
       h: sv.harvests || {},
       l: (sv.log || []).map((e) => [e.id, e.t ? Math.round(e.t / 60000).toString(36) : 0]),
-      a: sv.savedAt ? Math.round(sv.savedAt / 60000).toString(36) : 0
+      a: sv.savedAt ? Math.round(sv.savedAt / 60000).toString(36) : 0,
+      j: sv.joinedAt ? Math.round(sv.joinedAt / 60000).toString(36) : 0,
+      g: (sv.bondHist || []).map((e) => [e.id, e.v])
     };
     const body = b64encode(JSON.stringify(p));
     return `${CODE_PREFIX}-${body}-${checksum(body)}`;
@@ -205,7 +235,9 @@ export const Progress = {
           const s = all.find((x) => x.scene === e.id);
           return s ? `${s.scene}:${s.amount}` : null;
         }).filter(Boolean),
-        savedAt: p.a ? parseInt(p.a, 36) * 60000 : Date.now()
+        savedAt: p.a ? parseInt(p.a, 36) * 60000 : Date.now(),
+        joinedAt: p.j ? parseInt(p.j, 36) * 60000 : undefined,
+        bondHist: (p.g || []).map(([id, v]) => ({ id: String(id), v: +v }))
       };
     } catch (e) {
       return null;

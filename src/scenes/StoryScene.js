@@ -436,7 +436,10 @@ export class StoryScene extends Phaser.Scene {
           extra.paid = Array.from(paid);
         }
       }
-      if (s.bond != null) extra.bond = s.bond;
+      if (s.bond != null) {
+        extra.bond = s.bond;
+        extra.bondHist = Progress.pushBond(this.sceneId, s.bond);
+      }
       // 정산 내역(품목·등급은 data/chapters.json)
       if (s.amount && Progress.settlementOf(this.sceneId)) extra.log = Progress.recordSettlement(this.sceneId);
       if (Save.saveProgress(this.sceneId, extra)) this.flashSaved(300);

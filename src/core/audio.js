@@ -442,6 +442,9 @@ class AudioEngine {
       case 'ui': tone('sine', 1760, null, 0.035, 0.07); break;
       case 'uiSoft': tone('sine', 1320, null, 0.05, 0.035); break;
       case 'uiOn': tone('sine', 880, 1760, 0.18, 0.06); this.sfx('ui', { delay: 0.22, vol: 0.6 }); break;
+      case 'uiOff': tone('sine', 1320, 440, 0.16, 0.05); break;
+      // 태블릿 푸시 알림: 짧은 진동 두 번 (낮은 웅웅)
+      case 'buzz': [0, 0.14].forEach((d) => { const t0 = t + d; const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'square'; o.frequency.value = 150; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.05 * vm, t0 + 0.01); g.gain.setValueAtTime(0.05 * vm, t0 + 0.08); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.1); const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400; o.connect(f); f.connect(g); g.connect(this.sfxBus); o.start(t0); o.stop(t0 + 0.12); }); break;
       case 'ok': tone('triangle', 600, 900, 0.12, 0.15); break;
       case 'miss': tone('triangle', 200, 140, 0.12, 0.12); break;
       case 'stamp': tone('sine', 90, 40, 0.18, 0.5); noise(0.05, 0.3, 400); break;

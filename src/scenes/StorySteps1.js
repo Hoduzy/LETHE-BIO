@@ -12,6 +12,7 @@ import { W, H, DEPTH, txt, panel } from '../core/gfx.js';
 import { Bubbles } from '../ui/Bubbles.js';
 import { Hud } from '../ui/Hud.js';
 import { Skills } from '../core/skills.js';
+import { Progress } from '../core/progress.js';
 import { Companion } from '../world/Companion.js';
 
 const methods = {
@@ -456,7 +457,7 @@ const methods = {
       this.tweens.add({ targets: t, alpha: 0, delay: G.auto ? 50 : 1900, duration: 500, onComplete: () => t.destroy() });
     } });
     Audio.sfx('select', { vol: 0.25 });
-    if (s.value != null && !G.edit) Save.saveProgress(this.sceneId, { bond: s.value });
+    if (s.value != null && !G.edit) Save.saveProgress(this.sceneId, { bond: s.value, bondHist: Progress.pushBond(this.sceneId, s.value) });
     return s.wait ? this.wait(s.wait) : Promise.resolve();
   },
 

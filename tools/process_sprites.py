@@ -677,6 +677,14 @@ def process_image(name, spec):
         if spec.get('smooth'):
             # 도트가 아닌 그림(시작 화면 배경): 고품질로 줄인다
             return im.resize((w, h), Image.LANCZOS)
+    if spec.get('smooth'):
+        # 전체 그림을 그대로 줄인 뒤 마젠타만 투명 (태블릿을 든 손: 화면 자리가 마젠타)
+        im = Image.open(os.path.join(ORIG, name + '.png')).convert('RGBA').resize((w, h), Image.LANCZOS)
+        a = np.array(im)
+        if chroma:
+            bg = magenta_mask(a)
+            a[..., 3] = np.where(bg, 0, 255)
+        return Image.fromarray(a, 'RGBA')
         out = cover(im, w, h)
         if name in SEAMLESS:
             before = edge_diff(out)
