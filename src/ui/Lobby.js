@@ -61,7 +61,10 @@ const L = {
   handlers: null,
   timers: [],
   raf: 0,
-  bannerI: 0
+  bannerI: 0,
+  kb: false,           // 키보드로 조작 중 (선택 표시·안내 문구)
+  focus: null,         // 선택된 항목의 키 (다시 그려도 같은 항목을 찾는다)
+  focusDefault: true   // 탭을 바꾼 직후: 그 탭의 첫 항목
 };
 
 export const Lobby = {
@@ -129,6 +132,7 @@ function build() {
           <div class="lb-app">
             <div class="lb-status"><span class="lb-st-time"></span><span class="lb-st-mid">LETHE BIO</span><span class="lb-st-r">${ICON.wifi}<span>23%</span>${ICON.battery}</span></div>
             <div class="lb-pages"></div>
+            <div class="lb-kbhint">방향키 이동 · Enter 선택 · Esc 뒤로 · Q/E 탭</div>
             <div class="lb-tabs">${TABS.map(([id, label]) => `<button data-tab="${id}">${ICON[id]}<span>${label}</span></button>`).join('')}</div>
           </div>
           <div class="lb-lock"><div class="lb-lock-time"></div><div class="lb-lock-date"></div><div class="lb-lock-hint">︿<br>위로 밀어서 잠금 해제</div></div>
@@ -169,6 +173,9 @@ function build() {
   });
   root.querySelectorAll('.lb-tabs button').forEach((b) => b.addEventListener('click', () => goTab(b.dataset.tab)));
   window.addEventListener('resize', sync);
+  // 키보드 조작 (터치는 그대로). 마우스·터치를 쓰면 선택 표시를 숨긴다
+  window.addEventListener('keydown', onKey);
+  root.addEventListener('pointerdown', () => setKb(false), true);
 }
 
 function sync() {
@@ -320,6 +327,7 @@ function goTab(id) {
   const to = TABS.findIndex((t) => t[0] === id);
   L.tab = id;
   if (id === 'dive') L.diveView = null;
+  L.focusDefault = true;
   render(to >= from ? 1 : -1);
 }
 
@@ -354,6 +362,7 @@ function render(dir = 0) {
     old.forEach((o) => o.remove());
   }
   wire(page, sv);
+  restoreFocus();
 }
 
 // ---------------------------------------------------------------------------
@@ -445,7 +454,7 @@ function scenesHtml(sv, chId) {
 function ledgerHtml(sv) {
   const rows = Progress.ledger(sv);
   const list = rows.length
-    ? rows.map((r) => `<div class="lb-lrow"><span class="lb-ldate">${r.t ? fmtTime(r.t) : esc(`${r.chapterTitle}${r.day ? ' · ' + r.day : ''}`)}</span><span class="lb-litem">「${esc(r.item)}」</span><span class="lb-lgrade">${esc(r.grade)}</span><span class="lb-lamt">${won(r.amount)}</span></div>`).join('')
+    ? rows.map((r) => `<div class="lb-lrow" data-detail="${r.scene}"><span class="lb-ldate">${r.t ? fmtTime(r.t) : esc(`${r.chapterTitle}${r.day ? ' · ' + r.day : ''}`)}</span><span class="lb-litem">「${esc(r.item)}」</span><span class="lb-lgrade">${esc(r.grade)}</span><span class="lb-lamt">${won(r.amount)}</span></div>`).join('')
     : '<div class="lb-empty">아직 정산 내역이 없습니다.</div>';
   return `<div class="lb-total"><div class="lb-s lb-dim">누적 정산 금액</div><div class="lb-big">${won(sv.money)}</div><div class="lb-s">현재 유대 지수 <b>${sv.bond || 0}</b></div></div>
     <div class="lb-list lb-ledger">${list}</div>`;
@@ -497,7 +506,7 @@ function settingsHtml() {
       const n = Math.round(s[r.key] * 10);
       v = `<div class="lb-step"><button data-set="${i}" data-d="-1">−</button><span class="lb-bars">${Array.from({ length: 10 }, (_, k) => `<i class="${k < n ? 'on' : ''}"></i>`).join('')}</span><button data-set="${i}" data-d="1">+</button></div>`;
     }
-    return `<div class="lb-set"><span>${r.label}</span>${v}</div>`;
+    return `<div class="lb-set" data-row="${i}"><span>${r.label}</span>${v}</div>`;
   }).join('');
   return `<div class="lb-list lb-settings">${rows}
     <div class="lb-set lb-code"><span>세이브 코드</span><div class="lb-seg"><button data-code="copy">복사</button><button data-code="paste">붙여넣기</button></div></div>
@@ -571,6 +580,7 @@ function wire(page) {
   });
   on('[data-goto]', (b) => goTab(b.dataset.goto));
   on('[data-crystal]', (b) => { beep(); crystalDetail(b.dataset.crystal); });
+  on('[data-detail]', (b) => { beep(); crystalDetail(b.dataset.detail); });
   on('[data-act="continue"]', () => { beep(); L.handlers.continue(); });
   on('[data-act="newgame"]', () => {
     beep();
@@ -598,9 +608,291 @@ function modal(html, buttons) {
     L.modal.classList.remove('on');
     const b = buttons[+el.dataset.i];
     if (b.act) b.act();
+    restoreFocus();
   }));
+  // 키보드: 첫 버튼(취소·닫기)에서 시작 → 실수로 지우지 않게
+  L.modalFocus = 0;
+  paintFocus();
 }
 
 function confirmBox(msg, ok) {
   modal(`<div class="lb-m-msg">${esc(msg)}</div>`, [{ label: '취소' }, { label: '확인', primary: true, act: ok }]);
+}
+
+// ---------------------------------------------------------------------------
+// 키보드 조작
+//  방향키·WASD: 화면 배치 기준 가장 가까운 항목으로 / Enter·Space: 누르기 / Esc·Backspace: 한 단계 뒤로
+//  Q·E: 이전·다음 탭, 1~5: 탭 바로 가기 / PageUp·PageDown: 목록 한 화면씩
+//  설정 줄: 좌우로 음량·크기·불투명도 조절, Enter 로 켜기/끄기
+// ---------------------------------------------------------------------------
+const DIRS = {
+  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right'
+};
+
+function setKb(on) {
+  if (!L.root || L.kb === on) return;
+  L.kb = on;
+  L.root.classList.toggle('kb', on);
+  paintFocus();
+}
+
+function curPage() {
+  return L.pages ? L.pages.lastElementChild : null;
+}
+
+// 지금 고를 수 있는 항목들
+function focusables() {
+  if (L.modal.classList.contains('on')) return Array.from(L.modal.querySelectorAll('button'));
+  const page = curPage();
+  const out = [];
+  if (page) {
+    page.querySelectorAll('button:not([disabled]), .lb-banner, .lb-set[data-row], .lb-lrow[data-detail]').forEach((el) => {
+      if (el.tagName === 'BUTTON' && el.closest('.lb-set[data-row]')) return;   // 설정 줄 안의 작은 버튼은 줄이 대신
+      if (el.closest('.lb-banner') && el !== el.closest('.lb-banner')) return;
+      out.push(el);
+    });
+  }
+  L.root.querySelectorAll('.lb-tabs button').forEach((b) => out.push(b));
+  return out;
+}
+
+function keyOf(el) {
+  const d = el.dataset;
+  if (d.tab) return 'tab:' + d.tab;
+  if (el.classList.contains('lb-banner')) return 'banner';
+  if (d.row != null) return 'row:' + d.row;
+  if (d.code) return 'code:' + d.code;
+  if (d.ch) return 'ch:' + d.ch;
+  if (d.scene) return (el.classList.contains('lb-mini') ? 'mini:' : 'scene:') + d.scene;
+  if (d.crystal) return 'crystal:' + d.crystal;
+  if (d.detail) return 'detail:' + d.detail;
+  if (d.act) return 'act:' + d.act;
+  if (d.goto) return 'goto:' + d.goto;
+  if (d.dive != null) return 'back';
+  return null;
+}
+
+function findByKey(key) {
+  return focusables().find((el) => keyOf(el) === key) || null;
+}
+
+// 탭의 첫 항목 (홈은 이어하기 큰 버튼)
+function defaultFocus() {
+  const list = focusables().filter((el) => !el.dataset.tab);
+  const cont = list.find((el) => el.classList.contains('lb-cont'));
+  if (L.tab === 'home' && cont) return cont;
+  const ch = list.find((el) => el.dataset.ch);
+  if (L.tab === 'dive' && !L.diveView && ch) return ch;
+  const row = list.find((el) => el.dataset.scene && !el.classList.contains('lb-mini'));
+  if (L.tab === 'dive' && L.diveView && row) return row;
+  return list.find((el) => !el.classList.contains('lb-banner')) || list[0] || findByKey('tab:' + L.tab);
+}
+
+function restoreFocus() {
+  let el = null;
+  if (!L.focusDefault && L.focus) el = findByKey(L.focus);
+  if (!el) el = defaultFocus();
+  L.focusDefault = false;
+  L.focus = el ? keyOf(el) : null;
+  paintFocus();
+}
+
+function focusedEl() {
+  if (L.modal.classList.contains('on')) return focusables()[L.modalFocus || 0] || null;
+  return L.focus ? findByKey(L.focus) : null;
+}
+
+function paintFocus() {
+  if (!L.root) return;
+  L.root.querySelectorAll('.kb-focus').forEach((el) => el.classList.remove('kb-focus'));
+  if (!L.kb) return;
+  const el = focusedEl();
+  if (el) {
+    el.classList.add('kb-focus');
+    scrollIntoBox(el);
+  }
+}
+
+// 선택이 목록 밖으로 나가면 목록을 자동으로 굴린다 (확대된 화면이라 비율로 환산)
+function scrollIntoBox(el) {
+  const box = el.closest('.lb-list, .lb-chs');
+  if (!box) return;
+  const k = L.stage.getBoundingClientRect().width / W || 1;
+  const r = el.getBoundingClientRect();
+  const b = box.getBoundingClientRect();
+  const m = 3 * k;
+  if (r.bottom > b.bottom - m) box.scrollTop += (r.bottom - b.bottom + m) / k;
+  else if (r.top < b.top + m) box.scrollTop -= (b.top + m - r.top) / k;
+  if (r.right > b.right - m) box.scrollLeft += (r.right - b.right + m) / k;
+  else if (r.left < b.left + m) box.scrollLeft -= (b.left + m - r.left) / k;
+}
+
+function setFocus(el, sound = true) {
+  if (!el) return;
+  if (L.modal.classList.contains('on')) L.modalFocus = focusables().indexOf(el);
+  else L.focus = keyOf(el);
+  if (sound) Audio.sfx('uiSoft');
+  paintFocus();
+}
+
+// 화면 배치 기준 그 방향으로 가장 가까운 항목
+//  먼저 그 방향에 '완전히' 있는 것 중에서 고르고, 위아래만 없으면 중심 기준으로 한 번 더 찾는다
+function move(dir) {
+  const list = focusables();
+  const cur = focusedEl();
+  if (!cur) {
+    setFocus(defaultFocus());
+    return;
+  }
+  const c = cur.getBoundingClientRect();
+  const cx = c.left + c.width / 2;
+  const cy = c.top + c.height / 2;
+  const tol = 3;
+  // 좌우는 탭 표시줄 안끼리 / 화면 안끼리만 (위아래는 오갈 수 있다)
+  const inTabs = (el) => !!el.dataset.tab;
+  const pickBest = (strict) => {
+    let best = null;
+    let bestS = Infinity;
+    list.forEach((el) => {
+      if (el === cur) return;
+      if ((dir === 'left' || dir === 'right') && !L.modal.classList.contains('on') && inTabs(el) !== inTabs(cur)) return;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      let main;
+      // 가로·세로로 얼마나 떨어져 있나 (겹치면 0) + 중심 차이는 아주 조금만
+      const gapY = Math.max(0, Math.max(r.top, c.top) - Math.min(r.bottom, c.bottom));
+      const gapX = Math.max(0, Math.max(r.left, c.left) - Math.min(r.right, c.right));
+      let side;
+      if (dir === 'right' || dir === 'left') {
+        if (dir === 'right' && (strict ? r.left < c.right - tol : x <= cx + 1)) return;
+        if (dir === 'left' && (strict ? r.right > c.left + tol : x >= cx - 1)) return;
+        // 같은 줄(세로로 겹치거나 아주 가까움)만
+        if (gapY > Math.min(c.height, r.height) * 0.6) return;
+        main = dir === 'right' ? r.left - c.right : c.left - r.right;
+        side = gapY * 4 + Math.abs(y - cy) * 0.2;
+      } else {
+        if (dir === 'down' && (strict ? r.top < c.bottom - tol : y <= cy + 1)) return;
+        if (dir === 'up' && (strict ? r.bottom > c.top + tol : y >= cy - 1)) return;
+        main = dir === 'down' ? r.top - c.bottom : c.top - r.bottom;
+        side = gapX * 2 + Math.abs(x - cx) * 0.15;
+      }
+      const sc = Math.max(0, main) + side;
+      if (sc < bestS) { bestS = sc; best = el; }
+    });
+    return best;
+  };
+  let best = pickBest(true);
+  if (!best && (dir === 'up' || dir === 'down')) best = pickBest(false);
+  if (best) setFocus(best);
+}
+
+function press(el) {
+  if (!el) return;
+  if (el.dataset.row != null) {
+    const i = +el.dataset.row;
+    const r = SET_ROWS[i];
+    if (r.type === 'choice') adjust(el, 1);
+    else if (r.type === 'toggle') changeSetting(i, 0);
+    return;
+  }
+  el.click();
+}
+
+// 설정 줄 좌우: 음량·불투명도 한 칸, 버튼 크기 이전·다음, 켜기/끄기
+function adjust(el, d) {
+  const i = +el.dataset.row;
+  const r = SET_ROWS[i];
+  const s = Save.settings();
+  if (r.type === 'slider') changeSetting(i, d);
+  else if (r.type === 'toggle') { if (!!s[r.key] !== d > 0) changeSetting(i, 0); }
+  else if (r.type === 'choice') {
+    const keys = r.options.map((o) => o[0]);
+    const n = Math.max(0, Math.min(keys.length - 1, keys.indexOf(s[r.key]) + d));
+    if (keys[n] !== s[r.key]) changeSetting(i, 0, keys[n]);
+  }
+}
+
+function back() {
+  if (L.modal.classList.contains('on')) {
+    const b = L.modal.querySelector('button');   // 취소·닫기
+    if (b) b.click();
+    return;
+  }
+  if (L.tab === 'dive' && L.diveView) {
+    const ch = L.diveView;
+    beep();
+    L.diveView = null;
+    L.focus = 'ch:' + ch;
+    render(-1);
+    return;
+  }
+  // 탭 안 → 아래 탭 표시줄의 그 탭
+  const tab = findByKey('tab:' + L.tab);
+  if (L.focus !== 'tab:' + L.tab) setFocus(tab);
+}
+
+function page(dir) {
+  const pg = curPage();
+  const box = pg && pg.querySelector('.lb-list, .lb-chs');
+  if (!box) return;
+  const vertical = box.classList.contains('lb-list');
+  if (vertical) box.scrollTop += dir * (box.clientHeight - 15);
+  else box.scrollLeft += dir * (box.clientWidth - 20);
+  // 굴린 뒤 보이는 첫(또는 끝) 항목을 고른다
+  const b = box.getBoundingClientRect();
+  const inside = focusables().filter((el) => box.contains(el)).filter((el) => {
+    const r = el.getBoundingClientRect();
+    return vertical ? r.top >= b.top - 1 && r.bottom <= b.bottom + 1 : r.left >= b.left - 1 && r.right <= b.right + 1;
+  });
+  if (inside.length) setFocus(dir > 0 ? inside[inside.length - 1] : inside[0]);
+}
+
+function onKey(e) {
+  if (G.touchOnly || !Lobby.visible || L.root.classList.contains('leaving')) return;
+  if (CodeModal.isOpen()) return;
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT')) return;
+  const k = e.code;
+  const enter = k === 'Enter' || k === 'NumpadEnter' || k === 'Space';
+  // 꺼진 화면 / 잠금 화면
+  if (L.state === 'off') {
+    if (enter) { e.preventDefault(); setKb(true); powerOn(); }
+    return;
+  }
+  if (L.state === 'lock') {
+    if (enter || k === 'ArrowUp' || k === 'KeyW') { e.preventDefault(); setKb(true); unlock(); }
+    return;
+  }
+  if (L.root.classList.contains('splashing')) return;
+  const handled = () => { e.preventDefault(); e.stopPropagation(); };
+  const wasKb = L.kb;
+  setKb(true);
+  if (!wasKb && !focusedEl()) restoreFocus();
+  const dir = DIRS[k];
+  const cur = focusedEl();
+  if (dir) {
+    handled();
+    // 설정 줄은 좌우가 조절
+    if ((dir === 'left' || dir === 'right') && cur && cur.dataset.row != null && !L.modal.classList.contains('on')) {
+      adjust(cur, dir === 'right' ? 1 : -1);
+      return;
+    }
+    if (!wasKb && cur) { paintFocus(); return; }   // 처음 누른 키는 선택 표시만
+    move(dir);
+    return;
+  }
+  if (enter) { handled(); if (!wasKb && !cur) return; press(cur); return; }
+  if (k === 'Escape' || k === 'Backspace') { handled(); back(); return; }
+  if (L.modal.classList.contains('on')) return;
+  if (k === 'KeyQ' || k === 'KeyE') {
+    handled();
+    const i = TABS.findIndex((x) => x[0] === L.tab);
+    goTab(TABS[(i + (k === 'KeyE' ? 1 : -1) + TABS.length) % TABS.length][0]);
+    return;
+  }
+  const n = /^(Digit|Numpad)([1-5])$/.exec(k);
+  if (n) { handled(); goTab(TABS[+n[2] - 1][0]); return; }
+  if (k === 'PageDown' || k === 'PageUp') { handled(); page(k === 'PageDown' ? 1 : -1); }
 }

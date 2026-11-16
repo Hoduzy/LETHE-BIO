@@ -57,5 +57,17 @@ export const CodeModal = {
     });
     const cancel = el.querySelector('.cm-cancel');
     if (cancel) cancel.addEventListener('click', () => { close(); if (o.onClose) o.onClose(); });
+    // 키보드: Enter 확인(줄바꿈 대신), Esc 취소. Ctrl+V / Cmd+V 붙여넣기는 글상자 기본 동작
+    el.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        ok.click();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        if (cancel) cancel.click();
+        else ok.click();
+      }
+    });
   }
 };

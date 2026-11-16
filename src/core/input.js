@@ -84,8 +84,10 @@ class InputState {
   }
 
   install(canvas) {
+    // 글상자(세이브 코드 등)에 쓰는 중이면 게임 입력이 가로채지 않는다
+    const typing = (e) => { const t = e.target; return !!(t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.isContentEditable)); };
     window.addEventListener('keydown', (e) => {
-      if (G.touchOnly) return;
+      if (G.touchOnly || typing(e)) return;
       const a = KEYMAP[e.code] || FALLBACK_KEYMAP[e.key];
       if (!a) return;
       e.preventDefault();
@@ -93,6 +95,7 @@ class InputState {
       this.press(a, 'kb:' + e.code);
     });
     window.addEventListener('keyup', (e) => {
+      if (typing(e)) return;
       const a = KEYMAP[e.code] || FALLBACK_KEYMAP[e.key];
       if (!a) return;
       e.preventDefault();
