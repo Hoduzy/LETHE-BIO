@@ -34,7 +34,7 @@
     ],
     "props": [
       {"id": "front_door", "ph": "ph_door_home", "x": 48, "label": "현관문", "range": 14, "interact": {"steps": []}, "examine": {"lines": ["문손잡이를 돌리면 문이 열린다.", "문 밖은 다시 이 현관이다."]}},
-      {"id": "shoe", "obj": "shoe_rack_3", "x": 118, "y": 236, "scale": 1.0, "keep": true, "depth": 6, "label": "신발장", "range": 16, "examine": {"steps": [{"type": "examine", "label": "신발장", "lines": ["운동화 세 켤레.", "아빠 신발이 없다."]}, {"type": "prop", "id": "shoe", "action": "obj", "obj": "shoe_rack_4"}, {"type": "sfx", "name": "pop"}, {"type": "examine", "label": "신발장", "lines": ["…아니다. 아빠 신발은 있다. 이상하다. 방금은 분명 없었는데."]}]}},
+      {"id": "shoe", "obj": "shoe_rack_3", "x": 118, "y": 236, "keep": true, "depth": 6, "label": "신발장", "range": 16, "examine": {"steps": [{"type": "examine", "label": "신발장", "lines": ["운동화 세 켤레.", "아빠 신발이 없다."]}, {"type": "prop", "id": "shoe", "action": "obj", "obj": "shoe_rack_4"}, {"type": "sfx", "name": "pop"}, {"type": "examine", "label": "신발장", "lines": ["…아니다. 아빠 신발은 있다. 이상하다. 방금은 분명 없었는데."]}]}, "scale": 1.465},
       {"id": "photo", "obj": "photo_family_4_blur", "x": 262, "y": 116, "scale": 0.6, "keep": true, "depth": 6, "label": "가족사진", "range": 16, "sparkleY": 82, "examine": {"lines": ["아빠, 엄마, 고등학생 여자아이, 초등학생 남자아이.", "엄마의 얼굴이 조금 흐릿하다. 물에 젖었다 마른 사진처럼."]}}
     ],
     "actors": [

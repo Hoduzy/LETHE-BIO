@@ -48,9 +48,9 @@
       {"id": "stove", "ph": "ph_stove", "x": 333},
       {"id": "low_table", "ph": "ph_low_table", "x": 390},
       {"id": "lamp", "obj": "lamp", "x": 352, "y": 200, "glow": true},
-      {"id": "supplement", "keep": true, "obj": "supplement", "x": 370, "y": 206, "scale": 0.35, "depth": 21, "label": "영양제", "range": 70, "examine": {"lines": ["약국에서 제일 비싼 거 달라고 했다."]}},
-      {"id": "blanket", "keep": true, "obj": "blanket", "x": 400, "y": 206, "scale": 0.5, "depth": 21, "label": "새 이불", "range": 70, "examine": {"lines": ["엄마 이불이 너무 얇아서."]}},
-      {"id": "rice", "keep": true, "obj": "rice_bag", "x": 452, "y": 224, "scale": 0.6, "depth": 21, "label": "쌀", "range": 70, "examine": {"lines": ["20킬로. 반지하 계단으로 들고 내려오느라 팔이 빠질 뻔했다."]}}
+      {"id": "supplement", "keep": true, "obj": "supplement", "x": 376, "depth": 21, "label": "영양제", "range": 70, "examine": {"lines": ["약국에서 제일 비싼 거 달라고 했다."]}, "scale": 0.244, "y": 202},
+      {"id": "blanket", "keep": true, "obj": "blanket", "x": 322, "y": 226, "depth": 21, "label": "새 이불", "range": 70, "examine": {"lines": ["엄마 이불이 너무 얇아서."]}, "scale": 0.862},
+      {"id": "rice", "keep": true, "obj": "rice_bag", "x": 456, "y": 226, "depth": 21, "label": "쌀", "range": 70, "examine": {"lines": ["20킬로. 반지하 계단으로 들고 내려오느라 팔이 빠질 뻔했다."]}, "scale": 0.828}
     ],
     "actors": [
       {"id": "mother", "char": "mother", "x": 80, "speaker": "어머니", "facing": 1, "anim": "sleep", "depth": 18}
@@ -60,7 +60,7 @@
     {"type": "wait", "ms": 400},
     {"type": "fade", "to": "none", "ms": 1600},
     {"type": "narration", "text": "어머니가 자고 있다. 숨소리가 지난주보다 고르다. 투석을 빠짐없이 받았다."},
-    {"type": "narration", "text": "도윤이 상 앞에 앉아 있다. 상 위에 오늘 산 것들. 어머니 영양제, 새 이불, 쌀 한 포대."},
+    {"type": "narration", "text": "도윤이 상 앞에 앉아 있다. 상 위와 옆에 오늘 산 것들. 어머니 영양제, 새 이불, 쌀 한 포대."},
     {"type": "explore", "require": ["supplement", "blanket", "rice"], "freeze": true},
     {"type": "player", "action": "anim", "name": "sit_stare"},
     {"type": "narration", "text": "도윤이 자기 손을 내려다본다."},

@@ -15,6 +15,9 @@ import { Skills } from '../core/skills.js';
 import { Progress } from '../core/progress.js';
 import { Companion } from '../world/Companion.js';
 
+// 손잡고 달리기의 손 위치 (칸 128 기준 px)
+const HAND = { harinBack: 15, doyunFront: 8, up: 53 };
+
 const methods = {
   // ------------------------------------------------------------------
   // 준비 / 매 프레임
@@ -376,11 +379,23 @@ const methods = {
       this.tweens.add({ targets: t, y: t.y + H, angle: (Math.random() - 0.5) * 80, alpha: 0, delay, duration: dur, ease: 'Quad.in' });
     });
     this.crumbleUnder = under;
+    // 그림으로 찍어 둔 뒤, 살아 있는 소품·가림막·효과·조명·장식은 모두 숨긴다 (조각과 함께 무너진 것으로).
+    // 남는 것은 사람(도윤·하린·잔상 가족)과 대사창 같은 화면 UI 뿐
+    const keep = new Set([under, this.fadeRect, ...people, ...tiles.map((o) => o.t)]);
+    Object.values(this.stage.actors).forEach((a) => a.cs.afterFx && keep.add(a.cs.afterFx.img));
+    if (this.companion) keep.add(this.companion.cs.sprite);
+    this.crumbleHidden = [];
+    this.children.list.forEach((o) => {
+      if (!o.visible || keep.has(o) || o.depth >= DEPTH.panel || o.type === 'Zone') return;
+      o.setVisible(false);
+      this.crumbleHidden.push(o);
+    });
     if (s.wait !== false) await this.wait(end);
   },
 
-  // 손잡고 달리기: 하린이 도윤 손을 잡고 앞서 달린다. 뒤에서 가족 잔상이 손을 흔든다
-  // { type: 'escape', to: x, speed, wave: ['mom', ...] }
+  // 손잡고 달리기: 하린이 앞, 도윤은 반걸음 뒤. 둘 다 같은 쪽을 보고 달린다. 뒤에서 가족 잔상이 손을 흔든다
+  //  하린은 harin_moods 2번(팔을 뒤로 뻗어 손을 잡은 자세)에 달리기 들썩임을 더한다. 뻗은 손끝 = 도윤의 앞손
+  //  { type: 'escape', to: x, speed, wave: ['mom', ...] }  — 끝점은 앞선 하린까지 화면(장면) 안에 들어오게 줄인다
   async step_escape(s) {
     const p = this.player;
     const c = this.companion;
@@ -389,7 +404,7 @@ const methods = {
       if (!e) return;
       e.cs.setVisible(true);
       e.cs.face(p.x < e.cs.x ? -1 : 1);
-      if (e.cs.has('wave')) e.cs.play('wave');
+      if (e.cs.has('wave')) e.cs.play('wave', { loop: true });
       else {
         e.cs.applyPose('raise');
         e.cs.poseTweens.push(this.tweens.add({ targets: e.cs.sprite, angle: { from: -6, to: 6 }, duration: 260, yoyo: true, repeat: -1 }));
@@ -401,50 +416,76 @@ const methods = {
     p.override = null;
     p.setOverride(p.dive ? 'run' : 'walk');
     p.face(dir);
+    const ks = Math.abs(p.cs.sprite.scaleX) || 1;
+    // 하린 그림(harin_moods 2): 뒤로 뻗은 손 = 칸 가운데에서 15px 뒤, 바닥에서 53px 위. 도윤 앞손 = 가운데에서 8px 앞
+    const gap = c ? (HAND.harinBack + HAND.doyunFront) * Math.abs(c.cs.sprite.scaleX || ks) : 0;
+    const cam = this.cameras.main;
+    const bd = cam.getBounds ? cam.getBounds() : { x: 0, width: W };
+    const margin = 18 * ks;
+    let to = s.to;
+    if (dir > 0) to = Math.min(to, bd.x + bd.width - margin - gap);
+    else to = Math.max(to, bd.x + margin + gap);
+    let bob = null;
     if (c) {
       c.setFollow(false);
       c.cs.setVisible(true);
+      c.cs.clearPose && c.cs.clearPose();
       c.cs.face(dir);
-      c.cs.play(c.cs.anims.run ? 'run' : 'walk');
+      c.cs.play(c.cs.has('hold_hand') ? 'hold_hand' : (c.cs.anims.run ? 'run' : 'walk'), { hold: true });
+      c.cs.setPosition(p.x + dir * gap, p.y);
+      bob = { v: 0 };
+      this.tweens.add({ targets: bob, v: 1, duration: 150, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     }
     this.handDir = dir;
-    this.handG = this.add.graphics().setDepth(DEPTH.player + 1);
+    this.handG = this.add.graphics().setDepth(Math.max(p.cs.sprite.depth, c ? c.cs.sprite.depth : 0) + 0.1);
     const speed = (s.speed || 70) * this.unit;
-    const dist = Math.abs(s.to - p.x);
+    const dist = Math.abs(to - p.x);
     const st = { x: p.x };
     await new Promise((res) => this.tweens.add({
       targets: st,
-      x: s.to,
+      x: to,
       duration: G.auto ? 60 : (dist / speed) * 1000,
       onUpdate: () => {
         p.cs.zone.x = st.x;
         p.cs.sync();
-        if (c) c.cs.setPosition(st.x + dir * 22 * (this.charScale || 1), p.y);
+        if (c) {
+          c.cs.setPosition(st.x + dir * gap, p.y);
+          c.cs.sprite.y = p.y - Math.round(bob.v * 2 * ks);
+          c.cs.sprite.setAngle(dir * 3);
+        }
       },
       onComplete: res
     }));
+    if (c) {
+      this.tweens.killTweensOf(bob);
+      c.cs.sprite.setAngle(0);
+      c.cs.setPosition(c.cs.x, p.y);
+    }
     if (s.stop !== false) {
       p.body.enable = true;
-      p.body.reset(s.to, p.cs.zone.y);
+      p.body.reset(to, p.cs.zone.y);
       p.setOverride(null);
     }
     this.handG.destroy();
     this.handG = null;
   },
 
-  // 잡은 손: 두 사람 손 사이를 잇는 짧은 선
+  // 잡은 손: 하린의 뒤로 뻗은 손끝과 도윤의 앞손을 잇는 짧은 살색 선 (둘 사이가 벌어져도 손이 떨어져 보이지 않게)
   drawHand() {
     const g = this.handG;
     const p = this.player;
     const c = this.companion;
     g.clear();
     if (!c) return;
-    const sk = p.cs.sk;
-    const hx1 = p.x + this.handDir * 8 * sk;
-    const hy = p.y - 50 * sk;
-    const hx2 = c.cs.x - this.handDir * 8 * c.cs.sk;
-    g.lineStyle(Math.max(2, 2 * sk), 0xe8c4a8, 1);
-    g.lineBetween(hx1, hy, hx2, hy - 2);
+    const k = Math.abs(c.cs.sprite.scaleX) || 1;
+    const d = this.handDir;
+    const hx1 = p.x + d * HAND.doyunFront * k;
+    const hx2 = c.cs.sprite.x - d * HAND.harinBack * k;
+    const hy = c.cs.sprite.y - HAND.up * k;
+    g.lineStyle(Math.max(2, Math.round(2.5 * k)), 0xe8c4a8, 1);
+    g.lineBetween(hx1, hy + 1, hx2, hy);
+    g.fillStyle(0xe8c4a8, 1);
+    g.fillCircle(hx2, hy, Math.max(1.5, 1.6 * k));
   },
 
   // ------------------------------------------------------------------
@@ -528,49 +569,40 @@ const methods = {
 
   // 손바닥 클로즈업: 아무것도 없다 → 화면이 살짝 흔들리면 머리카락 몇 가닥의 감촉
   async step_closeup(s) {
-    const g = this.add.graphics().setScrollFactor(0).setDepth(DEPTH.panel + 1);
-    const dim = this.add.rectangle(0, 0, W, H, 0x000000, 0.75).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.panel);
-    const cx = W / 2;
-    const cy = 150;
-    const skin = 0xd9b49a;
-    const shade = 0xb88f76;
-    // 손바닥 (위에서 본 펼친 손)
-    g.fillStyle(shade, 1);
-    g.fillRoundedRect(cx - 44, cy - 24, 88, 72, 22);
-    g.fillStyle(skin, 1);
-    g.fillRoundedRect(cx - 42, cy - 26, 84, 70, 20);
-    [[-34, -62, 16, 44], [-15, -76, 16, 56], [4, -74, 16, 54], [23, -60, 15, 42]].forEach(([x, y, w, h]) => {
-      g.fillStyle(shade, 1);
-      g.fillRoundedRect(cx + x - 1, cy + y + 2, w + 2, h, 8);
-      g.fillStyle(skin, 1);
-      g.fillRoundedRect(cx + x, cy + y, w, h, 8);
-    });
-    g.fillStyle(skin, 1);
-    g.fillRoundedRect(cx + 34, cy - 4, 34, 15, 8);
-    g.lineStyle(1, shade, 0.8);
-    g.beginPath();
-    g.moveTo(cx - 30, cy + 8);
-    g.lineTo(cx + 20, cy - 2);
-    g.moveTo(cx - 28, cy + 22);
-    g.lineTo(cx + 24, cy + 16);
-    g.strokePath();
-    await this.wait(1600);
-    // 살짝 흔들리면, 머리카락 몇 가닥
-    this.cameras.main.shake(260, 0.004);
-    const hair = this.add.graphics().setScrollFactor(0).setDepth(DEPTH.panel + 2).setAlpha(0);
-    hair.lineStyle(1, 0x3a2a24, 0.9);
-    for (let i = 0; i < 5; i++) {
-      hair.beginPath();
-      const x0 = cx - 36 + i * 9;
-      hair.moveTo(x0, cy - 10 + i * 3);
-      for (let k = 1; k <= 8; k++) hair.lineTo(x0 + k * 8, cy - 10 + i * 3 + Math.sin(k * 0.9 + i) * 3 + k * 2);
-      hair.strokePath();
+    // 손바닥 클로즈업 (fx_palm.png): 어둡게 깔고 가운데에 손바닥이 천천히 떠오른다.
+    // 머리카락 감촉이 남은 순간은 아주 약한 화면 흔들림으로만. 그림이 없으면 예전처럼 도형으로
+    const dim = this.add.rectangle(0, 0, W, H, 0x000000, 0.78).setOrigin(0).setScrollFactor(0).setDepth(DEPTH.panel).setAlpha(0);
+    const parts = [dim];
+    let palm = null;
+    if (G.realSprites.has('fx_palm')) {
+      const tex = this.textures.get('fx_palm').getSourceImage();
+      const k = Math.min(1.1, (H - 40) / tex.height);
+      palm = this.add.image(W / 2, H + 2, 'fx_palm').setOrigin(0.5, 1).setScrollFactor(0).setDepth(DEPTH.panel + 1).setScale(k).setAlpha(0);
+      parts.push(palm);
+    } else {
+      const g = this.add.graphics().setScrollFactor(0).setDepth(DEPTH.panel + 1).setAlpha(0);
+      const cx = W / 2;
+      const cy = 150;
+      g.fillStyle(0xd9b49a, 1);
+      g.fillRoundedRect(cx - 42, cy - 26, 84, 70, 20);
+      [[-34, -62, 16, 44], [-15, -76, 16, 56], [4, -74, 16, 54], [23, -60, 15, 42]].forEach(([x, y, w, h]) => g.fillRoundedRect(cx + x, cy + y, w, h, 8));
+      g.fillRoundedRect(cx + 34, cy - 4, 34, 15, 8);
+      palm = g;
+      parts.push(g);
     }
-    await new Promise((r) => this.tweens.add({ targets: hair, alpha: 0.85, duration: 700, onComplete: r }));
-    await this.wait(G.auto ? 50 : 1400);
-    await new Promise((r) => this.tweens.add({ targets: hair, alpha: 0, duration: 900, onComplete: r }));
-    await this.wait(500);
-    [g, dim, hair].forEach((o) => o.destroy());
+    const fade = (targets, alpha, ms) => new Promise((r) => this.tweens.add({ targets, alpha, duration: G.auto ? 40 : ms, ease: 'Sine.inOut', onComplete: r }));
+    await fade(dim, 1, 600);
+    // 아주 조금 커지며 떠오른다
+    const sc0 = palm.scaleX || 1;
+    palm.setScale(sc0 * 0.97);
+    this.tweens.add({ targets: palm, scale: sc0, duration: G.auto ? 40 : 1600, ease: 'Sine.out' });
+    await fade(palm, 1, 1400);
+    await this.wait(G.auto ? 50 : 1200);
+    // 머리카락 감촉: 아주 약하게 한 번
+    this.cameras.main.shake(G.auto ? 60 : 320, 0.0018);
+    await this.wait(G.auto ? 50 : 1800);
+    await fade(parts, 0, 1000);
+    parts.forEach((o) => o.destroy());
   },
 
   // 천장 얼룩이 잠깐 공백처럼 보였다가 (눈을 깜빡이면) 그냥 곰팡이

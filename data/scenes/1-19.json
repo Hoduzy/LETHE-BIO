@@ -45,7 +45,7 @@
       {"id": "desk", "ph": "ph_desk", "x": 390},
       {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
       {"id": "door", "ph": "ph_door", "x": 461},
-      {"id": "mom_wallet", "obj": "wallet", "x": 330, "y": 214, "scale": 1, "depth": 22, "visible": false, "label": "어머니 지갑", "range": 40, "examine": {"lines": ["명함이 아빠 사진 옆에 꽂혔다.", "아빠 사진은 오래돼서 색이 다 바랬다."]}, "keep": true}
+      {"id": "mom_wallet", "obj": "wallet", "x": 330, "y": 214, "depth": 22, "visible": false, "label": "어머니 지갑", "range": 40, "examine": {"lines": ["명함이 아빠 사진 옆에 꽂혔다.", "아빠 사진은 오래돼서 색이 다 바랬다."]}, "keep": true, "scale": 0.34}
     ],
     "actors": [
       {"id": "mother", "char": "mother", "x": 300, "speaker": "어머니", "facing": 1, "anim": "sit_watch"}

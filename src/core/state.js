@@ -16,7 +16,9 @@ export const G = {
   // ?edit=1 위치 편집 모드 (대사·전투·저장 멈춤)
   edit: params.get('edit') === '1',
   // ?touchonly=1 키보드를 무시하고 터치(가상 패드·버튼·화면 탭)만으로 (끝까지 갈 수 있는지 확인용)
-  touchOnly: params.get('touchonly') === '1'
+  touchOnly: params.get('touchonly') === '1',
+  // ?at=N 장면의 N번째 단계부터 보통 속도로 (앞은 자동으로 빠르게)
+  atStep: params.get('at') != null ? Number(params.get('at')) : null
 };
 
 // 장면 순서 도우미

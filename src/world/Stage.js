@@ -18,7 +18,7 @@
 
 import { G } from '../core/state.js';
 import { Audio } from '../core/audio.js';
-import { objTexture } from '../core/sprites.js';
+import { objTexture, frameBox } from '../core/sprites.js';
 import { CharSprite, UNIT } from './CharSprite.js';
 import { Conveyor } from './Conveyor.js';
 import { AfterimageFx } from './AfterimageFx.js';
@@ -29,6 +29,9 @@ function col(hex) {
 }
 
 // 다각형 → 짧은 해시 (tools/make_occluders.py 와 같은 계산)
+// 캡슐 안에 누운 사람의 몸 아래쪽을 침대 면보다 이만큼 아래로 (앞벽이 가린다)
+const CAP_SINK = 7;
+
 export function polyHash(poly) {
   const str = JSON.stringify(poly.map(([x, y]) => [Math.round(x), Math.round(y)]));
   let h = 5381;
@@ -377,6 +380,8 @@ export class Stage {
       if (t.real && t.anim && s.anims.exists(t.anim) && p.animate !== false) img.play(t.anim);
       // 손에 드는 물건은 인물과 같은 배율 (따로 정하면 그 값)
       img.setScale(p.scale != null ? p.scale : (s.charScale || 1) * UNIT);
+    } else if (p.ph === 'ph_door_light' && p.keep) {
+      img = this.doorGlow(p, y);
     } else if (p.ph) {
       // keep: 배경 그림에는 없는 가구 (그 장면에만 놓는 버너 등) → 배경 PNG 가 있어도 그린다
       if (this.bgReal && !p.keep) {
@@ -386,6 +391,10 @@ export class Stage {
         img.bgHidden = true;
       } else {
         img = s.add.image(p.x, y, p.ph).setOrigin(0.5, 1);
+        // 놓이는 가구 기준 배율 (장면 생성기의 소품 배율 규칙이 scale 또는 scaleX/scaleY 로 넣는다)
+        if (p.scale != null || p.scaleX != null || p.scaleY != null) {
+          img.setScale(p.scaleX != null ? p.scaleX : (p.scale || 1), p.scaleY != null ? p.scaleY : (p.scale || 1));
+        }
       }
     } else {
       img = s.add.image(p.x, y, p.sprite || 'px').setOrigin(0.5, 1);
@@ -398,6 +407,62 @@ export class Stage {
     if (p.glow && !img.bgHidden) {
       s.tweens.add({ targets: img, alpha: { from: 0.75, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
     }
+    return img;
+  }
+
+  // 열린 문에서 새어 나오는 빛: 문 모양의 부드러운 세로 빛 + 바닥에 번지는 빛 (가장자리는 흐리게, 더하기 섞기)
+  //  p.w 문 폭(기본 44), p.h 문 높이(기본 바닥에서 y 36 까지), p.spill 바닥 빛 길이(기본 문 폭의 2.2배)
+  //  화면 가장자리(x 가 0 이나 장면 끝 근처)면 문이 화면 밖에 있는 것 → 빛이 벽 끝에서 들어오는 모양
+  doorGlow(p, y) {
+    const s = this.scene;
+    const w = Math.round(p.w || 44);
+    const h = Math.round(p.h || Math.max(60, y - 36));
+    const spill = Math.round(p.spill || w * 2.2);
+    const fh = 22;
+    const key = `door_glow_${w}_${h}_${spill}`;
+    const cw = w + spill * 2;
+    if (!s.textures.exists(key)) {
+      const t = s.textures.createCanvas(key, cw, h + fh);
+      const c = t.getContext();
+      const cx = cw / 2;
+      // 문 안쪽: 가운데가 밝고 양옆과 위가 흐려진다
+      const gx = c.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0);
+      gx.addColorStop(0, 'rgba(255,244,220,0)');
+      gx.addColorStop(0.3, 'rgba(255,246,226,0.42)');
+      gx.addColorStop(0.5, 'rgba(255,250,238,0.62)');
+      gx.addColorStop(0.7, 'rgba(255,246,226,0.42)');
+      gx.addColorStop(1, 'rgba(255,244,220,0)');
+      c.fillStyle = gx;
+      c.fillRect(cx - w / 2, 0, w, h);
+      const gy = c.createLinearGradient(0, 0, 0, h);
+      gy.addColorStop(0, 'rgba(0,0,0,1)');
+      gy.addColorStop(0.18, 'rgba(0,0,0,0)');
+      c.globalCompositeOperation = 'destination-out';
+      c.fillStyle = gy;
+      c.fillRect(0, 0, cw, h);
+      c.globalCompositeOperation = 'source-over';
+      // 문 주변으로 번지는 약한 빛
+      const halo = c.createRadialGradient(cx, h * 0.6, 4, cx, h * 0.6, w * 1.4);
+      halo.addColorStop(0, 'rgba(255,236,200,0.28)');
+      halo.addColorStop(1, 'rgba(255,236,200,0)');
+      c.fillStyle = halo;
+      c.fillRect(0, 0, cw, h);
+      // 바닥 빛: 문 아래에서 납작한 타원으로 번진다
+      c.save();
+      c.translate(cx, h + 2);
+      c.scale(1, fh / spill);
+      const fl = c.createRadialGradient(0, 0, 2, 0, 0, spill);
+      fl.addColorStop(0, 'rgba(255,240,210,0.6)');
+      fl.addColorStop(0.5, 'rgba(255,236,200,0.22)');
+      fl.addColorStop(1, 'rgba(255,236,200,0)');
+      c.fillStyle = fl;
+      c.beginPath();
+      c.arc(0, 0, spill, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+      t.refresh();
+    }
+    const img = s.add.image(p.x, y + fh, key).setOrigin(0.5, 1).setBlendMode(Phaser.BlendModes.ADD);
     return img;
   }
 
@@ -844,23 +909,86 @@ export class Stage {
     });
   }
 
+  // 캡슐 안에 눕히기: 누운 그림의 불투명 길이를 침대 길이(capsule_anim.bed)에 맞추고, 침대 가운데에 놓는다.
+  //  머리는 머리받침 쪽(bed[3] = 1 이면 오른쪽, 경첩이 있는 높은 쪽). 누운 그림은 머리가 왼쪽이라 그때는 좌우 반전.
+  //  몸 아래쪽은 침대 면보다 SINK px 아래로 넣어 앞벽(frontWall 가림막)이 허리 아래를 가린다.
+  //  한 번 맞춘 배율·자리는 그 캡슐에서 나올 때까지 유지 (헐떡임·앉기 그림도 같은 배율)
+  fitCapsule(cs) {
+    const caps = Object.values(this.capsules || {});
+    if (!caps.length || !cs.sprite.frame) return false;
+    const c = caps.reduce((a, b) => (Math.abs(b.cx - cs.x) < Math.abs(a.cx - cs.x) ? b : a));
+    if (Math.abs(c.cx - cs.x) > 70) return false;
+    const sheet = G.spriteData.sheets.capsule_anim;
+    const bed = sheet.bed || [15, 73, 64, 1];
+    const crop = G.spriteData.capsule_crop || { h: 39 };
+    const top = c.def.y + crop.h - sheet.cell[1];
+    if (!cs.capFit || cs.capFit.cap !== c) {
+      const box = frameBox(this.scene, cs.sprite.texture.key, cs.sprite.frame.name);
+      if (!box || box.w < box.h) return false;   // 누운 그림(가로로 긴)일 때만 잰다
+      cs.capFit = { cap: c, box, sc: (bed[1] - bed[0] + 1) / box.w, lane0: cs.laneScale };
+    }
+    const { sc, box } = cs.capFit;
+    const flip = bed[3] ? -1 : 1;
+    cs.laneScale = sc / cs.k;
+    cs.sprite.setScale(sc).setAngle(0);
+    cs.face(flip);
+    const mid = ((box.x0 + box.x1 + 1) / 2 - box.fw * 0.5) * sc * (flip < 0 ? -1 : 1);
+    const x = Math.round(c.def.x + (bed[0] + bed[1] + 1) / 2 - mid);
+    const y = Math.round(top + bed[2] + CAP_SINK + (box.fh - 1 - box.y1) * sc);
+    cs.detached = !!cs.zone;
+    if (cs.zone) cs.zone.x = x;
+    cs.sprite.setPosition(x, y);
+    cs.baseY = y;
+    cs.liftY = 0;
+    cs.inCapsule = c;
+    return true;
+  }
+
+  // 캡슐에서 나오기: 배율·자리 원래대로
+  leaveCapsule(cs) {
+    if (!cs.capFit) return;
+    cs.laneScale = cs.capFit.lane0 || 1;
+    cs.capFit = null;
+    cs.inCapsule = null;
+    cs.detached = false;
+    cs.sprite.setScale(cs.sk);
+    if (cs.sprite.mask) cs.sprite.clearMask();
+    cs.restoreTint && cs.restoreTint();
+  }
+
   // 누가 들어 있으면: 닫혀 있는 동안(1~3프레임)은 캡슐이 사람 위, 다 열리면(4) 사람이 캡슐 위 + 앞쪽 벽만 사람 위
   updateCapsules() {
     const all = Object.values(this.capsules || {});
     if (!all.length) return;
     const people = [this.scene.player && this.scene.player.cs, ...Object.values(this.actors).map((a) => a.cs)].filter((c) => c && c.visible);
-    // 캡슐에서 나온 사람은 다시 보이게
     people.forEach((p) => { p.capSeen = false; });
     all.forEach((c) => {
       const inside = people.filter((p) => p.laneName === 'capsule' && Math.abs(p.x - c.cx) < 40);
       const occupied = inside.length > 0;
       const f = Number(c.spr.frame.name);
       const open = f === 3;
-      // 뚜껑이 덜 열려 있으면 안에 누운 사람은 보이지 않게 (닫힌 뚜껑 위로 머리카락이 삐져나오지 않게)
+      const closed = f === 0;
+      // 다 닫히면: 뚜껑 유리창 너머로 어둡게 비친다 (유리창 모양으로만, 어둡고 반투명)
+      // 여닫는 중간(2~3프레임)에는 안 보이게 (뚜껑 위로 머리카락이 삐져나오지 않게)
       inside.forEach((p) => {
-        p.sprite.setAlpha(open ? 1 : 0);
-        p.capHidden = !open;
         p.capSeen = true;
+        if (open) {
+          if (p.sprite.mask) p.sprite.clearMask();
+          if (p.capGlass) { p.capGlass = false; p.restoreTint(); }
+          p.sprite.setAlpha(1);
+          p.capHidden = false;
+        } else if (closed && p.capFit) {
+          if (!c.glassMask) c.glassMask = this.capsuleGlassMask(c);
+          if (p.sprite.mask !== c.glassMask) p.sprite.setMask(c.glassMask);
+          p.capGlass = true;
+          p.sprite.setTint(0x38404e);
+          p.sprite.setAlpha(0.55);
+          p.capHidden = true;
+        } else {
+          p.sprite.setAlpha(0);
+          p.capHidden = true;
+        }
+        if (p.capFit) p.sprite.setDepth(closed ? DEPTH.player + 2 : DEPTH.prop + 1);
       });
       c.spr.setDepth(occupied && !open ? DEPTH.player + 1 : DEPTH.prop);
       c.front.setVisible(occupied && open);
@@ -868,9 +996,24 @@ export class Stage {
     people.forEach((p) => {
       if (p.capHidden && !p.capSeen) {
         p.capHidden = false;
+        p.capGlass = false;
+        if (p.sprite.mask) p.sprite.clearMask();
+        p.restoreTint();
         p.sprite.setAlpha(1);
       }
     });
+  }
+
+  // 닫힌 뚜껑의 유리창 (capsule_anim.glass: 1프레임 칸 안 [x, y, w, h])
+  capsuleGlassMask(c) {
+    const sheet = G.spriteData.sheets.capsule_anim;
+    const crop = G.spriteData.capsule_crop || { h: 39 };
+    const top = c.def.y + crop.h - sheet.cell[1];
+    const [gx, gy, gw, gh] = sheet.glass || [16, 48, 56, 14];
+    const g = this.scene.make.graphics({ add: false });
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(c.def.x + gx, top + gy, gw, gh);
+    return g.createGeometryMask();
   }
 
   // 뚜껑 열기(1→4) / 닫기(4→1) + 소리

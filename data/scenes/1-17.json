@@ -32,7 +32,7 @@
     "props": [
       {"id": "light_door", "ph": "ph_door_light", "x": 18, "visible": false, "depth": 11, "glow": true, "keep": true},
       {"id": "cake", "crop": [71, 89, 51, 39], "cropBg": "obj_ch1", "x": 345, "y": 129, "scale": 0.6, "depth": 6},
-      {"id": "hat", "obj": "party_hat", "x": 412, "y": 240, "scale": 0.4, "depth": 22, "visible": false, "keep": true},
+      {"id": "hat", "obj": "party_hat", "x": 412, "y": 240, "depth": 22, "visible": false, "keep": true, "scale": 0.386},
       {"id": "crystal", "obj": "crystal_ch1", "x": 412, "y": 178, "scale": 0.45, "glow": true, "depth": 24, "visible": false, "label": "결정", "range": 18, "keep": true}
     ],
     "actors": [

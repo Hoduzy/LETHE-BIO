@@ -78,7 +78,18 @@ export class Hud {
     }
   }
 
+  // 대사창·말풍선이 떠 있거나 붕괴 연출 중이면 숨긴다 (대사창 모서리 밖으로 삐져나오지 않게)
+  setShown(on) {
+    if (this.shown === on) return;
+    this.shown = on;
+    this.g.setVisible(on);
+    if (this.hpG) this.hpG.setVisible(on);
+    this.items.forEach((o) => o.setVisible(on));
+  }
+
   update(player) {
+    const sc = this.scene;
+    const hide = !!(this.hidden || (sc.dialogue && sc.dialogue.visible) || sc.crumbleUnder);
     const key = Skills.list().map((s) => s.id + ':' + s.state).join(',');
     if (key !== this.lastKey) {
       this.lastKey = key;
@@ -96,6 +107,8 @@ export class Hud {
         g.fillRect(8 + i * 9, 7, 6, 6);
       }
     }
+    this.shown = null;
+    this.setShown(!hide);
   }
 
   destroy() {

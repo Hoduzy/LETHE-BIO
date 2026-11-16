@@ -281,3 +281,32 @@ export function isReal(key) {
 export function imageKey(name) {
   return G.realSprites.has(name) ? name : 'ph_' + name;
 }
+
+// 한 프레임의 불투명 픽셀 범위 (칸 안 좌표) → { x0, x1, y0, y1, w, h }. 처음 한 번만 재고 기억해 둔다
+const BOX = new Map();
+export function frameBox(scene, key, frameName) {
+  const id = key + ':' + frameName;
+  if (BOX.has(id)) return BOX.get(id);
+  const fr = scene.textures.getFrame(key, frameName);
+  if (!fr) return null;
+  const c = document.createElement('canvas');
+  c.width = fr.cutWidth;
+  c.height = fr.cutHeight;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(fr.source.image, fr.cutX, fr.cutY, fr.cutWidth, fr.cutHeight, 0, 0, fr.cutWidth, fr.cutHeight);
+  const d = ctx.getImageData(0, 0, c.width, c.height).data;
+  let x0 = 1e9, x1 = -1, y0 = 1e9, y1 = -1;
+  for (let y = 0; y < c.height; y++) {
+    for (let x = 0; x < c.width; x++) {
+      if (d[(y * c.width + x) * 4 + 3] > 8) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+  }
+  const box = x1 < 0 ? null : { x0, x1, y0, y1, w: x1 - x0 + 1, h: y1 - y0 + 1, fw: fr.cutWidth, fh: fr.cutHeight };
+  BOX.set(id, box);
+  return box;
+}

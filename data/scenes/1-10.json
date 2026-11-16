@@ -47,8 +47,8 @@
       {"id": "door", "ph": "ph_door", "x": 461},
       {"id": "low_table", "ph": "ph_low_table", "x": 390},
       {"id": "lamp", "obj": "lamp", "x": 352, "y": 200, "glow": true},
-      {"id": "burner", "ph": "ph_burner", "x": 380, "y": 200, "depth": 19, "keep": true},
-      {"id": "grill", "obj": "grill_meat", "x": 380, "y": 191, "scale": 1, "depth": 20, "keep": true}
+      {"id": "burner", "ph": "ph_burner", "x": 388, "depth": 19, "keep": true, "scaleX": 1.438, "scaleY": 1.035, "y": 202},
+      {"id": "grill", "obj": "grill_meat", "x": 388, "depth": 20, "keep": true, "scale": 0.605, "y": 194}
     ],
     "actors": [
       {"id": "mother", "char": "mother", "x": 342, "speaker": "어머니", "facing": 1, "anim": "sit_watch"}

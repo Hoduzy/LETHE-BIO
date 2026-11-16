@@ -103,6 +103,10 @@ export class StoryScene extends Phaser.Scene {
       // 시작 자세 (예: lie_sleep, capsule_sleep)
       this.player.lie(true, p.anim, { lift: p.lift, depth: p.depth });
     }
+    // 처음부터 캡슐 안에 누운 사람 (lane: capsule): 침대 길이에 맞춰 눕힌다
+    [this.player.cs, ...Object.values(this.stage.actors).map((e) => e.cs)].forEach((cs) => {
+      if (cs.laneName === 'capsule') this.stage.fitCapsule(cs);
+    });
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12, 0, 0);
     this.cameras.main.setRoundPixels(true);
     this.lastSafeX = this.player.x;
@@ -231,8 +235,13 @@ export class StoryScene extends Phaser.Scene {
   }
 
   async runSteps(steps) {
-    for (const step of steps) {
+    // 디버그 ?at=N : 이 장면의 N번째 단계(0부터)까지는 자동·빠르게 지나가고, 거기서부터 보통 속도 (연출 확인·캡처용)
+    const at = steps === this.def.steps && G.atStep != null && !this.atDone ? G.atStep : -1;
+    const was = at >= 0 ? { auto: G.auto, fast: G.fast } : null;
+    if (was) { G.auto = true; G.fast = true; }
+    for (const [i, step] of steps.entries()) {
       if (!this.alive) throw ABORT;
+      if (was && i === at) { G.auto = was.auto; G.fast = was.fast; this.atDone = true; }
       await this.runStep(step);
       if (!this.alive) throw ABORT;
     }
@@ -763,12 +772,20 @@ export class StoryScene extends Phaser.Scene {
       case 'anim': {
         if ('lift' in s) cs.setLift(s.lift);
         // idle·walk·run 말고는 한 번만 (loop: true 면 반복, hold: true 면 마지막 칸에서 멈춤)
-        const pr = cs.play(s.name, { loop: !!s.loop, once: !s.loop && !s.hold });
+        // 캡슐 안에서는 몸짓이 끝나도 서지 않는다 (누운·앉은 그림 그대로)
+        const inCap = cs.laneName === 'capsule';
+        const pr = cs.play(s.name, { loop: !!s.loop, once: !inCap && !s.loop && !s.hold });
+        if (inCap) this.stage.fitCapsule(cs);
         if (s.wait) await pr;
         break;
       }
       case 'stand':
         // 캡슐 위처럼 높이 누워 있던 인물을 바닥으로
+        if (cs.capFit) {
+          const cx = cs.inCapsule.cx;
+          this.stage.leaveCapsule(cs);
+          cs.setPosition(cx, cs.sprite.y);
+        }
         if (s.lane) await this.setLane(cs, s.lane);
         else cs.setPosition(cs.x, s.y != null ? s.y : this.stage.lane(cs.laneName).y);
         await cs.play(s.anim || 'idle');
@@ -802,12 +819,18 @@ export class StoryScene extends Phaser.Scene {
       case 'stand':
         // 누운 자세에서 일어나기 (wake 등 동작이 있으면 재생 후)
         if (s.anim) await pl.setOverride(s.anim);
+        if (pl.cs.capFit) {
+          const cx = pl.cs.inCapsule.cx;
+          this.stage.leaveCapsule(pl.cs);
+          pl.setX(cx);
+        }
         pl.lie(false);
         break;
       case 'lie':
         // lift: 바닥보다 높이 (캡슐 안), depth: 캡슐 뒤에 그리기
         if (s.x != null) pl.setX(s.x);
         pl.lie(true, s.anim || 'lie_sleep', { lift: s.lift, depth: s.depth });
+        if (pl.cs.laneName === 'capsule') this.stage.fitCapsule(pl.cs);
         break;
       case 'hide':
         pl.setVisible(false);
