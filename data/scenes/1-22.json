@@ -11,6 +11,7 @@
     "charScale": 1.5,
     "charTint": "#ffd4cc",
     "charBrightness": 0.74,
+    "tvScreen": [358, 134, 27, 29],
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash", "attack", "parry"],
@@ -121,9 +122,9 @@
       {"id": "L5", "x0": 1920, "right": {"to": "L1", "x": 30}}
     ],
     "effects": [
-      {"name": "tvStatic", "x": 362, "y": 141, "w": 24, "h": 26, "alpha": 0.7},
-      {"name": "tvStatic", "x": 842, "y": 141, "w": 24, "h": 26, "alpha": 0.7},
-      {"name": "tvStatic", "x": 1802, "y": 141, "w": 24, "h": 26, "alpha": 0.7}
+      {"name": "tvStatic", "dx": 0, "alpha": 0.7},
+      {"name": "tvStatic", "dx": 480, "alpha": 0.7},
+      {"name": "tvStatic", "dx": 1440, "alpha": 0.7}
     ],
     "playerHp": 6,
     "skills": {"orb": "active", "lamp": "lost"},

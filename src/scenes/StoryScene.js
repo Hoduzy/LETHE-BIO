@@ -88,9 +88,16 @@ export class StoryScene extends Phaser.Scene {
     this.lightTargets = [];
     this.stage = new Stage(this, st);
     const p = st.player || {};
-    this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char, hp: st.playerHp });
+    this.player = new Player(this, p.x != null ? p.x : 40, this.stage.floorY, { abilities: st.abilities || ['move'], facing: p.facing || 1, char: p.char, hp: st.playerHp, armed: p.armed });
     this.physics.add.collider(this.player.cs.zone, this.stage.solidGroup);
     this.setLane(this.player.cs, p.lane || 'floor', 0);
+    // 처음부터 의자에 앉아 있는 인물·도윤 (stage.seats, actors[].seat, player.seat)
+    (st.actors || []).forEach((a) => {
+      if (!a.seat) return;
+      const e = this.stage.get(a.id);
+      if (e) this.sitAt(e.cs, a.seat, a.anim || 'sit', { instant: true });
+    });
+    if (p.seat) this.sitAt(this.player.cs, p.seat, p.anim || 'sit', { instant: true });
     if (p.visible === false) this.player.setVisible(false);
     if (p.anim) {
       // 시작 자세 (예: lie_sleep, capsule_sleep)
@@ -317,7 +324,7 @@ export class StoryScene extends Phaser.Scene {
       if (s.speaker === '도윤') this.player.setOverride(s.anim);
       else {
         const a = this.stage.actorBySpeaker(s.speaker);
-        if (a) a.cs.play(s.anim);
+        if (a) a.cs.play(s.anim, { once: true });
       }
     }
     // 변질된 잔상의 반복 대사: 말할 때마다 음이 조금씩 더 끊기고 늦어진다
@@ -548,6 +555,7 @@ export class StoryScene extends Phaser.Scene {
   setLane(cs, name, ms = 220) {
     const ln = this.stage.lane(name);
     cs.laneName = ln.name;
+    cs.lightMul = ln.dim != null ? ln.dim : 1;
     const isPlayer = this.player && cs === this.player.cs;
     cs.baseDepth = cs.baseDepth != null ? cs.baseDepth : DEPTH.actor;
     cs.setDepth(cs.baseDepth + ln.depth);
@@ -610,6 +618,39 @@ export class StoryScene extends Phaser.Scene {
         }
       });
     });
+  }
+
+  // ---------- 의자 (stage.seats) ----------
+  // { id, x: 엉덩이 x, y: 좌판 높이, lane: 앞줄/뒷줄 이름, face: 1|-1, raise: 방석처럼 더 올림 }
+  //  앉은 그림은 발이 칸 맨 아래 → 그 줄 바닥에 두고, 그림의 무릎(허벅지) 높이(characters[].seatLap)가 좌판에 오도록 lift
+  seat(id) {
+    return (this.def.stage.seats || []).find((x) => x.id === id) || null;
+  }
+
+  sitAt(cs, seatId, anim = 'sit', opts = {}) {
+    const st = this.seat(seatId);
+    if (!st) return;
+    const isPlayer = this.player && cs === this.player.cs;
+    if (st.lane) this.setLane(cs, st.lane, 0);
+    const ln = this.stage.lane(st.lane);
+    // 앉은 사람은 도윤도 다른 인물과 같은 기준으로 앞줄·뒷줄 순서대로 그린다 (뒷줄이 앞줄을 덮지 않게)
+    cs.setDepth(DEPTH.actor + ln.depth + (isPlayer ? 0.01 : 0));
+    const lap = (cs.def && cs.def.seatLap) || 30;
+    const lift = Math.round((ln.y - st.y) - lap * cs.sk + (st.raise || 0) + (opts.raise || 0));
+    if (isPlayer) {
+      const pl = this.player;
+      pl.body.setVelocity(0, 0);
+      pl.setX(st.x);
+      pl.face(st.face || 1);
+      cs.setLift(lift);
+      pl.setOverride(anim);
+    } else {
+      cs.setPosition(st.x);
+      cs.face(st.face || 1);
+      cs.setLift(lift);
+      cs.play(anim);
+    }
+    cs.seatId = seatId;
   }
 
   async step_actor(s) {
@@ -700,13 +741,29 @@ export class StoryScene extends Phaser.Scene {
       case 'face':
         cs.face(s.dir);
         break;
+      // 의자까지 걸어가서 (도착한 뒤에만) 앉는다
+      case 'sit': {
+        const st = this.seat(s.seat);
+        if (!st) break;
+        cs.setLift(0);
+        if (Math.abs(cs.x - st.x) > 1) await this.moveChar(cs, st.x, s.speed || 45, 'idle');
+        this.sitAt(cs, s.seat, s.anim || 'sit');
+        break;
+      }
+      case 'standup':
+        cs.setLift(0);
+        if (s.lane !== null) await this.setLane(cs, s.lane || 'floor', 0);
+        cs.play(s.anim || 'idle');
+        cs.seatId = null;
+        break;
       case 'lane':
         await this.setLane(cs, s.lane, s.ms);
         break;
       // 이름으로 동작 재생 (data/sprites.json characters.<id>.anims). wait: true 면 끝날 때까지 기다림
       case 'anim': {
         if ('lift' in s) cs.setLift(s.lift);
-        const pr = cs.play(s.name);
+        // idle·walk·run 말고는 한 번만 (loop: true 면 반복, hold: true 면 마지막 칸에서 멈춤)
+        const pr = cs.play(s.name, { loop: !!s.loop, once: !s.loop && !s.hold });
         if (s.wait) await pr;
         break;
       }
@@ -760,6 +817,20 @@ export class StoryScene extends Phaser.Scene {
         break;
       case 'face':
         pl.face(s.dir);
+        break;
+      // 의자까지 걸어가서 앉는다 (도착한 뒤에만)
+      case 'sit': {
+        const st = this.seat(s.seat);
+        if (!st) break;
+        if (Math.abs(pl.x - st.x) > 1) await this.step_player({ action: 'move', x: st.x, speed: s.speed });
+        this.sitAt(pl.cs, s.seat, s.anim || 'sit');
+        break;
+      }
+      case 'standup':
+        pl.cs.setLift(0);
+        await this.setLane(pl.cs, s.lane || 'floor', 0);
+        pl.setOverride(null);
+        pl.cs.seatId = null;
         break;
       case 'lane':
         await this.setLane(pl.cs, s.lane, s.ms);

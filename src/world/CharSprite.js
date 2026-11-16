@@ -177,19 +177,29 @@ export class CharSprite {
   }
 
   // 동작 재생. 반복 없는 동작은 끝날 때 resolve
+  // opts.loop: 장면 JSON 의 loop: true (반복판), opts.once: 몸짓 — 한 번 재생한 뒤 idle 로
   play(name, opts = {}) {
     const a = this.anims[name];
     if (!a) return Promise.resolve();
     this.current = name;
+    this.playToken = (this.playToken || 0) + 1;
+    const token = this.playToken;
     const ph = a[1];
-    const animKey = this.resolve(name);
+    let animKey = this.resolve(name);
+    if (animKey && opts.loop && this.scene.anims.exists(animKey + '~loop')) animKey += '~loop';
     if (animKey && this.scene.anims.exists(animKey)) {
       this.clearPose();
       this.sprite.play(animKey, opts.restart ? false : true);
       const anim = this.scene.anims.get(animKey);
       if (anim.repeat === -1 || anim.frames.length <= 1) return Promise.resolve();
       return new Promise((res) => {
-        const done = () => res();
+        const done = () => {
+          res();
+          // 몸짓은 끝나면 idle (그사이 다른 동작을 시작했으면 그대로)
+          if (this.playToken !== token) return;
+          if (opts.then && this.anims[opts.then]) this.play(opts.then);
+          else if (opts.once && name !== 'idle' && this.anims.idle) this.play('idle');
+        };
         this.sprite.once('animationcomplete', done);
         this.sprite.once('animationstop', done);
       });

@@ -10,6 +10,7 @@
     "charScale": 1.5,
     "charTint": "#ffd4cc",
     "charBrightness": 0.74,
+    "tvScreen": [358, 134, 27, 29],
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -41,7 +42,7 @@
     ],
     "windowBreath": true,
     "effects": [
-      {"name": "tvStatic", "x": 362, "y": 141, "w": 24, "h": 26, "alpha": 0.7}
+      {"name": "tvStatic", "alpha": 0.7}
     ]
   },
   "steps": [

@@ -418,13 +418,17 @@ export class Stage {
       const ln = this.lane(a.lane);
       const cs = new CharSprite(s, a.x, a.y != null ? a.y : ln.y, a.char, { depth: a.depth != null ? a.depth : DEPTH.actor });
       cs.laneName = ln.name;
+      cs.lightMul = ln.dim != null ? ln.dim : 1;
       cs.setDepth(cs.baseDepth + ln.depth);
       if (ln.scale !== 1) cs.setLaneScale(ln.scale);
       cs.face(a.facing || 1);
-      if (a.phase) cs.afterFx = new AfterimageFx(s, cs, { phase: a.phase, level: a.level, skin: a.skin ? col(a.skin) : undefined });
+      if (a.phase) {
+        cs.afterFx = new AfterimageFx(s, cs, { phase: a.phase, level: a.level, skin: a.skin ? col(a.skin) : undefined });
+        s.events.once('shutdown', () => cs.afterFx && cs.afterFx.destroy());
+      }
       if (a.visible === false) cs.setVisible(false);
       if (a.alpha != null) cs.setAlpha(a.alpha);
-      if (a.anim) cs.play(a.anim);
+      if (a.anim) cs.play(a.anim, { loop: !!a.loop, once: !a.loop && !a.hold });
       const entry = { id: a.id, kind: 'actor', cs, obj: cs.sprite, def: a, label: a.label || a.speaker, speaker: a.speaker };
       this.actors[a.id] = entry;
       if (a.examine || a.interact) this.interactables.push(entry);
@@ -769,8 +773,11 @@ export class Stage {
   }
 
   // 아무것도 안 나오고 지직거리기만 하는 TV 화면
-  fxTvStatic({ x = 0, y = 0, w = 40, h = 26, alpha = 1 }) {
+  // stage.tvScreen [x, y, w, h] (배경 그림 속 TV 화면, 편집 모드에서 끌어 고침)이 있으면 그 안에만. dx: 구역(areas) 이동량
+  fxTvStatic({ x = 0, y = 0, w = 40, h = 26, alpha = 1, dx = 0 }) {
     const s = this.scene;
+    if (this.def.tvScreen) [x, y, w, h] = this.def.tvScreen;
+    x += dx;
     // 배경 그림 속 TV 화면 위에 얹을 때는 alpha 를 낮춰 그림의 화면과 섞는다
     const g = s.add.graphics().setDepth(DEPTH.prop + 1).setAlpha(alpha);
     let t = 0;
@@ -916,6 +923,7 @@ export class Stage {
       const x = fromX - dir * gap * i;
       const cs = new CharSprite(s, x, ln.y, c, { depth: DEPTH.actor - 2 });
       cs.laneName = ln.name;
+      cs.lightMul = ln.dim != null ? ln.dim : 1;
       cs.setDepth(cs.baseDepth + ln.depth);
       if (ln.scale !== 1) cs.setLaneScale(ln.scale);
       cs.lightMul = ln.dim != null ? ln.dim : 1;

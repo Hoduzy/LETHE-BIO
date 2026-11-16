@@ -69,6 +69,8 @@ export class Player {
     this.fx = scene.add.graphics().setDepth(DEPTH.fx);
     // 체력: 장면이 정할 때만 (1장 전투 다이브). 프롤로그는 없음
     this.maxHp = opts.hp || 0;
+    // 리퍼는 던전·전투·수확 때만: 공격 능력이 없으면 서 있을 때 빈손 (stage.player.armed 로 바꿀 수 있음)
+    this.unarmed = opts.armed != null ? !opts.armed : (this.dive && !this.abilities.has('attack'));
     this.hp = this.maxHp;
     this.invuln = 0;
   }
@@ -254,7 +256,8 @@ export class Player {
         } else if (Math.abs(b.velocity.x) > 1) {
           this.setAnim('run');
         } else {
-          this.setAnim('idle');
+          // 공격이 없는 꿈속 장면(식탁·대화): 리퍼 없는 빈손 서 있기 (그림이 있을 때)
+          this.setAnim(this.unarmed && this.cs.anims.free ? 'free' : 'idle');
         }
       } else {
         this.setAnim(Math.abs(b.velocity.x) > 1 && grounded ? 'walk' : 'idle');

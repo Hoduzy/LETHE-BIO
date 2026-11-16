@@ -101,6 +101,10 @@ export function registerAnims(scene, json, real) {
       const key = `${sheetKey}.${name}`;
       if (scene.anims.exists(key)) scene.anims.remove(key);
       scene.anims.create({ key, frames, frameRate: fps || 8, repeat: loop === 'loop' ? -1 : 0 });
+      // 장면 JSON 에서 loop: true 로 부를 때만 쓰는 반복판 (기본은 idle·walk·run·숨쉬기만 반복)
+      const lk = key + '~loop';
+      if (scene.anims.exists(lk)) scene.anims.remove(lk);
+      if (frames.length > 1) scene.anims.create({ key: lk, frames, frameRate: fps || 8, repeat: -1 });
     });
   });
 }

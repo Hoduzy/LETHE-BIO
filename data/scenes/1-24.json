@@ -10,6 +10,7 @@
     "charScale": 1.5,
     "charTint": "#ffd4cc",
     "charBrightness": 0.74,
+    "tvScreen": [358, 134, 27, 29],
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
@@ -41,7 +42,7 @@
     ],
     "windowBreath": true,
     "effects": [
-      {"name": "tvStatic", "x": 362, "y": 141, "w": 24, "h": 26, "alpha": 0.7}
+      {"name": "tvStatic", "alpha": 0.7}
     ],
     "skills": {"orb": "active", "lamp": "lost"},
     "companion": {"id": "harin", "hud": true}
@@ -56,6 +57,7 @@
     {"type": "say", "speaker": "하린", "text": "엄마. 나 여기 있어. 묶어 줘.", "face": 4},
     {"type": "say", "speaker": "엄마(잔상)", "text": "가만히… 있어…", "face": 3},
     {"type": "actor", "id": "mom", "action": "move", "x": 326, "face": -1, "anim": "tie_hair", "speed": 12},
+    {"type": "actor", "id": "mom", "action": "anim", "name": "tie_hair", "loop": true},
     {"type": "narration", "text": "엄마의 손이 하린의 머리에 닿는다. 처음으로 닿는다."},
     {"type": "narration", "text": "엄마가 하린의 머리를 묶는다. 천천히. 익숙한 손길로."},
     {"type": "parallel", "steps": [{"type": "actor", "id": "harin", "action": "hide", "fade": 500}, {"type": "actor", "id": "harin_tied", "action": "show", "x": 300, "fade": 500}]},

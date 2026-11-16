@@ -40,7 +40,11 @@ CHAR_HEIGHT = {
     'harin_actions': 96, 'harin_loose_actions': 96, 'harin_moods': 96,
     'harin_mom_actions': 92, 'harin_dad_actions': 100, 'hajun_actions': 70,
     'butcher_actions': 98, 'enemy_shade': 96,
+    # 앉은 자세 시트: 다이버는 1칸이 선 자세(96). 하린은 모두 앉은 자세라 원본의 '앉은 키 / 선 키' 비율(0.83)로 96 × 0.83
+    'diver_sit': 96, 'harin_sit': 80,
 }
+# 몸과 떨어진 작은 덩어리(효과 선)를 지울 프레임 (1부터): 엄마 국자 칸의 '부르는' 선
+CLEAN_DETACHED = {'harin_mom_actions': [6]}
 # 키를 잴 프레임 (첫 칸이 서 있는 자세가 아닌 시트): harin_moods 1칸은 앉은 자세 → 2칸(서서 손 뻗기)
 REF_FRAME = {'harin_moods': 1}
 BASE_HEIGHT = 96
@@ -236,6 +240,39 @@ def drop_edge_fragments(small, left_cut, right_cut):
         if touches and sizes[c] < big * 0.25:
             small[lab == c, 3] = 0
     return small
+
+
+def keep_main_body(a):
+    """가장 큰 덩어리(몸)와 붙어 있지 않은 작은 픽셀 덩어리를 지운다"""
+    al = a[..., 3] > 0
+    h, w = al.shape
+    lab = np.zeros((h, w), np.int32)
+    sizes = [0]
+    n = 0
+    for y in range(h):
+        for x in range(w):
+            if al[y, x] and not lab[y, x]:
+                n += 1
+                stack = [(y, x)]
+                lab[y, x] = n
+                cnt = 0
+                while stack:
+                    cy, cx = stack.pop()
+                    cnt += 1
+                    for dy in (-1, 0, 1):
+                        for dx in (-1, 0, 1):
+                            yy, xx = cy + dy, cx + dx
+                            if 0 <= yy < h and 0 <= xx < w and al[yy, xx] and not lab[yy, xx]:
+                                lab[yy, xx] = n
+                                stack.append((yy, xx))
+                sizes.append(cnt)
+    if n <= 1:
+        return a
+    main = int(np.argmax(sizes))
+    out = a.copy()
+    out[(lab != main) & al] = 0
+    REPORT['notes'].append(f'몸과 떨어진 덩어리 {n - 1}개 지움')
+    return out
 
 
 def bbox(alpha):
@@ -485,6 +522,8 @@ def process_char(name, sheet):
     for i, f in enumerate(frames):
         # 칸마다 따로 평균 색으로 줄인다
         small = drop_edge_fragments(clean_specks(scale_area(f, s)), *flags[i])
+        if i + 1 in CLEAN_DETACHED.get(name, []):
+            small = keep_main_body(small)
         al = small[..., 3] > 0
         if not al.any():
             continue

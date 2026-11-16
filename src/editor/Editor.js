@@ -23,6 +23,8 @@ const COLORS = {
   step: 0xd4e157,     // 스크립트 안의 위치 (이동 목표, 적 생성 등)
   line: 0xffffff,     // 바닥선
   occ: 0xff4fd8,      // 앞 가림막
+  face: 0xff8a65,     // 잔상 얼굴 영역
+  seat: 0xffd54f,     // 의자 좌석
   lane: 0xa5d6a7      // 앞뒤 줄 (lane)
 };
 const CORNER = 7;   // 모서리 잡는 범위 (게임 픽셀)
@@ -160,6 +162,59 @@ export class Editor {
       if (a.examine || a.interact) this.addRange(H_, a, () => e.cs.sprite.x, () => e.cs.sprite.getBounds().y, () => (a.y != null ? a.y : fy));
     });
 
+    // 잔상의 얼굴 영역 (지금 보이는 프레임). 끌면 data/sprites.json 의 그 시트·그 프레임 faces 가 바뀐다 → '얼굴 영역 복사'
+    (st.actors || []).forEach((a) => {
+      const e = s.stage.actors[a.id];
+      if (!e || !e.cs.afterFx) return;
+      const fx = e.cs.afterFx;
+      fx.set('corrupt', Math.max(0.5, fx.level || 0));
+      const spr = e.cs.sprite;
+      const rectNow = () => fx.faceRect();
+      H_.push({
+        get label() { return `${a.id} 얼굴 · ${spr.texture.key} ${(+spr.frame.name || 0) + 1}칸`; },
+        color: COLORS.face,
+        resizable: true,
+        rect: () => {
+          const r = rectNow();
+          if (!r) return { x: -99, y: -99, w: 1, h: 1 };
+          const w = fx.faceWorld(r);
+          return { x: w.x, y: w.y, w: w.w, h: w.h };
+        },
+        apply: (r) => {
+          const cur = rectNow();
+          if (!cur) return;
+          const w0 = fx.faceWorld(cur);
+          const sx = w0.sx;
+          const sy = w0.sy;
+          const nw = Math.max(2, r0(r.w / sx));
+          const nh = Math.max(2, r0(r.h / sy));
+          const f = spr.frame;
+          const left = spr.x - spr.originX * f.width * sx;
+          const top = spr.y - spr.originY * f.height * sy;
+          let nx = r0((r.x - left) / sx);
+          if (spr.flipX) nx = f.width - nx - nw;
+          const ny = r0((r.y - top) / sy);
+          const sheet = G.spriteData.sheets[spr.texture.key];
+          sheet.faces[String((+f.name || 0) + 1)] = [nx, ny, nw, nh];
+          G.editFaces = G.editFaces || {};
+          G.editFaces[spr.texture.key] = sheet.faces;
+          fx.lastFrame = null;
+          if (this.faceBtn) this.faceBtn.textContent = '얼굴 영역 복사 *';
+        }
+      });
+    });
+
+    // 의자 (좌석): 점을 끌면 엉덩이 x·좌판 y
+    (st.seats || []).forEach((se) => {
+      H_.push({
+        label: `의자 ${se.id} (${se.lane || 'floor'})`,
+        color: COLORS.seat,
+        rebuild: true,
+        rect: () => ({ x: se.x - 4, y: se.y - 4, w: 8, h: 8 }),
+        apply: (r) => { se.x = r0(r.x + 4); se.y = r0(r.y + 4); }
+      });
+    });
+
     // 도윤 시작 위치
     const pl = s.player;
     st.player = st.player || {};
@@ -257,6 +312,17 @@ export class Editor {
     });
 
     // 연출 위치 (물방울·창문 밖 발·로비 화면 등) — 놓으면 장면을 다시 그린다
+    // 배경 그림 속 TV 화면 (지직거림은 이 안에만)
+    if (st.tvScreen) {
+      H_.push({
+        label: 'TV 화면 (tvScreen)',
+        color: COLORS.fx,
+        resizable: true,
+        rebuild: true,
+        rect: () => ({ x: st.tvScreen[0], y: st.tvScreen[1], w: st.tvScreen[2], h: st.tvScreen[3] }),
+        apply: (r) => { st.tvScreen = [r0(r.x), r0(r.y), r0(r.w), r0(r.h)]; }
+      });
+    }
     (st.effects || []).forEach((fx) => {
       if (typeof fx !== 'object' || fx.x == null) return;
       const hasBox = fx.w != null && fx.h != null;
@@ -504,6 +570,7 @@ export class Editor {
       <button class="steps"></button>
       <button class="occdraw">가림막 그리기</button>
       <button class="occdel">선택한 가림막 지우기</button>
+      <button class="facecopy">얼굴 영역 복사</button>
       <span class="info"></span>
       <div class="sliders">
         <label>인물 배율 <input type="range" class="charScale" min="0.5" max="3" step="0.05"><b></b></label>
@@ -538,6 +605,18 @@ export class Editor {
     this.setupSliders(bar);
     this.setupOccluderTools(bar);
     this.setupLaneSliders(bar);
+    // 잔상 얼굴 영역: 바꾼 시트의 faces 를 JSON 으로 (data/sprites.json 의 그 시트 "faces" 에 붙여넣기)
+    this.faceBtn = bar.querySelector('.facecopy');
+    if (G.editFaces && Object.keys(G.editFaces).length) this.faceBtn.textContent = '얼굴 영역 복사 *';
+    this.faceBtn.addEventListener('click', () => {
+      const out = {};
+      Object.entries(G.editFaces || {}).forEach(([k, v]) => { out[k] = { faces: v }; });
+      const text = JSON.stringify(out);
+      if (!Object.keys(out).length) { this.toast('바꾼 얼굴 영역이 없습니다'); return; }
+      try {
+        navigator.clipboard.writeText(text).then(() => this.toast('얼굴 영역을 복사했습니다'), () => this.showTextBox(text));
+      } catch (e) { this.showTextBox(text); }
+    });
     this.s.events.once('shutdown', () => { if (bar.parentNode) bar.remove(); });
   }
 

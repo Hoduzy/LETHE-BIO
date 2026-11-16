@@ -274,7 +274,11 @@ const methods = {
           const base = cs.liftY;
           cs.setLift(base - 3);
           this.time.delayedCall(140, () => cs.setLift(base));
-        } else if (a.who === 'player') this.player.setOverride(a.name);
+        } else if (a.who === 'player') {
+          // 누를 때마다 처음부터 다시 (먹기 등), 끝나면 end 자세로
+          this.player.override = a.name;
+          this.player.cs.play(a.name, { restart: true, then: typeof a.end === 'string' ? a.end : null });
+        }
         else {
           const e = this.stage.get(a.who);
           if (e) e.cs.play(a.name);
