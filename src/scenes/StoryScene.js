@@ -21,6 +21,7 @@ import { Player } from '../world/Player.js';
 import { VoidEnemy, Mannequin, ShadeEnemy } from '../world/Enemies.js';
 import { installStorySteps1 } from './StorySteps1.js';
 import { Skills } from '../core/skills.js';
+import { Progress } from '../core/progress.js';
 
 const ABORT = Symbol('abort');
 
@@ -72,7 +73,8 @@ export class StoryScene extends Phaser.Scene {
     this.events.once('shutdown', () => { this.alive = false; });
     this.events.once('destroy', () => { this.alive = false; });
 
-    if (!G.edit) Save.saveProgress(this.sceneId, { chapter: (chapterOf(this.sceneId) || {}).id });
+    // 장면이 시작될 때마다 자동 저장 (구석에 작은 '저장됨')
+    if (!G.edit && Save.saveProgress(this.sceneId, { chapter: (chapterOf(this.sceneId) || {}).id })) this.flashSaved(900);
     Audio.restore();
     Audio.setAmbience(G.edit ? [] : (def.stage && def.stage.ambience) || []);
     Audio.setConveyorRunning(true);
@@ -407,6 +409,19 @@ export class StoryScene extends Phaser.Scene {
     return Promise.resolve();
   }
 
+  // 화면 구석에 작은 '저장됨' 1초
+  flashSaved(delay = 0) {
+    this.time.delayedCall(G.auto ? 0 : delay, () => {
+      if (!this.alive) return;
+      if (this.savedTxt) this.savedTxt.destroy();
+      const t = txt(this, W - 6, H - 14, '저장됨', { small: true, color: '#9aa4ae', origin: [1, 0], depth: DEPTH.top + 10 });
+      t.setScrollFactor(0);
+      this.savedTxt = t;
+      t.setAlpha(0);
+      this.tweens.add({ targets: t, alpha: 0.85, duration: 150, yoyo: true, hold: 700, onComplete: () => t.destroy() });
+    });
+  }
+
   async step_settlement(s) {
     // 누적 정산 금액·유대 지수 저장 (amount: 이번 금액, bond: 유대 지수)
     if (!G.edit && (s.amount || s.bond != null)) {
@@ -422,7 +437,9 @@ export class StoryScene extends Phaser.Scene {
         }
       }
       if (s.bond != null) extra.bond = s.bond;
-      Save.saveProgress(this.sceneId, extra);
+      // 정산 내역(품목·등급은 data/chapters.json)
+      if (s.amount && Progress.settlementOf(this.sceneId)) extra.log = Progress.recordSettlement(this.sceneId);
+      if (Save.saveProgress(this.sceneId, extra)) this.flashSaved(300);
     }
     this.panels.settlement(s);
     if (s.bondFlash != null) this.step_bond({ value: s.bondFlash, lines: [`유대 지수: ${s.bondFlash}`] });

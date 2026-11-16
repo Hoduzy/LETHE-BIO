@@ -116,6 +116,7 @@
     "bg_street_billboard":    { "size": [480, 270], "use": "P-3 거리" },
     "bg_convenience_store":   { "size": [480, 270], "use": "P-4 편의점, 진열 미니게임" },
     "bg_lethe_lobby":         { "size": [480, 270], "use": "P-6 로비" },
+    "bg_lobby": {"size": [480, 270], "use": "시작 화면(다이버 단말기) 뒤 배경. 흐리게·밝게 깔린다", "smooth": true},
     "bg_interview_room":      { "size": [480, 270], "use": "P-7 면접실, P-12 윤 실장 사무실" },
     "bg_locker_room":         { "size": [480, 270], "use": "P-8 탈의실" },
     "bg_dive_room":           { "size": [480, 270], "use": "P-9, P-11 교육실" },

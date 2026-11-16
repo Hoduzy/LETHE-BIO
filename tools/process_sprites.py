@@ -674,6 +674,9 @@ def process_image(name, spec):
         return im.resize((w, h), Image.NEAREST)
     if name.startswith('bg_') or name in ('title_logo', 'harin_photo'):
         im = Image.open(os.path.join(ORIG, name + '.png')).convert('RGBA')
+        if spec.get('smooth'):
+            # 도트가 아닌 그림(시작 화면 배경): 고품질로 줄인다
+            return im.resize((w, h), Image.LANCZOS)
         out = cover(im, w, h)
         if name in SEAMLESS:
             before = edge_diff(out)
@@ -915,7 +918,8 @@ def main():
             if os.path.exists(bak):
                 shutil.copy2(bak, src)
             continue
-        img = quantize(img, 32)
+        if not (IMAGES.get(name) or {}).get('smooth'):
+            img = quantize(img, 32)
         if name in CLEAR_OUTSIDE:
             img = clear_outside(img)
         img.save(src)

@@ -47,10 +47,34 @@ export const Save = {
     const s = read(SAVE_KEY);
     return !!(s && s.sceneId);
   },
+  // 저장. localStorage 에 썼으면 true (막혀 있으면 메모리에만 → false)
   saveProgress(sceneId, extra = {}) {
     const s = read(SAVE_KEY) || {};
     Object.assign(s, extra, { sceneId, savedAt: Date.now() });
-    write(SAVE_KEY, s);
+    return write(SAVE_KEY, s);
+  },
+  // 장 선택·장면 선택·세이브 코드로 저장을 통째로 바꾼다. 끝낸 장 표시(cleared)는 합친다
+  replace(state) {
+    const old = read(SAVE_KEY) || {};
+    const s = Object.assign({}, state);
+    s.cleared = Array.from(new Set([...(old.cleared || []), ...(state.cleared || [])]));
+    return write(SAVE_KEY, s);
+  },
+  // 세이브 코드로 불러올 때: 저장을 그대로 바꾼다
+  set(state) {
+    return write(SAVE_KEY, Object.assign({}, state));
+  },
+  // 브라우저 저장소를 쓸 수 있는가 (비공개 탭 등에서는 false)
+  storageOk() {
+    try {
+      const k = '__lb_test__';
+      window.localStorage.setItem(k, '1');
+      const ok = window.localStorage.getItem(k) === '1';
+      window.localStorage.removeItem(k);
+      return ok;
+    } catch (e) {
+      return false;
+    }
   },
   markChapterCleared(chapterId, nextSceneId) {
     const s = read(SAVE_KEY) || {};
@@ -59,9 +83,9 @@ export const Save = {
     s.savedAt = Date.now();
     write(SAVE_KEY, s);
   },
+  // 처음부터: 다이브 기록을 모두 지운다
   clearProgress() {
-    const s = read(SAVE_KEY) || {};
-    write(SAVE_KEY, { cleared: s.cleared || [] });
+    write(SAVE_KEY, {});
   },
   reset() {
     remove(SAVE_KEY);

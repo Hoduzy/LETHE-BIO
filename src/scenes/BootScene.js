@@ -18,6 +18,8 @@ export class BootScene extends Phaser.Scene {
     this.load.json('voices', 'data/voices.json');
     this.load.json('sprites', 'data/sprites.json');
     this.load.json('skills', 'data/skills.json');
+    this.load.json('chapterData', 'data/chapters.json');
+    this.load.json('lobby', 'data/lobby.json');
   }
 
   create() {
@@ -25,6 +27,8 @@ export class BootScene extends Phaser.Scene {
     G.speakers = this.cache.json.get('speakers') || {};
     G.voices = this.cache.json.get('voices') || {};
     G.spriteData = this.cache.json.get('sprites') || {};
+    G.chapterData = this.cache.json.get('chapterData') || { chapters: [] };
+    G.lobby = this.cache.json.get('lobby') || {};
     Audio.setVoices(G.voices);
     Skills.init(this.cache.json.get('skills') || {});
 

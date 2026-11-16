@@ -1,0 +1,408 @@
+{
+ "_설명": "장마다 메뉴 카드 정보, 시작값(누적 정산·유대 지수·하린 스킬·장별 수확 횟수), 장 안에서 일어나는 일(events: 그 장면에서 바뀌는 값), 정산 목록(정산 내역·회상관). 장 중간 장면부터 시작하면 그 장면 '직전'까지의 events 와 정산을 더한 값으로 시작한다. 값은 대본 각 장 끝의 누적 정산·유대 지수, 회상관 정보는 4장 #4-29.",
+ "chapters": [
+  {
+   "id": "prologue",
+   "title": "프롤로그 「반지하」",
+   "short": "프롤로그",
+   "zone": "교육용 시뮬레이션",
+   "playtime": "약 1시간",
+   "start": {
+    "money": 0,
+    "bond": 0,
+    "skills": {
+     "orb": "locked",
+     "lamp": "active"
+    },
+    "harvests": {}
+   },
+   "events": [
+    {
+     "scene": "P-10",
+     "harvest": 1
+    }
+   ],
+   "settlements": [],
+   "end": {
+    "money": 0,
+    "bond": 0
+   }
+  },
+  {
+   "id": "chapter1",
+   "title": "1장 「저녁 식탁」",
+   "short": "1장",
+   "zone": "하린의 집",
+   "playtime": "약 3시간",
+   "start": {
+    "money": 0,
+    "bond": 0,
+    "skills": {
+     "orb": "locked",
+     "lamp": "active"
+    },
+    "harvests": {
+     "prologue": 1
+    }
+   },
+   "events": [
+    {
+     "scene": "1-3",
+     "bond": 3
+    },
+    {
+     "scene": "1-7",
+     "harvest": 1,
+     "skills": {
+      "lamp": "lost"
+     }
+    },
+    {
+     "scene": "1-16",
+     "skills": {
+      "orb": "active"
+     }
+    },
+    {
+     "scene": "1-17",
+     "harvest": 1
+    },
+    {
+     "scene": "1-24",
+     "harvest": 1
+    },
+    {
+     "scene": "1-25",
+     "bond": 21
+    }
+   ],
+   "settlements": [
+    {
+     "scene": "1-8",
+     "item": "따뜻한 가족 저녁",
+     "grade": "B",
+     "amount": 1240000,
+     "day": "1일차",
+     "hall": {
+      "category": "가족",
+      "grade": "B",
+      "price": "회상 1회 128,000원"
+     }
+    },
+    {
+     "scene": "1-18",
+     "item": "동생의 열 번째 생일",
+     "grade": "B",
+     "amount": 1380000,
+     "day": "3일차",
+     "hall": {
+      "category": "가족",
+      "grade": "B",
+      "price": "품절",
+      "soldOut": true
+     }
+    },
+    {
+     "scene": "1-25",
+     "item": "엄마가 묶어준 머리",
+     "grade": "B+",
+     "amount": 1610000,
+     "day": "5일차",
+     "hall": {
+      "category": "가족",
+      "grade": "B+",
+      "price": "회상 1회 165,000원",
+      "review": "★★★★★ \"엄마 손이 머리에 닿는 순간 울컥했어요. 저희 엄마는 바빠서 한 번도 안 해 줬거든요.\""
+     }
+    }
+   ],
+   "end": {
+    "money": 4230000,
+    "bond": 21
+   }
+  },
+  {
+   "id": "chapter2",
+   "title": "2장 「운동장」",
+   "short": "2장",
+   "zone": "하린의 고등학교",
+   "playtime": "약 3시간",
+   "start": {
+    "money": 4230000,
+    "bond": 21,
+    "skills": {
+     "orb": "active",
+     "lamp": "lost"
+    },
+    "harvests": {
+     "prologue": 1,
+     "chapter1": 3
+    }
+   },
+   "settlements": [
+    {
+     "scene": "2-10",
+     "item": "계주 꼴찌, 그리고 박수",
+     "grade": "A-",
+     "amount": 2400000,
+     "hall": {
+      "category": "청춘",
+      "grade": "A-",
+      "price": "회상 1회 248,000원",
+      "review": "★★★★★ \"아빠 박수 소리에 소름. 진짜 이런 아빠가 있어요?\""
+     }
+    },
+    {
+     "scene": "2-20",
+     "item": "단짝과의 교환일기",
+     "grade": "A-",
+     "amount": 2650000,
+     "hall": {
+      "category": "청춘",
+      "grade": "A-",
+      "price": "품절",
+      "soldOut": true
+     }
+    },
+    {
+     "scene": "2-29",
+     "item": "졸업식 날 아빠의 꽃다발",
+     "grade": "A",
+     "amount": 3100000
+    }
+   ],
+   "end": {
+    "money": 12380000,
+    "bond": 48
+   }
+  },
+  {
+   "id": "chapter3",
+   "title": "3장 「바다」",
+   "short": "3장",
+   "zone": "가족 여행, 그리고 아빠",
+   "playtime": "약 3.5시간",
+   "start": {
+    "money": 12380000,
+    "bond": 48,
+    "skills": {
+     "orb": "active",
+     "lamp": "lost"
+    },
+    "harvests": {
+     "prologue": 1,
+     "chapter1": 3,
+     "chapter2": 3
+    }
+   },
+   "settlements": [
+    {
+     "scene": "3-10",
+     "item": "처음 본 바다",
+     "grade": "A",
+     "amount": 3800000,
+     "hall": {
+      "category": "여행",
+      "grade": "A",
+      "price": "회상 1회 390,000원",
+      "review": "★★★★★ \"인생 회상. 목말 탄 느낌이 아직도 남아 있어요.\""
+     }
+    },
+    {
+     "scene": "3-21",
+     "item": "아빠 등에 업혀 본 불꽃놀이",
+     "grade": "A+",
+     "amount": 5200000
+    },
+    {
+     "scene": "3-32",
+     "item": "아빠를 보내던 날",
+     "grade": "A+",
+     "amount": 6300000,
+     "hall": {
+      "category": "애도",
+      "grade": "A+",
+      "price": "회상 1회 640,000원",
+      "review": "★★★★☆ \"부모님 아직 건강하신데 미리 마음 준비하려고 해 봤어요. 많이 울었고 뭔가 정리된 느낌. 다만 동생 손 잡는 부분이 좀 길어요.\""
+     }
+    }
+   ],
+   "end": {
+    "money": 27680000,
+    "bond": 71
+   }
+  },
+  {
+   "id": "chapter4",
+   "title": "4장 「정류장」",
+   "short": "4장",
+   "zone": "사고 당일",
+   "playtime": "약 3.5시간",
+   "start": {
+    "money": 27680000,
+    "bond": 71,
+    "skills": {
+     "orb": "active",
+     "lamp": "lost"
+    },
+    "harvests": {
+     "prologue": 1,
+     "chapter1": 3,
+     "chapter2": 3,
+     "chapter3": 3
+    }
+   },
+   "settlements": [
+    {
+     "scene": "4-7",
+     "item": "사고 전날 밤, 엄마와의 통화",
+     "grade": "S-",
+     "amount": 8900000
+    },
+    {
+     "scene": "4-16",
+     "item": "동생에게 보내지 못한 문자",
+     "grade": "A",
+     "amount": 4700000
+    },
+    {
+     "scene": "4-28",
+     "item": "마지막 신호등",
+     "grade": "S",
+     "amount": 11000000,
+     "hall": {
+      "category": "스릴",
+      "grade": "S",
+      "price": "입고 예정"
+     }
+    }
+   ],
+   "end": {
+    "money": 52280000,
+    "bond": 89
+   }
+  },
+  {
+   "id": "chapter5",
+   "title": "5장 「우리」",
+   "short": "5장",
+   "zone": "두 사람이 함께 만든 기억",
+   "playtime": "약 4시간",
+   "start": {
+    "money": 52280000,
+    "bond": 89,
+    "skills": {
+     "orb": "active",
+     "lamp": "lost"
+    },
+    "harvests": {
+     "prologue": 1,
+     "chapter1": 3,
+     "chapter2": 3,
+     "chapter3": 3,
+     "chapter4": 3
+    }
+   },
+   "settlements": [
+    {
+     "scene": "5-7",
+     "item": "노을 아래, 같이 갇힌 친구",
+     "grade": "S",
+     "amount": 12500000
+    },
+    {
+     "scene": "5-18",
+     "item": "나가면 할 것",
+     "grade": "S",
+     "amount": 15000000
+    },
+    {
+     "scene": "5-31",
+     "item": "우리",
+     "grade": "SS",
+     "amount": 48000000,
+     "hall": {
+      "category": "첫사랑 컬렉션",
+      "grade": "SS",
+      "price": "한정 1점 / 경매 진행 예정"
+     }
+    }
+   ],
+   "end": {
+    "money": 127780000,
+    "bond": 0
+   }
+  },
+  {
+   "id": "epilogue",
+   "title": "에필로그 「처음 뵙겠습니다」",
+   "short": "에필로그",
+   "zone": "-",
+   "playtime": "약 30~40분",
+   "start": {
+    "money": 127780000,
+    "bond": 0,
+    "skills": {
+     "orb": "active",
+     "lamp": "lost"
+    },
+    "harvests": {
+     "prologue": 1,
+     "chapter1": 3,
+     "chapter2": 3,
+     "chapter3": 3,
+     "chapter4": 3,
+     "chapter5": 3
+    }
+   },
+   "settlements": [],
+   "end": {
+    "money": 127780000,
+    "bond": 3
+   }
+  }
+ ],
+ "sceneTitles": {
+  "1-1": "레테 바이오 / 다이브실 / 오전 9시",
+  "1-10": "반지하 / 밤",
+  "1-11": "편의점 / 밤",
+  "1-12": "다이브실 / 두 번째 다이브",
+  "1-13": "두 번째 다이브 / 하린의 집 / 현관",
+  "1-14": "하린의 집 / 거실 / 변질",
+  "1-15": "하린의 집 / 식탁",
+  "1-16": "[던전 구간] 젖은 집",
+  "1-17": "하준의 방 / 두 번째 결정",
+  "1-18": "다이브실 / 정산",
+  "1-19": "반지하 / 25일",
+  "1-2": "첫 다이브 / 하린의 집 / 현관",
+  "1-20": "레테 바이오 / 휴게실",
+  "1-21": "세 번째 다이브 / 하린의 집 / 현관",
+  "1-22": "[던전 구간] 끝없는 거실",
+  "1-23": "하린의 방 / 머리 묶기",
+  "1-24": "거실 / 세 번째 결정",
+  "1-25": "다이브실 / 정산",
+  "1-26": "윤 실장 사무실",
+  "1-27": "반지하 / 밤 / 1장 마지막",
+  "1-3": "하린의 집 / 거실",
+  "1-4": "하린의 집 / 저녁 식탁",
+  "1-5": "하린의 집 / 하린의 방",
+  "1-6": "[던전 구간] 길어진 복도",
+  "1-7": "하린의 집 / 부엌 / 첫 번째 결정",
+  "1-8": "다이브실 / 다이브 종료",
+  "1-9": "정육점 / 저녁",
+  "P-1": "반지하 방 / 새벽 4시",
+  "P-10": "시뮬레이션 공간 / 튜토리얼 던전",
+  "P-11": "교육실 / 다이브 종료",
+  "P-12": "윤 실장 사무실 / 배정",
+  "P-13": "반지하 / 밤",
+  "P-14": "반지하 / 새벽 (프롤로그 마지막)",
+  "P-2": "택배 물류센터 / 새벽 5시",
+  "P-3": "거리 / 오후",
+  "P-4": "편의점 / 밤 10시",
+  "P-5": "반지하 / 새벽 3시",
+  "P-6": "레테 바이오 본사 / 로비",
+  "P-7": "면접실",
+  "P-8": "다이버 탈의실",
+  "P-9": "교육실 / 시뮬레이션 다이브"
+ }
+}

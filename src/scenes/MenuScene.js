@@ -1,11 +1,13 @@
-// 시작 메뉴: 처음부터 / 이어하기 / 설정
+// 시작 화면: 레테 바이오 다이버 단말기 (화면은 src/ui/Lobby.js 의 HTML 레이어)
+// 이 장면은 단말기 뒤 캔버스 배경과 장면 시작(장 시작값 적용)만 맡는다.
 // 첫 터치에서 오디오가 활성화된다 (아이패드 사파리).
 
 import { G } from '../core/state.js';
 import { Save } from '../core/save.js';
-import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
-import { W, txt } from '../core/gfx.js';
+import { Progress } from '../core/progress.js';
+import { Lobby } from '../ui/Lobby.js';
+import { W, H } from '../core/gfx.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -15,93 +17,64 @@ export class MenuScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#000000');
     this.leaving = false;
-    this.pendingAct = null;
-    const save = Save.load() || {};
     const chapters = (G.game && G.game.chapters) || [];
-    const first = chapters[0] ? chapters[0].scenes[0] : 'P-1';
+    this.first = chapters[0] ? chapters[0].scenes[0] : 'P-1';
 
-    this.items = [];
-    if (Save.hasProgress()) {
-      this.items.push({ label: '이어하기', act: () => this.startScene(save.sceneId) });
+    // 자동 진행(테스트): 처음부터 바로
+    if (G.auto) {
+      Save.clearProgress();
+      this.time.delayedCall(100, () => this.startScene(this.first));
+      return;
     }
-    this.items.push({
-      label: '처음부터',
-      act: () => {
-        Save.clearProgress();
-        this.startScene(first);
-      }
-    });
-    this.items.push({ label: '설정', act: () => this.openSettings() });
 
-    // 조용한 첫 화면 — 빗소리만
+    // 설정 화면이 위에 뜰 때 보일 캔버스 배경 (단말기 HTML 은 그동안 숨김)
+    const key = ['bg_lobby', 'bg_dive_room'].find((k) => G.realSprites && G.realSprites.has(k));
+    if (key) this.add.image(0, 0, key).setOrigin(0).setDisplaySize(W, H).setAlpha(0.35);
+
     Audio.restore();
-    Audio.setAmbience(['rain']);
-    txt(this, W / 2, 70, (G.game && G.game.menuCaption) || '', { color: '#5c6370', origin: 0.5 });
-    this.itemTexts = this.items.map((it, i) => {
-      const t = txt(this, W / 2, 120 + i * 24, it.label, { color: '#c8ccd4', origin: 0.5, size: 12 });
-      t.setInteractive({ useHandCursor: true });
-      t.on('pointerdown', () => {
-        this.sel = i;
-        this.refresh();
-        this.pendingAct = it.act;
-      });
-      return t;
-    });
-    if (save.cleared && save.cleared.length) {
-      txt(this, W / 2, 228, '프롤로그 완료', { color: '#4a505a', origin: 0.5 });
-    }
-    this.hint = txt(this, W / 2, 252, '방향키 · Space / 화면 터치', { color: '#3e434c', origin: 0.5 });
-    this.sel = 0;
-    this.refresh();
-    this.events.on('resume', () => this.refresh());
-  }
+    Audio.setAmbience(Audio.ctx && Audio.ctx.state === 'running' ? ['aircon'] : []);
 
-  refresh() {
-    this.itemTexts.forEach((t, i) => {
-      t.setText((i === this.sel ? '▶ ' : '   ') + this.items[i].label + (i === this.sel ? '   ' : '   '));
-      t.setColor(i === this.sel ? '#ffffff' : '#7d8590');
+    this.lobbyHandlers = {
+      start: (id) => {
+        Progress.startAt(id);
+        this.startScene(id);
+      },
+      continue: () => {
+        const sv = Save.load() || {};
+        if (sv.sceneId) this.startScene(sv.sceneId);
+      },
+      newGame: () => {
+        Save.clearProgress();
+        Progress.startAt(this.first);
+        this.startScene(this.first);
+      },
+      settings: () => this.openSettings()
+    };
+    Lobby.show(this.lobbyHandlers);
+    this.events.on('resume', () => {
+      Lobby.show(this.lobbyHandlers);
+      Lobby.refresh();
     });
+    this.events.once('shutdown', () => Lobby.hide());
   }
 
   startScene(id) {
-    Audio.unlock();
-    this.cameras.main.fadeOut(600, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Story', { sceneId: id }));
+    if (this.leaving) return;
     this.leaving = true;
+    Audio.unlock();
+    Lobby.hide();
+    Audio.setAmbience([]);
+    this.cameras.main.fadeOut(400, 0, 0, 0);
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Story', { sceneId: id }));
   }
 
   openSettings() {
+    Lobby.hide();
     this.scene.launch('Settings', { from: 'Menu' });
     this.scene.pause();
   }
 
   update() {
     G.controls = false;
-    if (this.leaving) return;
-    if (this.pendingAct) {
-      const a = this.pendingAct;
-      this.pendingAct = null;
-      Input.consumeAdvance();
-      a();
-      return;
-    }
-    if (Input.justPressed('up')) {
-      this.sel = (this.sel + this.items.length - 1) % this.items.length;
-      Audio.sfx('select');
-      this.refresh();
-    }
-    if (Input.justPressed('down')) {
-      this.sel = (this.sel + 1) % this.items.length;
-      Audio.sfx('select');
-      this.refresh();
-    }
-    if (Input.justPressed('interact') || Input.justPressed('attack')) {
-      Input.consumeAdvance();
-      this.items[this.sel].act();
-    }
-    if (G.auto && !this.autoed) {
-      this.autoed = true;
-      this.time.delayedCall(100, () => this.items[this.items.length - 2].act());
-    }
   }
 }

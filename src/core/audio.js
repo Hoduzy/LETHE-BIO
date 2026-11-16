@@ -438,6 +438,10 @@ class AudioEngine {
       case 'thud': tone('sine', 120, 50, 0.15, 0.5); noise(0.08, 0.25, 300); break;
       case 'pick': tone('triangle', 400, 600, 0.06, 0.15); break;
       case 'select': tone('square', 700, null, 0.04, 0.08, 2500); break;
+      // 단말기 버튼: 짧고 깔끔한 전자음 / 켜짐 / 알림
+      case 'ui': tone('sine', 1760, null, 0.035, 0.07); break;
+      case 'uiSoft': tone('sine', 1320, null, 0.05, 0.035); break;
+      case 'uiOn': tone('sine', 880, 1760, 0.18, 0.06); this.sfx('ui', { delay: 0.22, vol: 0.6 }); break;
       case 'ok': tone('triangle', 600, 900, 0.12, 0.15); break;
       case 'miss': tone('triangle', 200, 140, 0.12, 0.12); break;
       case 'stamp': tone('sine', 90, 40, 0.18, 0.5); noise(0.05, 0.3, 400); break;
@@ -632,6 +636,16 @@ class AudioEngine {
           if (Math.random() < 0.5) this.sfx('pop', { vol: 0.5 });
         }, 700));
         level = 0.5;
+        break;
+      }
+      case 'aircon': {
+        // 사무실 공조기: 아주 작은 바람 소리
+        const air = loopNoise(this.brownBuffer, 'lowpass', 700);
+        const ag = ctx.createGain();
+        ag.gain.value = 0.5;
+        air.connect(ag);
+        ag.connect(out);
+        level = 0.05;
         break;
       }
       case 'fridge': {

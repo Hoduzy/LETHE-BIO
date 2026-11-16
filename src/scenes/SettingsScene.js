@@ -6,6 +6,8 @@ import { Input } from '../core/input.js';
 import { Audio } from '../core/audio.js';
 import { W, H, txt, panel } from '../core/gfx.js';
 import { layoutTouch } from '../core/touch.js';
+import { Progress } from '../core/progress.js';
+import { CodeModal } from '../ui/CodeModal.js';
 
 const SIZES = [['small', '작게'], ['normal', '보통'], ['large', '크게']];
 
@@ -34,11 +36,14 @@ export class SettingsScene extends Phaser.Scene {
       { key: 'ctrlSize', label: '버튼 크기', type: 'choice', options: SIZES },
       { key: 'ctrlOpacity', label: '버튼 불투명도', type: 'slider', min: 0.2 }
     ];
+    // 세이브 코드: 저장을 짧은 글자로 복사 / 붙여넣어 불러오기
+    this.rows.push({ label: '세이브 코드 복사', type: 'button', act: () => this.copyCode() });
+    this.rows.push({ label: '세이브 코드 붙여넣기', type: 'button', act: () => this.pasteCode() });
     if (this.from === 'Story') this.rows.push({ label: '메뉴로 나가기', type: 'button', act: () => this.toMenu() });
     this.rows.push({ label: '닫기', type: 'button', act: () => this.close() });
 
     this.rowTexts = this.rows.map((r, i) => {
-      const y = 56 + i * 19;
+      const y = 52 + i * 17;
       const label = txt(this, 112, y, r.label, { color: '#c8ccd4' });
       label.setInteractive();
       label.on('pointerdown', () => {
@@ -62,7 +67,8 @@ export class SettingsScene extends Phaser.Scene {
       const bars = r.type === 'slider' ? this.add.graphics() : null;
       return { label, value, left, right, bars, y };
     });
-    txt(this, W / 2, 234, '↑↓ 선택 · ←→ 조절 · Space 확인', { origin: [0.5, 0], color: '#5c6370' });
+    this.msg = txt(this, W / 2, 222, '', { origin: [0.5, 0], color: '#9fd6d4', small: true });
+    txt(this, W / 2, 236, '↑↓ 선택 · ←→ 조절 · Space 확인', { origin: [0.5, 0], color: '#5c6370' });
     this.sel = 0;
     this.refresh();
   }
@@ -126,8 +132,45 @@ export class SettingsScene extends Phaser.Scene {
     });
   }
 
+  say(m) {
+    this.msg.setText(m);
+    this.msg.setAlpha(1);
+    this.tweens.killTweensOf(this.msg);
+    this.tweens.add({ targets: this.msg, alpha: 0, delay: 2600, duration: 600 });
+  }
+
+  copyCode() {
+    const code = Progress.encode();
+    if (!code) {
+      this.say('저장된 다이브 기록이 없습니다.');
+      return;
+    }
+    const done = () => this.say('세이브 코드를 복사했습니다.');
+    const manual = () => CodeModal.open({ mode: 'copy', code, onClose: () => this.say('세이브 코드를 복사해 두세요.') });
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, manual);
+      else manual();
+    } catch (e) {
+      manual();
+    }
+  }
+
+  pasteCode() {
+    CodeModal.open({
+      mode: 'paste',
+      onSubmit: (text) => {
+        const st = Progress.decode(text);
+        if (!st) return '올바른 세이브 코드가 아닙니다. 다시 확인해 주세요.';
+        Save.set(st);
+        this.say('세이브 코드를 불러왔습니다.');
+        return null;
+      }
+    });
+  }
+
   close() {
     Input.consumeAdvance();
+    CodeModal.close();
     this.overlays.forEach((k) => this.scene.resume(k));
     this.scene.resume(this.from);
     this.scene.stop();
@@ -143,6 +186,7 @@ export class SettingsScene extends Phaser.Scene {
 
   update() {
     G.controls = false;
+    if (CodeModal.isOpen()) return;
     if (this.pending) {
       const a = this.pending;
       this.pending = null;
