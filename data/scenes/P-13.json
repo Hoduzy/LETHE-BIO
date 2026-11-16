@@ -45,7 +45,7 @@
       {"id": "desk", "ph": "ph_desk", "x": 390},
       {"id": "envelopes", "obj": "envelopes", "x": 380, "y": 186},
       {"id": "door", "ph": "ph_door", "x": 461},
-      {"id": "stove", "ph": "ph_stove", "x": 333},
+      {"id": "stove", "obj": "burner_off", "x": 333, "y": 235, "scale": 0.57, "keep": true, "depth": 9, "tint": "#8a7480"},
       {"id": "pot", "obj": "pot", "x": 333},
       {"id": "low_table", "ph": "ph_low_table", "x": 390},
       {"id": "lamp", "obj": "lamp", "x": 352, "y": 200, "glow": true}
@@ -76,6 +76,7 @@
     {"type": "say", "speaker": "어머니", "text": "좋은 일 하는 데구나.", "face": 1},
     {"type": "say", "speaker": "도윤", "text": "…응. 좋은 일 하는 데야.", "face": 5},
     {"type": "actor", "id": "mother", "action": "move", "x": 318, "speed": 30, "face": 1, "anim": "cook"},
+    {"type": "prop", "id": "stove", "action": "obj", "obj": "burner_on"},
     {"type": "sfx", "name": "pot"},
     {"type": "narration", "text": "어머니가 부엌으로 간다. 냄비 소리."},
     {"type": "say", "speaker": "어머니", "text": "찌개 데울게. 오늘은 계란도 넣어줄게.", "face": 1},

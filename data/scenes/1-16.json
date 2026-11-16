@@ -13,7 +13,7 @@
     "bgColor": "#000000",
     "ambience": ["drip"],
     "abilities": ["move", "jump", "dash", "attack", "parry"],
-    "player": {"x": 70, "facing": 1, "char": "diver"},
+    "player": {"x": 70, "facing": 1, "char": "diver", "armed": true},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#c9c0ac"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#b8ae98"},

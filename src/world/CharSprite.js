@@ -179,9 +179,12 @@ export class CharSprite {
   // 동작 재생. 반복 없는 동작은 끝날 때 resolve
   // opts.loop: 장면 JSON 의 loop: true (반복판), opts.once: 몸짓 — 한 번 재생한 뒤 idle 로
   play(name, opts = {}) {
+    // variant: 같은 동작의 다른 그림 묶음 (맨손 다이버 'free_'). 그 묶음에 있는 동작만 바꿔 쓴다 (공격·수확은 원래 그림)
+    const asked = name;
+    if (this.variant && this.anims[this.variant + name]) name = this.variant + name;
     const a = this.anims[name];
     if (!a) return Promise.resolve();
-    this.current = name;
+    this.current = asked;
     this.playToken = (this.playToken || 0) + 1;
     const token = this.playToken;
     const ph = a[1];

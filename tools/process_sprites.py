@@ -42,11 +42,16 @@ CHAR_HEIGHT = {
     'butcher_actions': 98, 'enemy_shade': 96,
     # 앉은 자세 시트: 다이버는 1칸이 선 자세(96). 하린은 모두 앉은 자세라 원본의 '앉은 키 / 선 키' 비율(0.83)로 96 × 0.83
     'diver_sit': 96, 'harin_sit': 80,
+    # 맨손 다이버(1칸 서기 96), 손잡고 달리는 하린(달리기 자세 키 = harin_actions run 과 같은 91),
+    # 캡슐 안 재희(4칸 앉은 키 기준 75 → 누운 길이 약 118, 선 키 98 + 머리 위로 올린 팔)
+    'diver_unarmed': 96, 'harin_run_hold': 91, 'jaehee_capsule': 75,
 }
 # 몸과 떨어진 작은 덩어리(효과 선)를 지울 프레임 (1부터): 엄마 국자 칸의 '부르는' 선
 CLEAN_DETACHED = {'harin_mom_actions': [6]}
 # 키를 잴 프레임 (첫 칸이 서 있는 자세가 아닌 시트): harin_moods 1칸은 앉은 자세 → 2칸(서서 손 뻗기)
-REF_FRAME = {'harin_moods': 1}
+REF_FRAME = {'harin_moods': 1, 'jaehee_capsule': 3}
+# 누운 자세 시트: 모든 칸의 왼쪽 끝(머리)을 칸 안 이 x 에 맞춘다
+LEFT_ALIGN = {'jaehee_capsule': 4}
 BASE_HEIGHT = 96
 VOID_HEIGHT = 32
 # 여러 인물이 한 시트에 있는 것: 줄(또는 칸)마다 키가 다르므로 첫 프레임들의 중앙값을 96 으로
@@ -55,6 +60,7 @@ OBJ_ROWS = {  # 물건 한 줄 시트: (기준, 목표 크기px, 좌우 정렬 �
     'obj_crystal_amber': ('h', 12, 'center'),
     'obj_crystal_gray': ('h', 20, 'base'),
     'obj_capsule': ('w', 80, 'base'),
+    'obj_burner': ('w', 56, 'base'),
 }
 # 그림이 서로 겹쳐 자동으로 못 나누는 시트: 원본 픽셀 x 로 자를 위치를 직접 지정
 MANUAL_CUTS = {
@@ -529,7 +535,8 @@ def process_char(name, sheet):
             continue
         ys, xs = np.where(al)
         bottom = ys.max()
-        mid = body_center(al)
+        # 누운 그림 시트는 몸통 중심이 아니라 왼쪽 끝(머리)을 같은 자리에 맞춘다
+        mid = (int(xs.min()) + cw // 2 - LEFT_ALIGN[name]) if name in LEFT_ALIGN else body_center(al)
         cell = np.zeros((ch, cw, 4), np.uint8)
         place(cell, small, cw // 2 - mid, ch - 1 - bottom, f'{name} {i + 1}번 칸')
         r, c = divmod(i, cols)

@@ -71,6 +71,7 @@ export class Player {
     this.maxHp = opts.hp || 0;
     // 리퍼는 던전·전투·수확 때만: 공격 능력이 없으면 서 있을 때 빈손 (stage.player.armed 로 바꿀 수 있음)
     this.unarmed = opts.armed != null ? !opts.armed : (this.dive && !this.abilities.has('attack'));
+    this.cs.variant = this.unarmed ? 'free_' : null;
     this.hp = this.maxHp;
     this.invuln = 0;
   }
@@ -136,6 +137,17 @@ export class Player {
       this.setOverride(null);
     }
     this.cs.sync();
+  }
+
+  // 리퍼를 든 그림(armed) ↔ 맨손 그림. 장면 JSON player.armed, 수확·전투 때는 엔진이 잠깐 켠다
+  setArmed(on) {
+    const un = !on;
+    if (this.unarmed === un) return;
+    this.unarmed = un;
+    this.cs.variant = un ? 'free_' : null;
+    const cur = this.override || this.cs.current;
+    this.cs.current = null;
+    if (cur) this.cs.play(cur);
   }
 
   setAnim(name) {
@@ -257,7 +269,7 @@ export class Player {
           this.setAnim('run');
         } else {
           // 공격이 없는 꿈속 장면(식탁·대화): 리퍼 없는 빈손 서 있기 (그림이 있을 때)
-          this.setAnim(this.unarmed && this.cs.anims.free ? 'free' : 'idle');
+          this.setAnim('idle');
         }
       } else {
         this.setAnim(Math.abs(b.velocity.x) > 1 && grounded ? 'walk' : 'idle');

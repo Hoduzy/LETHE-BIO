@@ -16,7 +16,8 @@ import { Progress } from '../core/progress.js';
 import { Companion } from '../world/Companion.js';
 
 // 손잡고 달리기의 손 위치 (칸 128 기준 px)
-const HAND = { harinBack: 15, doyunFront: 8, up: 53 };
+// harin_run_hold: 뒤로 뻗은 손끝 = 칸 가운데에서 23px 뒤, 바닥에서 53px 위. diver_unarmed run: 앞쪽 주먹 = 가운데에서 13px 앞, 바닥에서 50px 위
+const HAND = { harinBack: 23, doyunFront: 13, harinUp: 53, doyunUp: 50 };
 
 const methods = {
   // ------------------------------------------------------------------
@@ -54,7 +55,6 @@ const methods = {
     if (this.hud) this.hud.update(this.player);
     if (this.area && this.mode === 'play') this.updateAreas();
     this.updateHints(dt);
-    if (this.handG) this.drawHand();
   },
 
   // ------------------------------------------------------------------
@@ -394,7 +394,8 @@ const methods = {
   },
 
   // 손잡고 달리기: 하린이 앞, 도윤은 반걸음 뒤. 둘 다 같은 쪽을 보고 달린다. 뒤에서 가족 잔상이 손을 흔든다
-  //  하린은 harin_moods 2번(팔을 뒤로 뻗어 손을 잡은 자세)에 달리기 들썩임을 더한다. 뻗은 손끝 = 도윤의 앞손
+  //  하린은 harin_run_hold (팔을 뒤로 뻗은 달리기 6프레임. 묶은 머리 = 윗줄, 풀린 머리 = 아랫줄 — 캐릭터의 run_hold)
+  //  도윤은 맨손 달리기(diver_unarmed run). 하린의 뒤로 뻗은 손끝과 도윤의 앞쪽 손이 맞닿게 간격·높이를 맞춘다
   //  { type: 'escape', to: x, speed, wave: ['mom', ...] }  — 끝점은 앞선 하린까지 화면(장면) 안에 들어오게 줄인다
   async step_escape(s) {
     const p = this.player;
@@ -413,34 +414,34 @@ const methods = {
     const dir = s.to < p.x ? -1 : 1;
     p.body.setVelocity(0, 0);
     p.body.enable = false;
+    const wasUnarmed = p.unarmed;
+    p.setArmed(false);
     p.override = null;
     p.setOverride(p.dive ? 'run' : 'walk');
     p.face(dir);
     const ks = Math.abs(p.cs.sprite.scaleX) || 1;
-    // 하린 그림(harin_moods 2): 뒤로 뻗은 손 = 칸 가운데에서 15px 뒤, 바닥에서 53px 위. 도윤 앞손 = 가운데에서 8px 앞
-    const gap = c ? (HAND.harinBack + HAND.doyunFront) * Math.abs(c.cs.sprite.scaleX || ks) : 0;
+    const kc = c ? Math.abs(c.cs.sprite.scaleX) || ks : ks;
+    const gap = c ? HAND.harinBack * kc + HAND.doyunFront * ks : 0;
     const cam = this.cameras.main;
     const bd = cam.getBounds ? cam.getBounds() : { x: 0, width: W };
-    const margin = 18 * ks;
+    const margin = 22 * ks;
     let to = s.to;
     if (dir > 0) to = Math.min(to, bd.x + bd.width - margin - gap);
     else to = Math.max(to, bd.x + margin + gap);
-    let bob = null;
+    // 손 높이는 그림에서 3px 차이(하린 53, 도윤 50)라 발을 띄우지 않고 그대로 둔다 — 손 크기 안에서 겹친다
+    const lift = 0;
     if (c) {
       c.setFollow(false);
       c.cs.setVisible(true);
       c.cs.clearPose && c.cs.clearPose();
       c.cs.face(dir);
-      c.cs.play(c.cs.has('hold_hand') ? 'hold_hand' : (c.cs.anims.run ? 'run' : 'walk'), { hold: true });
+      c.cs.play(c.cs.has('run_hold') ? 'run_hold' : 'run', { loop: true });
       c.cs.setPosition(p.x + dir * gap, p.y);
-      bob = { v: 0 };
-      this.tweens.add({ targets: bob, v: 1, duration: 150, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     }
-    this.handDir = dir;
-    this.handG = this.add.graphics().setDepth(Math.max(p.cs.sprite.depth, c ? c.cs.sprite.depth : 0) + 0.1);
     const speed = (s.speed || 70) * this.unit;
     const dist = Math.abs(to - p.x);
     const st = { x: p.x };
+    this.escaping = true;
     await new Promise((res) => this.tweens.add({
       targets: st,
       x: to,
@@ -448,44 +449,19 @@ const methods = {
       onUpdate: () => {
         p.cs.zone.x = st.x;
         p.cs.sync();
-        if (c) {
-          c.cs.setPosition(st.x + dir * gap, p.y);
-          c.cs.sprite.y = p.y - Math.round(bob.v * 2 * ks);
-          c.cs.sprite.setAngle(dir * 3);
-        }
+        if (c) c.cs.setPosition(st.x + dir * gap, p.y + lift);
       },
       onComplete: res
     }));
-    if (c) {
-      this.tweens.killTweensOf(bob);
-      c.cs.sprite.setAngle(0);
-      c.cs.setPosition(c.cs.x, p.y);
-    }
+    this.escaping = false;
+    if (c) c.cs.setPosition(c.cs.x, p.y);
     if (s.stop !== false) {
       p.body.enable = true;
       p.body.reset(to, p.cs.zone.y);
       p.setOverride(null);
+      if (c) c.cs.play('idle');
     }
-    this.handG.destroy();
-    this.handG = null;
-  },
-
-  // 잡은 손: 하린의 뒤로 뻗은 손끝과 도윤의 앞손을 잇는 짧은 살색 선 (둘 사이가 벌어져도 손이 떨어져 보이지 않게)
-  drawHand() {
-    const g = this.handG;
-    const p = this.player;
-    const c = this.companion;
-    g.clear();
-    if (!c) return;
-    const k = Math.abs(c.cs.sprite.scaleX) || 1;
-    const d = this.handDir;
-    const hx1 = p.x + d * HAND.doyunFront * k;
-    const hx2 = c.cs.sprite.x - d * HAND.harinBack * k;
-    const hy = c.cs.sprite.y - HAND.up * k;
-    g.lineStyle(Math.max(2, Math.round(2.5 * k)), 0xe8c4a8, 1);
-    g.lineBetween(hx1, hy + 1, hx2, hy);
-    g.fillStyle(0xe8c4a8, 1);
-    g.fillCircle(hx2, hy, Math.max(1.5, 1.6 * k));
+    if (!wasUnarmed) p.setArmed(true);
   },
 
   // ------------------------------------------------------------------

@@ -832,6 +832,9 @@ export class StoryScene extends Phaser.Scene {
         pl.lie(true, s.anim || 'lie_sleep', { lift: s.lift, depth: s.depth });
         if (pl.cs.laneName === 'capsule') this.stage.fitCapsule(pl.cs);
         break;
+      case 'armed':
+        pl.setArmed(s.value !== false);
+        break;
       case 'hide':
         pl.setVisible(false);
         break;
@@ -1378,6 +1381,9 @@ export class StoryScene extends Phaser.Scene {
     const target = this.stage.get(s.target);
     const o = target.obj;
     if (s.tutorial) this.panels.banner(s.tutorial.title, s.tutorial.lines);
+    // 수확하는 동안에는 리퍼를 든다 (맨손 장면이면 수확이 끝난 뒤 다시 맨손)
+    const wasUnarmed = this.player.unarmed;
+    this.player.setArmed(true);
     // 누르는 동안 잔상의 목소리: holdLines [{ at: 0~1, speaker, text, vol }] — 그 진행도를 넘을 때 한 번씩
     const holdLines = (s.holdLines || []).map((l) => Object.assign({ said: false }, l));
     const quietUntilDone = holdLines.length > 0 || s.silence === 'done';
@@ -1447,6 +1453,7 @@ export class StoryScene extends Phaser.Scene {
     }
     await this.wait(s.after || 1800);
     this.player.setOverride(null);
+    if (wasUnarmed) this.player.setArmed(false);
     if (s.restore !== false) Audio.restore();
   }
 

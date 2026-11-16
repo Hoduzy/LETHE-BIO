@@ -8,12 +8,12 @@
     "width": 480,
     "floorY": 240,
     "charScale": 1.5,
-    "charTint": "#ffd3c6",
-    "charBrightness": 0.77,
+    "charTint": "#ffdfd6",
+    "charBrightness": 0.81,
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
-    "player": {"x": 90, "facing": 1, "char": "diver"},
+    "player": {"x": 150, "facing": 1, "char": "diver", "armed": false},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#dfeaf6"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#d0dff0"},
@@ -30,19 +30,20 @@
       {"rect": [64, 54, 32, 22], "color": "#5aa0d8"}
     ],
     "props": [
-      {"id": "light_door", "ph": "ph_door_light", "x": 18, "visible": false, "depth": 11, "glow": true, "keep": true},
-      {"id": "cake", "crop": [71, 89, 51, 39], "cropBg": "obj_ch1", "x": 345, "y": 129, "scale": 0.6, "depth": 6},
-      {"id": "hat", "obj": "party_hat", "x": 412, "y": 240, "depth": 22, "visible": false, "keep": true, "scale": 0.386},
-      {"id": "crystal", "obj": "crystal_ch1", "x": 412, "y": 178, "scale": 0.45, "glow": true, "depth": 24, "visible": false, "label": "결정", "range": 18, "keep": true}
+      {"id": "door_cover", "cover": {"open": [39, 47, 59, 179], "leaf": [0, 26, 39, 212], "spill": [36, 226, 130, 26], "base": 226, "door": "#ee7c42", "wall": "#8d676a", "floor": "#b05a43", "hinge": "left"}, "x": 39, "y": 47, "depth": 1.5},
+      {"id": "light_door", "ph": "ph_door_light", "x": 68, "y": 226, "w": 59, "h": 179, "spill": 94, "visible": false, "depth": 11, "glow": true, "keep": true},
+      {"id": "cake", "crop": [71, 89, 51, 39], "cropBg": "obj_ch1", "x": 413, "y": 133, "scale": 0.6, "depth": 6},
+      {"id": "hat", "obj": "party_hat", "x": 396, "y": 240, "depth": 22, "visible": false, "keep": true, "scale": 0.351},
+      {"id": "crystal", "obj": "crystal_ch1", "x": 396, "y": 178, "scale": 0.45, "glow": true, "depth": 24, "visible": false, "label": "결정", "range": 18, "keep": true}
     ],
     "actors": [
-      {"id": "harin", "char": "harin", "x": 40, "speaker": "하린", "facing": 1},
-      {"id": "hajun", "char": "hajun10", "x": 412, "speaker": "하준(잔상)", "facing": -1, "anim": "party", "phase": "normal"}
+      {"id": "harin", "char": "harin", "x": 118, "speaker": "하린", "facing": 1},
+      {"id": "hajun", "char": "hajun10", "x": 396, "speaker": "하준(잔상)", "facing": -1, "anim": "party", "phase": "normal"}
     ],
     "windowBreath": true,
     "companion": {"id": "harin", "follow": true, "hud": true},
     "effects": [
-      {"name": "candles", "x": 360, "y": 131, "count": 10, "w": 21}
+      {"name": "candles", "x": 428, "y": 135, "count": 10, "w": 21}
     ]
   },
   "steps": [
@@ -71,7 +72,7 @@
     {"type": "say", "speaker": "하린", "text": "저거… 저기 반짝여요! 하준이한테서!", "face": 3},
     {"type": "say", "speaker": "하린", "text": "하준이가 열쇠를 갖고 있었어?", "face": 6},
     {"type": "actor", "id": "harin", "action": "anim", "name": "idle"},
-    {"type": "player", "action": "move", "x": 372, "face": 1},
+    {"type": "player", "action": "move", "x": 352, "face": 1},
     {"type": "narration", "text": "도윤이 하준 앞으로 간다. 하준이 고개를 들어 도윤을 본다."},
     {"type": "say", "speaker": "하준(잔상)", "text": "아저씨는 누구야?", "face": 1},
     {"type": "say", "speaker": "도윤", "text": "…누나 친구.", "face": 1},
@@ -84,6 +85,7 @@
     {"type": "parallel", "steps": [{"type": "actor", "id": "hajun", "action": "hide", "fade": 300}, {"type": "prop", "id": "hat", "action": "show"}, {"type": "sfx", "name": "pop"}]},
     {"type": "narration", "text": "하준의 고깔모자가 바닥에 떨어진다. 하준은 거기 없다."},
     {"type": "say", "speaker": "하린", "text": "하준아?", "face": 3},
+    {"type": "prop", "id": "door_cover", "action": "hide"},
     {"type": "crumble", "wait": false, "rowDelay": 480},
     {"type": "narration", "text": "방이 무너지기 시작한다."},
     {"type": "prop", "id": "light_door", "action": "show"},
@@ -92,7 +94,7 @@
     {"type": "say", "speaker": "하린", "text": "하준이는?!", "face": 5},
     {"type": "actor", "id": "harin", "action": "anim", "name": "hold_hand"},
     {"type": "say", "speaker": "도윤", "text": "(하린의 손을 잡는다) 문 열렸어요. 가요.", "face": 4},
-    {"type": "parallel", "steps": [{"type": "escape", "to": 50, "speed": 40}, {"type": "narration", "text": "둘이 달린다. 뒤에서 이층침대가 무너진다. 레고 조각이 쏟아진다. 소리가 없다."}]},
+    {"type": "parallel", "steps": [{"type": "escape", "to": 126, "speed": 40}, {"type": "narration", "text": "둘이 달린다. 뒤에서 이층침대가 무너진다. 레고 조각이 쏟아진다. 소리가 없다."}]},
     {"type": "actor", "id": "harin", "action": "face", "dir": 1},
     {"type": "say", "speaker": "하린", "text": "(달리면서, 뒤를 돌아보며) 하준아! 누나 금방 올게! 금방 데리러 올게!", "face": 5},
     {"type": "fade", "to": "white", "ms": 2200},

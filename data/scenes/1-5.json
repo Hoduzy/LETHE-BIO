@@ -13,7 +13,7 @@
     "bgColor": "#000000",
     "ambience": ["stew"],
     "abilities": ["move", "jump", "dash"],
-    "player": {"x": 300, "facing": -1, "char": "diver"},
+    "player": {"x": 300, "facing": -1, "char": "diver", "armed": false},
     "backdrop": [
       {"rect": [0, 0, 480, 232], "color": "#f2e2e6"},
       {"vlines": [10, 18, 206, 22, 22], "color": "#e8d4da"},

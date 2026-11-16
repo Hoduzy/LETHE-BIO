@@ -380,6 +380,8 @@ export class Stage {
       if (t.real && t.anim && s.anims.exists(t.anim) && p.animate !== false) img.play(t.anim);
       // 손에 드는 물건은 인물과 같은 배율 (따로 정하면 그 값)
       img.setScale(p.scale != null ? p.scale : (s.charScale || 1) * UNIT);
+    } else if (p.cover) {
+      img = this.doorCover(p);
     } else if (p.ph === 'ph_door_light' && p.keep) {
       img = this.doorGlow(p, y);
     } else if (p.ph) {
@@ -403,11 +405,67 @@ export class Stage {
     img.setDepth(p.depth != null ? p.depth : DEPTH.prop);
     if (p.flip) img.setFlipX(true);
     if (p.alpha != null && !img.bgHidden) img.setAlpha(p.alpha);
+    // tint: 장면 조명에 맞춰 물들이기 (어두운 방의 버너 등)
+    if (p.tint && !img.bgHidden && img.setTint) img.setTint(col(p.tint));
     if (p.visible === false) img.setVisible(false);
     if (p.glow && !img.bgHidden) {
       s.tweens.add({ targets: img, alpha: { from: 0.75, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
     }
     return img;
+  }
+
+  // 닫힌 문 덮개: 배경에 그려진 '하얗게 빛나는 열린 문' 위에 얹어 닫혀 보이게 한다 (수확 순간 prop hide 로 걷는다)
+  //  cover: { open: [x, y, w, h] 문틀 안(하얀 부분), leaf: [x, y, w, h] 열린 문짝, spill: [x, y, w, h] 바닥에 번진 빛,
+  //           door: 문 색, wall: 벽 색, floor: 바닥 색, base: 걸레받이 y, hinge: 'left'|'right' 경첩 쪽 }
+  doorCover(p) {
+    const c = p.cover;
+    const g = this.scene.add.graphics();
+    const [ox, oy, ow, oh] = c.open;
+    if (c.leaf) {
+      // 열린 문짝을 벽·바닥 색으로 덮는다
+      const [lx, ly, lw, lh] = c.leaf;
+      const base = c.base != null ? c.base : oy + oh;
+      g.fillStyle(col(c.wall), 1);
+      g.fillRect(lx, ly, lw, Math.max(0, base - ly));
+      g.fillStyle(col(c.floor), 1);
+      g.fillRect(lx, base, lw, Math.max(0, ly + lh - base));
+      g.fillStyle(0x000000, 0.22);
+      g.fillRect(lx, base - 5, lw, 5);
+    }
+    if (c.spill) {
+      // 바닥에 번진 빛을 눌러 준다
+      const [sx, sy, sw, sh] = c.spill;
+      g.fillStyle(col(c.floor), 0.82);
+      g.fillRect(sx, sy, sw, sh);
+    }
+    // 닫힌 문: 문틀 안을 문 색으로, 위아래 판 두 장과 손잡이
+    const door = Phaser.Display.Color.HexStringToColor(c.door);
+    const shade = (k) => Phaser.Display.Color.GetColor(Math.round(door.red * k), Math.round(door.green * k), Math.round(door.blue * k));
+    g.fillStyle(shade(0.78), 1);
+    g.fillRect(ox, oy, ow, oh);
+    g.fillStyle(shade(0.62), 1);
+    g.fillRect(ox, oy, ow, 2);
+    g.fillRect(ox, oy, 2, oh);
+    g.fillRect(ox + ow - 2, oy, 2, oh);
+    const pw = ow - 16;
+    const ph1 = Math.round(oh * 0.36);
+    const ph2 = Math.round(oh * 0.4);
+    [[oy + 12, ph1], [oy + 12 + ph1 + 12, ph2]].forEach(([py, ph]) => {
+      g.fillStyle(shade(0.6), 1);
+      g.fillRect(ox + 8, py, pw, ph);
+      g.fillStyle(shade(0.86), 1);
+      g.fillRect(ox + 10, py + 2, pw - 4, ph - 4);
+      g.fillStyle(shade(0.72), 1);
+      g.fillRect(ox + 10, py + ph - 5, pw - 4, 3);
+    });
+    const kx = c.hinge === 'left' ? ox + ow - 7 : ox + 7;
+    g.fillStyle(0xd8c890, 1);
+    g.fillCircle(kx, oy + Math.round(oh * 0.52), 2.5);
+    g.fillStyle(0x000000, 0.25);
+    g.fillRect(ox, oy + oh - 3, ow, 3);
+    g.setDepth(p.depth != null ? p.depth : DEPTH.backdrop + 0.95);
+    if (p.visible === false) g.setVisible(false);
+    return g;
   }
 
   // 열린 문에서 새어 나오는 빛: 문 모양의 부드러운 세로 빛 + 바닥에 번지는 빛 (가장자리는 흐리게, 더하기 섞기)
